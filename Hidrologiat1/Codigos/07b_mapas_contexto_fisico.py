@@ -329,11 +329,12 @@ def precip_layer(ax):
                     linewidths=0.6, alpha=0.8)
     ax.clabel(cs, fmt="%d", fontsize=7, inline=True)
     overlay(ax)
-    cb = plt.colorbar(im, ax=ax, orientation="horizontal", fraction=0.045, pad=0.08)
+    cax = ax.inset_axes([0.0, -0.105, 1.0, 0.022])              # no encoge el mapa (mismo tamaño que los demás)
+    cb = plt.colorbar(im, cax=cax, orientation="horizontal")
     cb.set_label(f"P (mm/año) · isoyetas cada 100 mm · promedio de cuenca ponderado por área "
                  f"{P_MEDIA:.0f} mm/año", fontsize=8)
     cb.ax.tick_params(labelsize=7.5)
-    ax.text(0.01, -0.2, "Fuente de apoyo: CHIRPS v2.0 mensual, 0.05° (Funk et al. 2015; doi:10.15780/G2RP4Q),\n"
+    ax.text(0.0, -0.17, "Fuente de apoyo: CHIRPS v2.0 mensual, 0.05° (Funk et al. 2015; doi:10.15780/G2RP4Q),\n"
             "interpolado de forma bilineal a la malla del DEM: la representación es continua, pero el\n"
             "detalle real es de 0.05° (~5.5 km). CHIRPS subestima frente a la P$_L$ del análisis,\n"
             f"CAMELS-PE ({P_CAMELS:.0f} mm/año, sin malla espacial): el mapa muestra el patrón espacial,\n"
@@ -384,17 +385,17 @@ fig.legend(handles=COMMON, loc="lower right", fontsize=7, frameon=False, bbox_to
 fig.savefig(OUT / "mapa_geologia_unidades_ingemmet.png", dpi=200, bbox_inches="tight")
 plt.close(fig)
 
-# Panel compuesto 2 x 2
-fig, axs = plt.subplots(2, 2, figsize=(17, 28.5))
-fig.subplots_adjust(left=0.05, right=0.98, top=0.94, bottom=0.17, hspace=0.36, wspace=0.12)
+# Panel compuesto 1 x 4 (horizontal: cada mapa a la altura completa de la fila)
+fig, axs = plt.subplots(1, 4, figsize=(34, 15.5))
+fig.subplots_adjust(left=0.025, right=0.995, top=0.875, bottom=0.30, wspace=0.16)
 for ax, fn in zip(axs.flat, themes.values()):
     fn(ax)
-fig.legend(handles=COMMON, loc="upper center", ncol=4, fontsize=10, frameon=False,
-           bbox_to_anchor=(0.5, 0.975))
+fig.legend(handles=COMMON, loc="upper center", ncol=4, fontsize=11, frameon=False,
+           bbox_to_anchor=(0.5, 0.94))
 fig.suptitle("Contexto físico de la cuenca del río Chicama hasta la estación El Tambo "
-             f"(CAMELS-PE PE_47E0A2A8, {A_km2:,.0f} km²)", fontsize=15, y=0.993)
-fig.text(0.5, 0.963, CRS_TXT + "  ·  Límite, red y río Chicama derivados de Copernicus GLO-30 (D8)",
-         ha="center", va="top", fontsize=9)
+             f"(CAMELS-PE PE_47E0A2A8, {A_km2:,.0f} km²)", fontsize=17, y=0.995)
+fig.text(0.5, 0.965, CRS_TXT + "  ·  Límite, red y río Chicama derivados de Copernicus GLO-30 (D8)",
+         ha="center", va="top", fontsize=10)
 fig.savefig(OUT / "panel_contexto_fisico.png", dpi=150)
 plt.close(fig)
 
