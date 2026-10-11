@@ -44,7 +44,7 @@ pip install -r requirements.txt
 cd Hidrologiat1/Codigos
 ```
 
-Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 22 → 30a → 30b → 29`.
+Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 22 → 30a → 30b → 31 → 29`.
 
 El script 09 descarga y verifica CAMELS-PE v1.0.1 desde Zenodo. Después hay que **extraer el ZIP**
 en `Tarea 1/CAMELS_PE/`, porque el script 06 lee de ahí el polígono y las estaciones.

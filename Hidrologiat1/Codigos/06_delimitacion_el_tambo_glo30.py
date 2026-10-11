@@ -395,10 +395,7 @@ ax.set_title(f"Cuenca del río Chicama hasta la estación {GAUGE_NAME} ({GID})\n
 ax.text(0.5, -0.165, cats_txt + "\nCoordenadas geográficas WGS 84 (EPSG:4326)  ·  Delimitación "
         "y morfometría calculadas en WGS 84 / UTM 17S (EPSG:32717)\nFuente DEM: Copernicus "
         "GLO-30 DSM (ESA/Airbus)  ·  Red de drenaje derivada con D8 (pysheds)  ·  Estaciones: "
-        "CAMELS-PE v1.0.1 y red SENAMHI (mapa web, consulta 2026-10)  ·  Límites: Natural Earth\n"
-        "Recuadro de Sudamérica: flujo de vapor de agua integrado en la vertical (IVT) de ERA5, media dic–abr "
-        "del periodo común 1998-01 a 2025-08; color = magnitud, flechas = dirección\n(una cada 4°, malla de 1°). "
-        "Estación seca y viento en 500 hPa: mapa_transporte_humedad_era5.png (scripts 24 y 25)",
+        "CAMELS-PE v1.0.1 y red SENAMHI (mapa web, consulta 2026-10)  ·  Límites: Natural Earth",
         transform=ax.transAxes, ha="center", va="top", fontsize=7.5)
 
 # Mapas de ubicación: Sudamérica y Perú
@@ -410,31 +407,10 @@ countries[countries["CONTINENT"] == "South America"].plot(ax=ax_sa, color="#eeee
 peru.plot(ax=ax_sa, color="#d9c9a3", edgecolor="#555555", linewidth=0.5)
 ax_sa.add_patch(Rectangle(PERU_BOX[:2], PERU_BOX[2] - PERU_BOX[0], PERU_BOX[3] - PERU_BOX[1],
                           fill=False, edgecolor="red", linewidth=1))
-# Transporte de humedad de ERA5 en la estación húmeda (IVT dic–abr, periodo común; script 24).
-# Si la climatología aún no existe (el script 24 corre después de 09 y 10), el recuadro queda sin vectores.
-if ERA5_CLIM.exists():
-    clim = xr.open_dataset(ERA5_CLIM).sel(estacion="dic-abr", lon=slice(-92, -32), lat=slice(-30, 14))
-    m_ivt = ax_sa.pcolormesh(clim.lon, clim.lat, clim["ivt"], cmap="YlGnBu", vmin=0, vmax=350,
-                             shading="nearest", alpha=0.85, zorder=1)
-    countries.cx[-95:-30, -35:15].boundary.plot(ax=ax_sa, color="#222222", linewidth=0.5, zorder=2)
-    s = slice(1, None, 4)
-    q = ax_sa.quiver(clim.lon[s], clim.lat[s], clim["ivt_e"][s, s], clim["ivt_n"][s, s], scale=2400,
-                     width=0.005, color="#1d1d1b", zorder=4)
-    # Fondo blanco para la barra de colores y la flecha de referencia (esquina inferior izquierda, océano)
-    ax_sa.add_patch(Rectangle((0.01, 0.01), 0.47, 0.25, transform=ax_sa.transAxes, fc="white", ec="#999999",
-                              lw=0.5, alpha=0.92, zorder=5))
-    ax_sa.quiverkey(q, 0.12, 0.05, 250, "250 kg m⁻¹ s⁻¹", labelpos="E", coordinates="axes",
-                    fontproperties={"size": 6.5}, zorder=6)
-    cax_sa = ax_sa.inset_axes([0.05, 0.15, 0.38, 0.035], zorder=6)
-    cb_sa = fig.colorbar(m_ivt, cax=cax_sa, orientation="horizontal")
-    cb_sa.set_ticks([0, 100, 200, 300]); cb_sa.ax.tick_params(labelsize=6, length=2, pad=1)
-    cb_sa.set_label("IVT (kg m⁻¹ s⁻¹)", fontsize=6.5, labelpad=1)
-    cax_sa.xaxis.set_label_position("top")
-else:
-    print(f"Aviso: falta {ERA5_CLIM.name}; correr el script 24 y luego este para el recuadro de humedad.")
+# Solo ubicación regional: el transporte de humedad va en su propia figura (script 31)
 ax_sa.plot(out_ll.x, out_ll.y, "o", color="red", markeredgecolor="white", ms=6, zorder=6)
 ax_sa.set_xlim(-92, -32); ax_sa.set_ylim(-30, 14)
-ax_sa.set_title("Transporte de humedad, estación húmeda (dic–abr)", fontsize=9)
+ax_sa.set_title("Ubicación en Sudamérica", fontsize=9)
 
 ax_pe = fig.add_subplot(gs[1, 1])
 countries.cx[-83:-66, -20:2].plot(ax=ax_pe, color="#eeeeee", edgecolor="#999999", linewidth=0.4)

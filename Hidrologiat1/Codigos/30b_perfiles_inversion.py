@@ -267,9 +267,8 @@ for ax in (a1, a2):
         ax.axhspan(r.nube_base_m, r.nube_tope_m, color="#898781", alpha=0.25, lw=0, zorder=0)
 z_dalr = np.array([d.z_m.iloc[0], 5000])
 a1.plot(d.T_C.iloc[0] - 9.8e-3 * (z_dalr - z_dalr[0]), z_dalr, color="#1baf7a", ls="--", lw=1.6,
-        label="Adiabática seca desde la superficie (9.8 °C/km)")
-a1.plot(tp, zs, color="#2a78d6", ls=":", lw=2.2, label="Parcela: seca hasta el NCA, luego adiabática húmeda")
-a1.plot(d5.Td_C, d5.z_m, color="#52514e", lw=1.2, ls="-.", label="Punto de rocío medido")
+        label="Adiabática seca (9.8 °C/km)")
+a1.plot(tp, zs, color="#2a78d6", ls=":", lw=2.2, label="Parcela: seca hasta el NCA y luego húmeda")
 a1.plot(d5.T_C, d5.z_m, color="#0b0b0b", lw=2.2, marker="o", ms=3, label="Temperatura medida")
 if z_nca:
     a1.plot(np.interp(z_nca, zs, tp), z_nca, "o", color="#2a78d6", ms=7, zorder=5)
@@ -278,7 +277,7 @@ if z_nca:
 a1.annotate(f"Inversión: +{r.intensidad_C:.1f} °C en {r.espesor_m:.0f} m", (r.T_tope_C, r.tope_m), xytext=(12, 6),
             textcoords="offset points", fontsize=8.5, color="#b8322f", fontweight="bold")
 a1.set(xlabel="Temperatura (°C)", ylabel="Altitud (m s.n.m.)", ylim=(0, 5000),
-       xlim=(min(d5.Td_C.min(), tp.min()) - 1, max(d5.T_C.max(), d.T_C.iloc[0]) + 4))
+       xlim=(tp[zs <= 5000].min() - 1, max(d5.T_C.max(), d.T_C.iloc[0]) + 4))
 referencias(a1, a1.get_xlim()[0] + 0.3, "left")
 a2.plot(d5.HR, d5.z_m, color="#2a78d6", lw=2.2, marker="o", ms=3, label="Humedad relativa medida")
 a2.axvline(HR_NUBE, color="#898781", lw=0.8)

@@ -297,47 +297,47 @@ if (INV / "inversion_por_sondeo.csv").exists():
               bh=hum.base_m.median(), th=hum.tope_m.median(), dh=hum.intensidad_C.median(),
               hrb=sec.HR_bajo_base.median(), hrs=sec.HR_sobre_tope.median(),
               fmin=rm.frecuencia_pct.min(), mmin=MESES[int(rm.frecuencia_pct.idxmin()) - 1])
-    era5_txt = (" Las líneas discontinuas son ERA5 (promedio mensual de las 12 UTC de 1998–2025 en la celda de Trujillo): "
-                "en el periodo largo se mantiene el contraste entre temporadas (más cálido y seco sobre 1 500 m en may–sep), "
-                "pero la inversión queda muy suavizada porque ERA5 promedia el mes y tiene niveles cada 25 hPa (~250 m). Los "
-                "sondeos son la fuente para la base, el tope y la intensidad."
-                if (PROY / "Tarea 1" / "El_Tambo" / "datos" / "era5_perfiles" / "ERA5_perfiles_12UTC_mensual.nc").exists() else "")
     inversion_html = (
-        '<h2 class="sub2">Inversión térmica sobre la costa y la cuenca</h2>'
+        '<h2 class="sub2">Fuentes de humedad e inversión térmica</h2>'
         f'<p class="intro">Radiosondeos observados de Trujillo (IGRA2 84516, a ~40 km de la salida de la cuenca): {IV["n"]} '
-        f'sondeos de las 7 a.m. entre {IV["ini"]} y {IV["fin"]}. Hay inversión en el {IV["f"]:.0f} % de ellos. En la estación '
-        f'seca su base está a unos {IV["bs"]:.0f} m, apenas por encima del cierre de la cuenca (678 m): casi toda la cuenca '
-        f'queda por encima de la inversión, en aire subsidente y seco.</p>'
+        f'sondeos de las 7 a.m. entre {IV["ini"]} y {IV["fin"]}, con inversión en el {IV["f"]:.0f} % de ellos; y transporte '
+        f'de humedad de ERA5 en el periodo común.</p>'
         + tarjeta("Sondeo típico de la estación seca",
-                  f"La temperatura baja con la altura cerca de la adiabática seca hasta el nivel de condensación, donde se "
-                  f"forman los estratocúmulos (HR ≈ 100 %). En la base de la inversión el aire se calienta de golpe, unos "
-                  f"{IV['ds']:.0f} °C, y por encima la humedad cae a menos del 50 %. Por debajo de la inversión hay aire marino "
-                  f"frío y húmedo; por encima, aire de la troposfera libre que desciende y se calienta. La capa de nubes "
-                  f"queda atrapada a la altura del cierre de la cuenca y no llega a la cuenca alta.",
-                  "Sondeo observado (temperatura y punto de rocío por nivel). Las alturas de los niveles significativos se "
-                  "calcularon con la ecuación hipsométrica desde la superficie y se ajustaron a la altura geopotencial de los "
-                  "niveles estándar. La inversión es el primer aumento continuo de T con la altura (≥ 1 °C). La parcela sube por "
-                  "la adiabática seca hasta el nivel de condensación por ascenso (NCA) y luego por la adiabática húmeda. Se eligió "
-                  "el sondeo de may–sep más cercano a las medianas de base, tope e intensidad de esa estación.",
+                  f"La temperatura baja con la altura cerca de la adiabática seca hasta el nivel de condensación (NCA), donde "
+                  f"se forman los estratocúmulos (HR ≈ 100 %). En la base de la inversión el aire se calienta de golpe, unos "
+                  f"{IV['ds']:.0f} °C, y por encima la humedad cae a menos del 50 %. Debajo queda el aire marino frío y "
+                  f"húmedo; encima, aire de la troposfera libre que desciende y se calienta. La capa de nubes queda atrapada a "
+                  f"la altura del cierre de la cuenca y no llega a la cuenca alta.",
+                  "Sondeo observado. Las alturas de los niveles significativos se calcularon con la ecuación hipsométrica "
+                  "desde la superficie y se ajustaron a la altura geopotencial de los niveles estándar. La inversión es el "
+                  "primer aumento continuo de T con la altura (≥ 1 °C); la capa de nubes, el tramo con HR ≥ 95 %. La parcela "
+                  "sube por la adiabática seca hasta el NCA y luego por la adiabática húmeda. Se eligió el sondeo de may–sep "
+                  "más cercano a las medianas de base, tope e intensidad de esa estación.",
                   "30a_descarga_perfiles.py, 30b_perfiles_inversion.py", png=INV / "fig_sondeo_tipico_inversion.png",
                   csvs=[INV / "inversion_por_sondeo.csv"])
-        + tarjeta("Perfiles por temporada y capa de inversión mes a mes",
-                  f"(a–b) En may–sep la inversión es fuerte (base {IV['bs']:.0f} m, tope {IV['ts']:.0f} m, +{IV['ds']:.1f} °C, "
-                  f"en el {IV['fs']:.0f} % de los sondeos): debajo, HR ≈ {IV['hrb']:.0f} %; encima, el aire es seco (HR de "
-                  f"~40 % hacia 2 000–2 500 m, la cota mediana de la cuenca). En dic–abr la inversión es más baja y débil "
-                  f"(base {IV['bh']:.0f} m, tope {IV['th']:.0f} m, +{IV['dh']:.1f} °C) y a veces no aparece (solo el "
-                  f"{IV['fmin']:.0f} % de los sondeos de {IV['mmin']}), y la troposfera sobre la cuenca es mucho más húmeda "
-                  f"(HR ~80 %): es la estación de las lluvias. (c) La capa sube y se engrosa de mayo a noviembre y se rebaja en "
-                  f"verano.{era5_txt}",
-                  "Cada sondeo se interpoló a una malla vertical de 25 m y se calcularon mediana y rango intercuartílico por "
-                  "temporada (las mismas del ciclo anual: dic–abr, may–sep, oct–nov). En (c), las barras van de la mediana de la "
-                  "base a la del tope de cada mes; los segmentos son los rangos intercuartílicos y el porcentaje es la "
-                  "frecuencia de sondeos con inversión.",
-                  "30a_descarga_perfiles.py, 30b_perfiles_inversion.py", png=INV / "fig_perfiles_inversion.png",
-                  csvs=[INV / "inversion_resumen_mensual.csv", INV / "perfiles_compuestos_temporada.csv"],
-                  leer_="Los sondeos cubren solo dos años y son de las 7 a.m.; a mediodía la capa de mezcla crece y la "
-                        "inversión puede subir. La explicación física (anticiclón del Pacífico sur, corriente de Humboldt, "
-                        "afloramiento) debe sustentarse con bibliografía."))
+        + tarjeta("De dónde llega la humedad y qué la frena: estación seca frente a estación húmeda",
+                  f"<b>La diferencia entre temporadas no está en cuánto vapor pasa sobre la cuenca, sino en si puede subir.</b> "
+                  f"En ERA5 el transporte sobre la cuenca va hacia el oeste en las dos temporadas y no es menor en la seca "
+                  f"(≈ 50 frente a 33 kg m⁻¹ s⁻¹), aunque la columna lleva menos agua precipitable (≈ 22 frente a 28 mm). "
+                  f"<b>Estación seca (may–sep):</b> la inversión es fuerte (+{IV['ds']:.1f} °C) y está casi siempre "
+                  f"({IV['fs']:.0f} % de los días), con base a {IV['bs']:.0f} m y tope a {IV['ts']:.0f} m, justo sobre el "
+                  f"cierre: casi toda la cuenca queda en aire cálido y seco que desciende, y el vapor pasa sin condensar. "
+                  f"Frente a la costa, el flujo del anticiclón del Pacífico corre paralelo a ella, de sureste a noroeste. "
+                  f"<b>Estación húmeda (dic–abr):</b> el flujo del Atlántico cruza la Amazonía y al este de los Andes gira "
+                  f"hacia el sur junto a la cordillera; la columna es más húmeda y la inversión es más baja y débil "
+                  f"(+{IV['dh']:.1f} °C, {IV['bh']:.0f}–{IV['th']:.0f} m, por debajo del cierre) y falta algunos días. "
+                  f"Sobre la cuenca el perfil se enfría con la altura sin tapa, lo que permite la convección.",
+                  "Izquierda: flujo de vapor de agua integrado en la vertical (IVT) de ERA5 mensual (0.5°, promediado a 1°), "
+                  "media de cada temporada en el periodo común; color = magnitud, flechas = dirección. Derecha: radiosondeos de "
+                  "Trujillo interpolados a una malla vertical de 25 m; mediana y rango intercuartílico de la temporada, "
+                  "adiabática seca de referencia desde la superficie y capa de inversión entre las medianas de base y tope "
+                  "de los sondeos con inversión. Mismas escalas en las dos filas.",
+                  "24_era5_vientos_humedad.py, 30b_perfiles_inversion.py, 31_temporadas_humedad_inversion.py",
+                  png=INV / "fig_temporadas_humedad_inversion.png",
+                  csvs=[INV / "perfiles_compuestos_temporada.csv", INV / "inversion_resumen_mensual.csv"],
+                  leer_="El transporte de humedad no equivale a lluvia: llueve donde el flujo converge y asciende. Los "
+                        "sondeos cubren dos años y son de las 7 a.m. La explicación física (anticiclón del Pacífico sur, "
+                        "corriente de Humboldt, convección andina) debe sustentarse con bibliografía."))
 
 HI = (float(morf["Cota media (m s.n.m.)"]) - float(morf["Cota mínima (m s.n.m.)"])) / (
     float(morf["Cota máxima (m s.n.m.)"]) - float(morf["Cota mínima (m s.n.m.)"]))
@@ -345,30 +345,22 @@ pestana("cuenca", "Cuenca", "La cuenca y su delimitación",
         "Río Chicama hasta la estación hidrométrica El Tambo (SENAMHI 211003; CAMELS-PE PE_47E0A2A8), en la vertiente "
         "del Pacífico del norte del Perú (−7.574°, −78.707°; 684 m s.n.m.). La cuenca se delimitó con el modelo digital "
         "de elevación Copernicus GLO-30; coincide con el polígono oficial de CAMELS-PE (intersección sobre unión 0.994).",
-        tarjeta("Mapa de la cuenca, relieve y fuentes de humedad",
-                f"Relieve sombreado del DEM, límite de la cuenca, río Chicama, red de drenaje, punto de cierre y estaciones de "
-                f"SENAMHI. Área {float(morf['Área A (km2)']):,.0f} km², cotas de {float(morf['Cota mínima (m s.n.m.)']):,.0f} a "
-                f"{float(morf['Cota máxima (m s.n.m.)']):,.0f} m s.n.m. (mediana {float(morf['Cota mediana (m s.n.m.)']):,.0f} m) "
-                f"y pendiente media de {float(morf['Pendiente media de la cuenca (°)']):.0f}°. La integral hipsométrica "
-                f"({HI:.2f}) indica un <b>relieve intermedio</b>: la mitad del área está por encima de la cota media, a media "
-                f"ladera, y no concentrada en la cabecera ni en el valle bajo.".replace(",", " ")
-                + " <b>Fuentes de humedad.</b> El recuadro de Sudamérica muestra el transporte de vapor de ERA5 en la estación "
-                "húmeda (dic–abr): la humedad sale del Atlántico tropical, cruza la Amazonía con los alisios del este y llega a "
-                "la cuenca por encima de los Andes, desde el este. Por eso llueve más en las cabeceras del sureste y la lluvia "
-                "se concentra en verano, cuando la convección sobre los Andes toma esa humedad. Del lado del Pacífico, el aire "
-                "marino es frío y húmedo (corriente de Humboldt) pero queda atrapado bajo la inversión térmica, cerca de la "
-                "salida de la cuenca (ver <i>Contexto físico</i>), así que aporta nubes bajas y poca lluvia.",
+        tarjeta("Mapa de la cuenca y relieve",
+                f"Relieve sombreado del DEM, límite de la cuenca, río Chicama, red de drenaje, punto de cierre, estaciones de "
+                f"SENAMHI y ubicación regional (Sudamérica y Perú). Área {float(morf['Área A (km2)']):,.0f} km², cotas de "
+                f"{float(morf['Cota mínima (m s.n.m.)']):,.0f} a {float(morf['Cota máxima (m s.n.m.)']):,.0f} m s.n.m. "
+                f"(mediana {float(morf['Cota mediana (m s.n.m.)']):,.0f} m) y pendiente media de "
+                f"{float(morf['Pendiente media de la cuenca (°)']):.0f}°. La integral hipsométrica ({HI:.2f}) indica un "
+                f"<b>relieve intermedio</b>: la mitad del área está por encima de la cota media, a media ladera, y no "
+                f"concentrada en la cabecera ni en el valle bajo. Las fuentes de humedad se discuten en <i>Contexto físico</i>."
+                .replace(",", " "),
                 "Mosaico de dos teselas Copernicus GLO-30 (30 m), recortado y reproyectado a UTM 17S. El DEM se acondicionó "
                 "(relleno de depresiones y zonas planas) y se calcularon direcciones de flujo D8 y área acumulada con pysheds; "
                 "el punto de cierre se ajustó a la celda de mayor área acumulada en un radio de 1.5 km de la estación. La red "
                 "de drenaje son las celdas con más de 5 km² de área drenada. Integral hipsométrica = (cota media − mínima) / "
-                "(máxima − mínima). Recuadro: flujo de vapor integrado en la vertical (IVT) de ERA5 mensual (0.5°, promediado "
-                "a 1°), media de dic–abr del periodo común; color = magnitud, flechas = dirección. Estaciones: mapa web de "
-                "SENAMHI (copia del 2026-10-06).",
-                "06_delimitacion_el_tambo_glo30.py, 24_era5_vientos_humedad.py", png=DL / "mapa_cuenca_el_tambo.png",
-                csvs=[DL / "parametros_morfometricos.csv", DL / "curva_hipsometrica.csv", DL / "estaciones_senamhi_mapa.csv"],
-                leer_="El transporte de humedad no equivale a lluvia: llueve donde el flujo converge y asciende. ERA5 no "
-                      "resuelve la circulación dentro de los valles.")
+                "(máxima − mínima). Estaciones: mapa web de SENAMHI (copia del 2026-10-06); límites: Natural Earth.",
+                "06_delimitacion_el_tambo_glo30.py", png=DL / "mapa_cuenca_el_tambo.png",
+                csvs=[DL / "parametros_morfometricos.csv", DL / "curva_hipsometrica.csv", DL / "estaciones_senamhi_mapa.csv"])
         + tabla(tmorf, "Parámetros morfométricos", "Calculados sobre el DEM GLO-30 en UTM 17S (script 06)."))
 
 pestana("contexto", "Contexto físico", "Contexto físico",
@@ -658,7 +650,7 @@ pestana("datos", "Datos", "Datos y reproducibilidad",
         tabla(fuentes, "Fuentes de datos")
         + '<div class="tabla-cont"><h3>Cómo reproducir</h3><p>Con Python 3 y las dependencias de <code>requirements.txt</code>, '
           'ejecute en <code>Hidrologiat1/Codigos/</code>, en este orden: <code>06 → 07a → 13 → 14 → 09 → 10 → 28 → 26 → 07b → '
-          '11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 30a → 30b → 29</code>. Antes del 06 hay que descargar las dos '
+          '11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 30a → 30b → 31 → 29</code>. Antes del 06 hay que descargar las dos '
           'teselas de GLO-30 (ver <code>README.md</code>). Las descargas de IMERG y ERA5/ERA5-Land requieren cuentas '
           'personales (NASA Earthdata y Copernicus CDS), cuyas credenciales no se incluyen en el repositorio. El detalle de '
           'cada conjunto de datos está en <a href="DATOS.md">DATOS.md</a>.</p></div>')
