@@ -60,10 +60,71 @@ acal = leer(CL / "anomalias_anio_calendario_1_5b.csv").sort_values("P_L_anom_tot
 humedos = ", ".join(str(int(a)) for a in acal.tail(4)["anio"][::-1])
 secos = ", ".join(str(int(a)) for a in acal.head(4)["anio"])
 reg = leer(CC / "registro_anomalias_1_4.csv")
+RE = PROY / "Tarea 1" / "El_Tambo" / "resultados" / "relaciones"
+MO = PROY / "Tarea 1" / "El_Tambo" / "resultados" / "modelos"
+_m21 = leer(RE / "metricas_2_1.csv")
+_m21 = _m21[(_m21.serie == "original") & (_m21.muestra == "todos los meses")].set_index("par")
+R21 = dict(a=_m21.loc["(a) P_I vs P_L", "pearson_r"], b=_m21.loc["(b) P_L vs Q̄", "spearman_rho"],
+           c=_m21.loc["(c) P_I vs Q̄", "spearman_rho"])
+E21 = leer(RE / "metricas_IMERG_por_estacion_2_1.csv", index_col=0).loc["todo el año"]
+_rz = leer(RE / "rezagos_2_1.csv").query("lluvia == 'P_L'")
+RZ = dict(k0=_rz.query("serie == 'original' and tipo == 'rezago P(t−k)' and k == 0").spearman_rho.iloc[0],
+          k1=_rz.query("serie == 'original' and tipo == 'rezago P(t−k)' and k == 1").spearman_rho.iloc[0],
+          acu=_rz.query("serie == 'original' and tipo == 'acumulada P(t−k..t)'").spearman_rho.max(),
+          an1=_rz.query("serie == 'anomalías' and tipo == 'rezago P(t−k)' and k == 1").spearman_rho.iloc[0])
+_ci = leer(CF / "ciclo_inversion_convergencia.csv", index_col="mes")
+_co = leer(CF / "correlaciones_inversion_lluvia.csv", index_col="predictor")["r_anomalias_dic_abr"]
+INV = dict(lts_min=_ci["LTS_costa_K"].min(), lts_max=_ci["LTS_costa_K"].max(), r_lts=_co["LTS_costa_K"],
+           r_w=_co["omega500_cuenca_Pa_s"])
 _fl = cam.loc[INI:FIN]
 RL = dict(interp=int((_fl.R_flag == "interpolado_diario").sum()), esc=int((_fl.R_flag == "escalado").sum()),
           mod=int((_fl.R_flag == "modelo_mensual").sum()),
           mes_mod=", ".join(f"{f:%Y-%m}" for f in _fl.index[_fl.R_flag == "modelo_mensual"]))
+TE = PROY / "Tarea 1" / "El_Tambo" / "resultados" / "tendencias"
+_td = leer(TE / "tendencias_todos_meses_3_4.csv")
+_ta = _td[(_td.representacion == "anomalia") & _td.variable.isin(["P_L", "P_I", "Q", "T_PISCOt", "T_ERA5L"])]
+t3 = _ta[["variable", "periodo", "inicio", "fin", "n", "metodo", "pend", "lo", "hi", "p", "unidad"]].copy()
+t3["periodo"] = t3["periodo"].replace({"comun": "común"})
+t3 = t3.round({"pend": 3, "lo": 3, "hi": 3, "p": 3})
+t3.columns = ["Variable", "Periodo", "Inicio", "Fin", "n", "Método", "Pendiente", "IC inf.", "IC sup.", "p", "Unidad"]
+TD = _ta.set_index(["variable", "periodo", "metodo"])
+
+
+def pend3(v, per="completo", met="MK Hamed-Rao + Sen"):
+    r = TD.loc[(v, per, met)]
+    return f"{r.pend:+.2f} [{r.lo:+.2f}, {r.hi:+.2f}] (p = {r.p:.3f})"
+
+
+_enso = leer(TE / "enso_3_6.csv").set_index("variable")
+_esc = leer(TE / "escorrentia_anual_3_6.csv").set_index("serie_anual")
+_seg = leer(TE / "segmentada_pettitt_3_5.csv").set_index("variable")
+_mes = leer(TE / "tendencias_por_mes_3_4.csv")
+_fdr = _mes[(_mes.representacion == "original") & (_mes.periodo == "completo") & (_mes.q_fdr < 0.05)]
+FDR = {v: ", ".join(sorted({["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][m - 1]
+                            for m in g.mes}, key=lambda s: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep",
+                                                             "Oct", "Nov", "Dic"].index(s)))
+       for v, g in _fdr.groupby("variable")}
+ES = PROY / "Tarea 1" / "El_Tambo" / "resultados" / "espectros"
+_bd = leer(ES / "bandas_varianza_4_2.csv").set_index(["variable", "periodo", "transformacion", "banda"])["fraccion"]
+
+
+def banda(v, tr, b, per="completo"):
+    return 100 * _bd.loc[(v, per, tr, b)]
+
+
+_me = leer(ES / "metadatos_espectros_4_1.csv")
+RHO = _me[(_me.periodo == "completo") & (_me.transformacion == "anomalia")].set_index("variable")["rho1_AR1"]
+_pk = leer(ES / "picos_4_2.csv")
+_pk = _pk[(_pk.periodo == "completo") & (_pk.transformacion == "anomalia")]
+N_GLOBAL = int(_pk["supera_95_global"].astype(str).eq("True").sum())
+t4 = _pk[_pk.groupby("variable").cumcount() < 3][["variable", "N_meses", "periodo_meses", "periodo_min_meses",
+                                                   "periodo_max_meses", "k_ciclos_en_registro", "fraccion_varianza",
+                                                   "cociente_fondo_AR1", "supera_95_puntual", "supera_95_global"]].copy()
+t4["fraccion_varianza"] = (t4["fraccion_varianza"] * 100).round(1)
+t4 = t4.round({"periodo_meses": 1, "periodo_min_meses": 0, "periodo_max_meses": 0, "cociente_fondo_AR1": 1})
+t4.columns = ["Variable", "N", "Periodo (meses)", "Rango mín.", "Rango máx.", "Ciclos en el registro", "% varianza",
+              "Cociente con AR(1)", "> 95 % puntual", "> 95 % global"]
+_ls = leer(ES / "vacios_caudal_lombscargle_4_1.csv").set_index("banda")
 pico = leer(CL / "mes_pico_por_anio_1_5b.csv")
 pct_mar = (pico["mes_max_P_L"] == "Mar").mean() * 100
 pct_fa = pico["mes_max_P_L"].isin(["Feb", "Mar", "Abr"]).mean() * 100
@@ -200,6 +261,19 @@ secciones = [
                      "Por eso el IVT sobre la cuenca no es mayor en la estación húmeda. ERA5 (malla de 0.25°, aquí "
                      "promediada a 1°) no resuelve la circulación dentro de los valles.",
                      script="24_era5_vientos_humedad.py, 25_mapa_transporte_humedad.py")
+            + figura(CF / "fig_inversion_termica_era5.png", "Inversión térmica, subsidencia y convergencia de humedad",
+                     f"(a, b) Corte vertical oeste–este a la latitud de la cuenca. En la estación seca una inversión "
+                     f"(rayado) cubre el Pacífico hasta la costa a 1–1.5 km, y el aire desciende (rojo) sobre el océano y "
+                     f"la vertiente occidental; en la húmeda la inversión casi desaparece y el aire asciende (azul) sobre "
+                     f"los Andes, incluida la cuenca. (c, d) Ciclo anual: la intensidad de la inversión frente a la costa "
+                     f"(LTS) es mínima en feb–mar ({INV['lts_min']:.0f} K) y máxima en sep ({INV['lts_max']:.0f} K); sobre "
+                     f"la cuenca el aire desciende en jun–ago, cuando la humedad diverge. (e, f) En dic–abr, los meses con "
+                     f"inversión más débil y más ascenso que lo normal son más lluviosos (r = {INV['r_lts']:.2f} y "
+                     f"{INV['r_w']:.2f}); los extremos de 1998 y 2017 corresponden a El Niño costero.",
+                     "La inversión sigue fuerte en sep–nov, cuando sobre la cuenca ya hay ascenso y convergencia: la "
+                     "inversión costera explica la supresión de lluvia de la estación seca, pero el inicio de las lluvias "
+                     "depende del ascenso sobre los Andes. ERA5 suaviza el relieve (~30 km); la relación es evidencia de "
+                     "consistencia, no prueba de causalidad.", script="29_era5_inversion_termica.py")
             + figura(CF / "curva_hipsometrica.png", "Curva hipsométrica",
                      "Distribución del área por elevación. La integral hipsométrica (0.52) indica una cuenca de relieve "
                      "intermedio, con buena parte del área a media ladera.", script="07b_mapas_contexto_fisico.py")),
@@ -229,10 +303,10 @@ secciones = [
             + figura(SM / "fig_P_L_vs_IMERG_mensual.png", "P<sub>L</sub> frente a IMERG, mes a mes",
                      "IMERG sigue bien el ritmo de la lluvia, pero sus picos son mucho más bajos, sobre todo en los "
                      "meses más lluviosos.", script="10_imerg_mensual_y_grafica.py")
-            + figura(SM / "fig_precipitacion_camels_1998_2025.png", "P<sub>L</sub> de CAMELS-PE",
-                     "(a) Acumulado mensual y media móvil de 12 meses; (b) totales anuales (2025 queda fuera por estar "
-                     "incompleto).", script="11_grafica_precipitacion_camels.py")
-            + figura(SM / "fig_precipitacion_imerg_1998_2025.png", "P<sub>I</sub> de IMERG",
+            + figura(SM / f"fig_precipitacion_camels_{INI:%Y}_{FIN:%Y}.png", "P<sub>L</sub> de CAMELS-PE",
+                     "(a) Acumulado mensual y media móvil de 12 meses; (b) totales anuales.",
+                     script="11_grafica_precipitacion_camels.py")
+            + figura(SM / f"fig_precipitacion_imerg_{INI:%Y}_{FIN:%Y}.png", "P<sub>I</sub> de IMERG",
                      "Mismo formato y mismos ejes que la figura anterior, para compararlas a simple vista.",
                      script="16_grafica_precipitacion_imerg.py"), "Punto 1.2"),
     seccion("temp", "Temperatura: PISCOt frente a ERA5-Land",
@@ -339,11 +413,159 @@ secciones = [
                     "«Lectura propuesta» es un apoyo cuantitativo para la discusión del grupo, no la conclusión. "
                     "Detalle en criterios_clasificacion_1_5c.csv, aridez_budyko_1_5c.csv y koppen_1_5c.csv."),
             "Punto 1.5.c"),
+    seccion("p2", "Relaciones entre series y modelos estadísticos",
+            f"Comparaciones mensuales con los meses coincidentes del periodo común ({PER}). El caudal usa la serie "
+            f"rellenada; las métricas sin los meses rellenados están en los CSV como prueba de sensibilidad.",
+            figura(RE / "fig_dispersion_2_1.png", "Dispersión entre lluvia y caudal",
+                   f"(a) IMERG frente a P<sub>L</sub>: muy correlacionadas (r = {R21['a']:.2f}) pero no concordantes: "
+                   f"IMERG queda bajo la línea 1:1 en los meses húmedos (sesgo {E21['sesgo']:+.1f} mm/mes, "
+                   f"{E21['sesgo_pct']:+.0f} %) y algo por encima en jun–ago. (b, c) La relación de la lluvia del mismo "
+                   f"mes con el caudal es débil (Spearman ρ = {R21['b']:.2f} con P<sub>L</sub> y {R21['c']:.2f} con IMERG) "
+                   f"y muy dispersa: lluvias parecidas dan caudales que difieren hasta 100 veces según la época.",
+                   "Colores por estación. El caudal va en escala logarítmica porque varía tres órdenes de magnitud. "
+                   "(b') En lámina, casi todos los meses quedan bajo la línea R = P<sub>L</sub>; los que la superan "
+                   "son de may–ago (aporte de almacenamiento) y crecidas de El Niño.", script="30_relaciones_2_1.py")
+            + figura(RE / "fig_rezagos_2_1.png", "La lluvia de meses anteriores explica mejor el caudal",
+                     f"El caudal se relaciona mejor con la lluvia del mes anterior (ρ = {RZ['k1']:.2f}) que con la del "
+                     f"mismo mes ({RZ['k0']:.2f}), y aún mejor con la lluvia acumulada de los últimos 4 meses "
+                     f"(ρ = {RZ['acu']:.2f}): la cuenca almacena agua y la entrega con retraso. En anomalías la asociación "
+                     f"se debilita pero persiste (ρ = {RZ['an1']:.2f} con un mes de rezago).",
+                     "La lluvia siempre antecede al caudal; nunca se usa lluvia futura.", script="30_relaciones_2_1.py")
+            + figura(MO / "fig_evaluacion_resumen_2_3.png", "¿Mejoran los modelos a una referencia sencilla?",
+                     "Habilidad fuera del periodo de ajuste en dos particiones por bloques de años (A: ajuste 1998–2015, "
+                     "evaluación 2016–2024; B: ajuste 2007–2024, evaluación 1998–2006). Para P<sub>L</sub> a partir de "
+                     "IMERG, un factor de corrección por mes calendario reduce el error típico cerca de 40 %. Para el "
+                     "caudal, solo los modelos logarítmicos con término por mes y lluvia acumulada (2–3 meses de rezago) "
+                     "mejoran la climatología; la regresión lineal simple es peor que la climatología.",
+                     "★ = modelo elegido por validación cruzada dentro del ajuste. Habilidad = 1 − MAE/MAE de la referencia.",
+                     script="31_modelos_2_2_2_3.py")
+            + figura(MO / "fig_modelo_PL_2_3.png", "Modelo de lluvia local a partir de IMERG",
+                     "Evaluación 2016–2024 del modelo elegido (factor por mes calendario) frente a IMERG sin corregir y a la "
+                     "regresión lineal, con los residuos frente al tiempo, al valor estimado y al mes.",
+                     script="31_modelos_2_2_2_3.py")
+            + figura(MO / "fig_modelo_Q_2_3.png", "Modelo de caudal a partir de la lluvia local",
+                     "Evaluación 2016–2024 del modelo elegido (ln Q̄ con intercepto por mes y lluvia de los últimos 4 meses). "
+                     "Sigue bien la recesión y el estiaje, pero subestima la crecida de El Niño costero de 2017 (residuo de "
+                     "−310 m³/s en abril). La regresión lineal da 30 caudales negativos (las caídas al borde inferior).",
+                     "Una relación estadística lluvia–caudal no conserva masa ni sustituye el balance hídrico.",
+                     script="31_modelos_2_2_2_3.py"),
+            "Punto 2"),
+    seccion("p3", "Tendencias hidroclimáticas",
+            "Cada variable se analiza con su registro mensual completo (cambio de largo plazo) y, aparte, en el periodo "
+            f"común {PER} (comparación entre fuentes). Las anomalías usan una climatología fija 1998–2020, el periodo más "
+            "largo en que las cinco series tienen datos. Métodos: OLS con errores robustos a autocorrelación (HAC), "
+            "Mann–Kendall con pendiente de Sen (estacional en la serie original; con corrección por autocorrelación de "
+            "Hamed–Rao en las anomalías y en cada mes) y LOWESS como curva exploratoria. Pendientes por década; en "
+            "precipitación son cambios del acumulado mensual, no del anual.",
+            figura(TE / "fig_series_tendencias_3_4.png", "Series originales, anomalías y anomalías estandarizadas",
+                   f"La temperatura sube en las dos fuentes (anomalías, Sen: PISCOt {pend3('T_PISCOt')} °C/década; "
+                   f"ERA5-Land {pend3('T_ERA5L')} °C/década) de forma casi lineal. P<sub>L</sub> no muestra tendencia "
+                   f"({pend3('P_L')} mm/mes/década) y el caudal tampoco ({pend3('Q')} m³/s/década). IMERG sí baja "
+                   f"({pend3('P_I')} mm/mes/década), aunque la lluvia de referencia en el mismo periodo no lo hace.",
+                   "Columna izquierda: serie original con un modelo aditivo (efecto de cada mes + curva suave) y OLS con "
+                   "efectos de mes. Centro: anomalía a = X − μ<sub>mes</sub> con banda de remuestreo por bloques. Derecha: "
+                   "z = a/s<sub>mes</sub>. El panel de caudal tiene el eje recortado por la crecida de 1998.",
+                   script="32_tendencias_3.py")
+            + figura(TE / "fig_pendientes_mensuales_3_5.png", "Tendencia de cada mes calendario",
+                     "Doce subseries por variable (todos los eneros, todos los febreros…). Tras controlar la tasa de falsos "
+                     "descubrimientos (FDR) sobre 60 pruebas, las tendencias que se sostienen son de temperatura "
+                     f"(ERA5-Land: {FDR.get('T_ERA5L', 'ninguno')}; PISCOt: {FDR.get('T_PISCOt', 'ninguno')}), con el "
+                     "mayor calentamiento estandarizado al final de la estación seca y en la transición a la húmeda (ago–nov). En lluvia y caudal solo "
+                     f"quedan casos aislados (P<sub>L</sub>: {FDR.get('P_L', 'ninguno')}; P<sub>I</sub>: "
+                     f"{FDR.get('P_I', 'ninguno')}; Q̄: {FDR.get('Q', 'ninguno')}) que no son consistentes entre métodos.",
+                     "Verificado: restar μ<sub>mes</sub> no cambia la pendiente OLS ni la de Sen, y dividir por s<sub>mes</sub> "
+                     "solo cambia la escala; X, a y z no son evidencias independientes.", script="32_tendencias_3.py")
+            + figura(TE / "fig_robustez_3_5.png", "Robustez frente a método, periodo y fuente",
+                     "Las tendencias de temperatura persisten al cambiar el método, recortar los extremos del registro o "
+                     "retirar los años de El Niño costero. En precipitación el signo depende de la fuente y del periodo: "
+                     "P<sub>L</sub> y PISCOp v3 son ligeramente positivas en 1981–2025 y negativas, sin significancia, en "
+                     "1998–2024, mientras IMERG y CHIRPS son negativas. La tendencia de IMERG desaparece si se empieza en 2003.",
+                     "● Sen con MK Hamed–Rao; ■ OLS-HAC. Relleno = p < 0.05.", script="32_tendencias_3.py")
+            + figura(TE / "fig_ventanas_inicio_fin_3_5.png", "Sensibilidad a la fecha inicial y final",
+                     "Pendiente de Sen de las anomalías anuales para todas las ventanas de 15 años o más. En lluvia y caudal "
+                     "el signo cambia según el año inicial, sobre todo si la ventana empieza o termina en un año de El Niño "
+                     "(1983, 1998, 2017); en temperatura es positivo en casi todas las ventanas.",
+                     script="32_tendencias_3.py")
+            + figura(TE / "fig_causas_3_6.png", "¿A qué podrían deberse los cambios?",
+                     f"Los años húmedos y de caudal alto coinciden con El Niño 1+2 cálido (r mensual con P<sub>L</sub> "
+                     f"{_enso.loc['P_L', 'r_Nino12']:.2f}, con T PISCOt {_enso.loc['T_PISCOt', 'r_Nino12']:.2f}); retirar la "
+                     f"señal ENSO no elimina el calentamiento. En años hidrológicos, el caudal dada la lluvia baja "
+                     f"{_esc.loc['resid_R_dado_P', 'sen_dec']:+.0f} mm/año por década (p = {_esc.loc['resid_R_dado_P', 'p_mk']:.2f}), "
+                     "algo compatible con más evapotranspiración o con usos del agua, pero que también depende de la crecida "
+                     "de 1998 al inicio del registro. Es una hipótesis por contrastar, no una atribución.",
+                     "Para atribuir faltan datos de uso del agua, de cambios de cobertura y metadatos de la estación.",
+                     script="32_tendencias_3.py")
+            + tabla(t3, "Tendencia de las anomalías, todos los meses",
+                    "Pendiente por década con IC 95 %. OLS-HAC: Newey–West con 12 rezagos. MK Hamed–Rao + Sen: IC de Gilbert "
+                    "con la varianza corregida. La serie original y las doce subseries están en tendencias_todos_meses_3_4.csv "
+                    "y tendencias_por_mes_3_4.csv."),
+            "Punto 3"),
+    seccion("p4", "Escalas dominantes de variabilidad (Fourier)",
+            "Espectros de la secuencia mensual cronológica (Δt = 1 mes) de cada variable, en su registro completo y en el "
+            f"periodo común {PER}. Se comparan la serie centrada (conserva el ciclo anual) y las anomalías respecto a la "
+            "climatología 1998–2020, con y sin la tendencia del punto 3. El estimador principal es el periodograma de la "
+            "FFT sin relleno con ceros: f<sub>k</sub> = k/N, Δf = 1/N ciclos/mes, densidad unilateral normalizada para que "
+            "Σ S·Δf sea la varianza (comprobado). Se contrasta con ventana de Hann y con Welch (segmentos de 10 años). "
+            "Ninguna serie tiene vacíos internos; el caudal es continuo gracias al relleno documentado.",
+            figura(ES / "fig_espectros_4_2.png", "Espectros del registro completo",
+                   f"En las series centradas domina el ciclo anual en la lluvia (P<sub>L</sub> "
+                   f"{banda('P_L', 'centrada', 'anual 11–13 m'):.0f} % de la varianza; IMERG "
+                   f"{banda('P_I', 'centrada', 'anual 11–13 m'):.0f} %), con un armónico semianual que refleja la "
+                   f"estación húmeda concentrada en pocos meses. En el caudal el ciclo anual pesa menos "
+                   f"({banda('Q', 'centrada', 'anual 11–13 m'):.0f} %) porque las crecidas de El Niño (1998, 2017) reparten "
+                   f"mucha varianza en todas las frecuencias. En la temperatura el ciclo anual es pequeño (PISCOt "
+                   f"{banda('T_PISCOt', 'centrada', 'anual 11–13 m'):.0f} %) y dominan las escalas interanuales. Al retirar "
+                   f"la climatología, la lluvia se parece a ruido casi blanco (AR(1): ρ = {RHO['P_L']:.2f} P<sub>L</sub>, "
+                   f"{RHO['P_I']:.2f} IMERG); el caudal es más rojo (ρ = {RHO['Q']:.2f}) y la temperatura mucho más "
+                   f"(ρ = {RHO['T_PISCOt']:.2f}–{RHO['T_ERA5L']:.2f}).",
+                   f"Eje inferior en ciclos/mes y superior en periodos. Líneas rojas: fondo AR(1) al 95 % puntual (discontinua) "
+                   f"y global, con corrección por buscar entre todas las frecuencias (punteada). "
+                   + ("Ningún pico de las anomalías supera el umbral global" if N_GLOBAL == 0 else
+                      f"Solo {N_GLOBAL} picos de las anomalías superan el umbral global")
+                   + ": los picos interanuales no son periodicidades demostradas.",
+                   script="33_espectros_4.py")
+            + figura(ES / "fig_bandas_varianza_4_2.png", "¿En qué escalas está la varianza?",
+                     f"Al quitar la climatología, la banda anual cae casi a cero en la lluvia, pero el caudal conserva "
+                     f"{banda('Q', 'anomalia', 'anual 11–13 m'):.0f} % en esa banda: la amplitud del ciclo anual del caudal "
+                     f"cambia mucho de un año a otro (años de El Niño). La banda interanual de 2–7 años reúne "
+                     f"{banda('P_L', 'anomalia', 'interanual 2–7 años'):.0f} % de las anomalías de P<sub>L</sub> (1981–2025), "
+                     f"{banda('Q', 'anomalia', 'interanual 2–7 años'):.0f} % del caudal y "
+                     f"{banda('T_PISCOt', 'anomalia', 'interanual 2–7 años'):.0f} % de la temperatura PISCOt.",
+                     "Fracciones del periodograma por bandas de periodo; cada barra suma 100 %. Registros de distinta "
+                     "longitud tienen distinta resolución: compare las filas del mismo periodo.", script="33_espectros_4.py")
+            + figura(ES / "fig_comparacion_espectros_4_2.png", "Fuentes y respuesta de la cuenca",
+                     "Formas espectrales normalizadas por la varianza (las alturas no son variabilidad absoluta). CAMELS-PE e "
+                     "IMERG tienen la misma forma en las series centradas; en anomalías IMERG tiene más varianza relativa en "
+                     "escalas de 2–5 meses. PISCOt y ERA5-Land coinciden en casi todas las escalas. En las anomalías del "
+                     f"periodo común, la escala de 2–5 meses reúne {banda('Q', 'anomalia', 'intraestacional 2–5 m', 'comun'):.0f} % "
+                     f"de la varianza del caudal frente a {banda('P_L', 'anomalia', 'intraestacional 2–5 m', 'comun'):.0f} % de "
+                     f"la lluvia, y la de 13 meses a 7 años {banda('Q', 'anomalia', '13 m–2 años', 'comun') + banda('Q', 'anomalia', 'interanual 2–7 años', 'comun'):.0f} % "
+                     f"frente a {banda('P_L', 'anomalia', '13 m–2 años', 'comun') + banda('P_L', 'anomalia', 'interanual 2–7 años', 'comun'):.0f} %. "
+                     "Es coherente con un almacenamiento que suaviza las variaciones rápidas y da persistencia.",
+                     "Un espectro de potencia no contiene la fase: los desfases lluvia–caudal se estiman en el punto 2 "
+                     "(rezagos), no aquí.", script="33_espectros_4.py")
+            + figura(ES / "fig_estabilidad_4_2.png", "Estabilidad de los resultados",
+                     "La banda anual y la interanual cambian poco con la tendencia o al recortar extremos, pero el periodo "
+                     "del pico interanual cambia con la ventana y con la mitad del registro analizada (por ejemplo, P<sub>L</sub> "
+                     "pasa de unos 5 a unos 2.4 años). Con unos 8–13 ciclos en el registro, los periodos interanuales solo se "
+                     "pueden dar como bandas amplias.", script="33_espectros_4.py")
+            + figura(ES / "fig_vacios_caudal_4_1.png", "Efecto de los vacíos del caudal",
+                     f"Con solo los meses observados completos (Lomb–Scargle, estimador para muestreo irregular), la banda de "
+                     f"2–5 meses pasa de {100 * _ls.loc['intraestacional 2–5 m', 'relleno_FFT']:.0f} % a "
+                     f"{100 * _ls.loc['intraestacional 2–5 m', 'observado_LombScargle']:.0f} % de la varianza y bajan las bandas "
+                     "largas. En la malla regular, la FFT y Lomb–Scargle dan el mismo resultado, así que la diferencia la "
+                     "producen los vacíos, no el método: las conclusiones sobre escalas cortas del caudal son las más inciertas.",
+                     script="33_espectros_4.py")
+            + tabla(t4, "Picos principales de las anomalías (registro completo)",
+                    "Rango = periodos que caben en ±½ bin de frecuencia (resolución Δf = 1/N). Ciclos = k, número de "
+                    "oscilaciones completas en el registro. Todos los picos y transformaciones están en picos_4_2.csv; "
+                    "N, Δf, ventana y normalización de cada espectro en metadatos_espectros_4_1.csv."),
+            "Punto 4"),
 ]
 
 nav = [("cuenca", "Cuenca"), ("contexto", "Contexto"), ("p11", "1.1 Series"), ("p12", "1.2 IMERG"),
        ("temp", "Temperatura"), ("p13", "1.3 Distribución"), ("p14", "1.4 Calidad"), ("p15", "1.5 Ciclo anual"),
-       ("p15c", "1.5.c Síntesis"), ("datos", "Datos")]
+       ("p15c", "1.5.c Síntesis"), ("p2", "2 Relaciones y modelos"), ("p3", "3 Tendencias"), ("p4", "4 Espectros"), ("datos", "Datos")]
 
 CSS = """
 :root{--bg:#f6f5f2;--card:#ffffff;--ink:#1d1d1b;--ink2:#55534e;--line:#e2e0da;--acc:#1b6ca8;--chip:#e7f0f8;--code:#f0efeb}
@@ -443,7 +665,7 @@ pagina = f"""<!doctype html>
 {tabla(fuentes, "Fuentes de datos")}
 <div class="tabla-cont"><h4>Cómo reproducir</h4>
 <p>Con Python 3 y las dependencias de <code>requirements.txt</code>, ejecute en <code>Hidrologiat1/Codigos/</code>, en este orden:
-<code>06 → 07a → 13 → 14 → 09 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 22</code>.
+<code>06 → 07a → 13 → 14 → 09 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 29 → 27 → 30 → 31 → 32 → 33 → 22</code>.
 El periodo común se calcula en <code>periodo_comun.py</code>. Las descargas de IMERG y ERA5-Land requieren cuentas personales
 (NASA Earthdata y Copernicus CDS), cuyas credenciales no se incluyen en el repositorio.</p></div>
 </section>

@@ -153,7 +153,7 @@
       annotations: [],
     });
     if (v === "P_I") {
-      layout.annotations.push({ text: "IMERG es un producto mensual: no tiene serie diaria. Los 332 meses están completos.",
+      layout.annotations.push({ text: `IMERG es un producto mensual: no tiene serie diaria. Los ${D.fechas.length} meses están completos.`,
         xref: "paper", yref: "paper", x: 0, y: 0.18, showarrow: false, xanchor: "left", font: { color: t.ink2, size: 13 } });
       return { data, layout };
     }

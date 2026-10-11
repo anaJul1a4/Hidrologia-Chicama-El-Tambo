@@ -407,7 +407,7 @@ countries[countries["CONTINENT"] == "South America"].plot(ax=ax_sa, color="#eeee
 peru.plot(ax=ax_sa, color="#d9c9a3", edgecolor="#555555", linewidth=0.5)
 ax_sa.add_patch(Rectangle(PERU_BOX[:2], PERU_BOX[2] - PERU_BOX[0], PERU_BOX[3] - PERU_BOX[1],
                           fill=False, edgecolor="red", linewidth=1))
-# Solo ubicación regional: el transporte de humedad va en su propia figura (script 31)
+# Solo ubicación regional: el transporte de humedad va en su propia figura (script 35)
 ax_sa.plot(out_ll.x, out_ll.y, "o", color="red", markeredgecolor="white", ms=6, zorder=6)
 ax_sa.set_xlim(-92, -32); ax_sa.set_ylim(-30, 14)
 ax_sa.set_title("Ubicación en Sudamérica", fontsize=9)

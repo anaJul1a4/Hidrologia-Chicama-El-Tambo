@@ -25,7 +25,7 @@ Plotly va incluido en `web/lib/`.
 
 | Ruta | Contenido |
 |---|---|
-| `index.html`, `web/` | Página web (la genera `Hidrologiat1/Codigos/29_pagina_web.py`) |
+| `index.html`, `web/` | Página web (la genera `Hidrologiat1/Codigos/36_pagina_web.py`) |
 | `Hidrologiat1/Codigos/` | Scripts de Python numerados en orden de trabajo |
 | `Tarea 1/El_Tambo/datos/` | Datos ya recortados a la cuenca (CAMELS-PE, IMERG, PISCOp v3, ERA5-Land, CHIRPS, cobertura) |
 | `Tarea 1/El_Tambo/resultados/` | Figuras (PNG) y tablas (CSV) generadas por los scripts |
@@ -33,7 +33,7 @@ Plotly va incluido en `web/lib/`.
 | `ESTADO_PROYECTO.md` | Bitácora: fuentes, decisiones metodológicas y notas para el informe |
 | `visor_resultados.html` | Visor estático anterior (un solo archivo, script 22) |
 
-Periodo común de análisis: **1998-01 a 2025-08** (meses con precipitación de CAMELS-PE e IMERG).
+Periodo común de análisis: **1998-01 a 2024-12** (27 años calendario completos con precipitación de CAMELS-PE e IMERG).
 
 ## Reproducir
 
@@ -44,7 +44,7 @@ pip install -r requirements.txt
 cd Hidrologiat1/Codigos
 ```
 
-Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 22 → 30a → 30b → 31 → 29`.
+Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 29 → 27 → 30 → 31 → 32 → 33 → 22 → 34a → 34b → 35 → 36`.
 
 El script 09 descarga y verifica CAMELS-PE v1.0.1 desde Zenodo. Después hay que **extraer el ZIP**
 en `Tarea 1/CAMELS_PE/`, porque el script 06 lee de ahí el polígono y las estaciones.

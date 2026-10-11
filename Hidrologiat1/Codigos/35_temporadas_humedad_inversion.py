@@ -7,7 +7,7 @@ Una fila por temporada (may–sep seca arriba, dic–abr húmeda abajo):
   - Derecha: perfil vertical de temperatura sobre la costa de Trujillo (radiosondeos IGRA2 84516, 12 UTC):
     mediana y rango intercuartílico de la temporada, adiabática seca de referencia desde la superficie y capa de
     inversión (medianas de base y tope de los sondeos con inversión), con las altitudes de la cuenca.
-    Entrada: script 30b.
+    Entrada: script 34b.
 Mismas escalas en las dos filas para comparar directamente.
 
 Salida: Tarea 1/El_Tambo/resultados/inversion/fig_temporadas_humedad_inversion.png
@@ -118,7 +118,7 @@ fig.text(0.02, 0.012,
          f"IVT: flujo de vapor de agua integrado en la vertical, ERA5 mensual {INI:%Y-%m} a {FIN:%Y-%m} (malla de 1°), "
          f"una flecha cada {PASO}°; contorno rojo: cuenca El Tambo. Perfiles: radiosondeos IGRA2 84516 (Trujillo, a ~40 km "
          f"de la salida de la cuenca),\n{sond.fecha.min():%Y-%m} a {sond.fecha.max():%Y-%m}, 12 UTC; inversión = primer "
-         "aumento continuo de T con la altura desde la superficie (≥ 1 °C, < 3 500 m). Scripts 24, 30a, 30b y 31.",
+         "aumento continuo de T con la altura desde la superficie (≥ 1 °C, < 3 500 m). Scripts 24, 34a, 34b y 35.",
          fontsize=7.5, color="#52514e")
 fig.subplots_adjust(left=0.05, right=0.985, top=0.92, bottom=0.07)
 OUT = INV / "fig_temporadas_humedad_inversion.png"

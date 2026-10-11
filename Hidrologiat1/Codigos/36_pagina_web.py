@@ -90,6 +90,13 @@ ari = leer(CL / "aridez_budyko_1_5c.csv")
 ari = ari[ari.fuente_PET.str.startswith("Penman")].set_index("fuente_P")
 
 
+_clp = cl[cl.variable == "P_L"].set_index("mes")["media"]
+P_ANUAL = _clp.sum()
+CH_ANUAL = chirps.groupby(chirps.index.month).mean().sum()
+TRIM_PCT = {k: 100 * _clp.loc[m].sum() / P_ANUAL for k, m in
+            {"DEF": [12, 1, 2], "MAM": [3, 4, 5], "JJA": [6, 7, 8], "SON": [9, 10, 11]}.items()}
+
+
 def cmes(var, mes):
     return cl[(cl.variable == var) & (cl.mes == mes)].iloc[0]
 
@@ -313,7 +320,7 @@ if (INV / "inversion_por_sondeo.csv").exists():
                   "primer aumento continuo de T con la altura (≥ 1 °C); la capa de nubes, el tramo con HR ≥ 95 %. La parcela "
                   "sube por la adiabática seca hasta el NCA y luego por la adiabática húmeda. Se eligió el sondeo de may–sep "
                   "más cercano a las medianas de base, tope e intensidad de esa estación.",
-                  "30a_descarga_perfiles.py, 30b_perfiles_inversion.py", png=INV / "fig_sondeo_tipico_inversion.png",
+                  "34a_descarga_perfiles.py, 34b_perfiles_inversion.py", png=INV / "fig_sondeo_tipico_inversion.png",
                   csvs=[INV / "inversion_por_sondeo.csv"])
         + tarjeta("De dónde llega la humedad y qué la frena: estación seca frente a estación húmeda",
                   f"<b>La diferencia entre temporadas no está en cuánto vapor pasa sobre la cuenca, sino en si puede subir.</b> "
@@ -332,7 +339,7 @@ if (INV / "inversion_por_sondeo.csv").exists():
                   "Trujillo interpolados a una malla vertical de 25 m; mediana y rango intercuartílico de la temporada, "
                   "adiabática seca de referencia desde la superficie y capa de inversión entre las medianas de base y tope "
                   "de los sondeos con inversión. Mismas escalas en las dos filas.",
-                  "24_era5_vientos_humedad.py, 30b_perfiles_inversion.py, 31_temporadas_humedad_inversion.py",
+                  "24_era5_vientos_humedad.py, 34b_perfiles_inversion.py, 35_temporadas_humedad_inversion.py",
                   png=INV / "fig_temporadas_humedad_inversion.png",
                   csvs=[INV / "perfiles_compuestos_temporada.csv", INV / "inversion_resumen_mensual.csv"],
                   leer_="El transporte de humedad no equivale a lluvia: llueve donde el flujo converge y asciende. Los "
@@ -373,7 +380,7 @@ pestana("contexto", "Contexto físico", "Contexto físico",
                 "en el fondo del valle. (c) Unidades hidrogeológicas: los acuíferos fisurados (areniscas y cuarcitas, 40 %) y "
                 "los acuitardos sedimentarios (lutitas, 37 %) alternan en franjas NO–SE; los acuíferos porosos se limitan a "
                 "los fondos de valle (2.5 %). (d) Precipitación media anual: aumenta de unos 400 mm/año en la salida a 900 "
-                "mm/año en las cabeceras del sureste. CHIRPS da un promedio menor que P<sub>L</sub> (636 frente a 841 mm/año), "
+                f"mm/año en las cabeceras del sureste. CHIRPS da un promedio menor que P<sub>L</sub> ({CH_ANUAL:.0f} frente a {P_ANUAL:.0f} mm/año), "
                 "así que el mapa sirve para ver el patrón espacial, no la magnitud.",
                 "(a) Orientación calculada del DEM GLO-30 a 30 m. (b) ESA WorldCover 2021 (10 m) remuestreado por moda a la "
                 "malla del DEM. (c) Geología INGEMMET 1:100 000 descargada de GEOCATMIN; las 25 unidades se agruparon en 6 "
@@ -404,7 +411,7 @@ pestana("p11", "1.1 Series", "Punto 1.1 · Series mensuales de precipitación, c
                 "v1.2) si faltan ≤ 10 % de los días. El relleno de caudal sigue tres pasos: interpolación de ln q en huecos "
                 "≤ 15 días, escalado de la media en meses con ≥ 50 % de días y modelo mensual con el caudal simulado en el "
                 "resto (validación en el punto 1.4).",
-                "09_datos_camels_pe_el_tambo.py, relleno_caudal.py (página: 29_pagina_web.py)", grafica="serie11",
+                "09_datos_camels_pe_el_tambo.py, relleno_caudal.py (página: 36_pagina_web.py)", grafica="serie11",
                 controles=conmutador("serie11", [("P_L", "P<sub>L</sub>"), ("Q", "Q̄"), ("R", "R"), ("T", "T")],
                                      "Paneles visibles"),
                 csvs=[SM_CSV, SM / "temperatura_piscot_extendida_era5land.csv"],
@@ -442,9 +449,8 @@ pestana("p12", "1.2 IMERG", "Punto 1.2 · Precipitación satelital IMERG",
         + tarjeta("Totales anuales de P<sub>L</sub> e IMERG",
                   "IMERG queda por debajo de P<sub>L</sub> todos los años; la diferencia es mayor en los años muy húmedos "
                   "(1998, 2017, 2023).",
-                  "Suma de los 12 meses de cada año calendario, solo con años completos (2025 queda fuera porque termina en "
-                  "agosto).",
-                  "29_pagina_web.py (a partir de las series mensuales)", grafica="anual",
+                  f"Suma de los 12 meses de cada año calendario del periodo común ({INI.year}–{FIN.year}, años completos).",
+                  "36_pagina_web.py (a partir de las series mensuales)", grafica="anual",
                   csvs=[SM_CSV, SM / "imerg_cuenca_mensual.csv"])
         + tarjeta("Celdas de IMERG y pesos en el promedio de cuenca",
                   f"(a) Peso de cada celda = área dentro de la cuenca / área de la cuenca: {PW['n']} celdas, {PW['comp']} "
@@ -482,7 +488,7 @@ TRAT = {
            "No es una observación directa: es PISCOp v2.1 (pluviómetros de SENAMHI + CHIRPS) promediado sobre la cuenca "
            "por CAMELS-PE, y no se pudo reproducir con PISCOp v3.0 (−14.5 %). Los meses con menos de 1 mm son meses secos "
            "reales, no faltantes.",
-    "Q": f"3.1 % de días faltantes en el periodo común, concentrados en ago–oct y en 2019–2021. Con el criterio de "
+    "Q": f"{_rd.loc['Q', 'pct_dias_faltantes']:.1f} % de días faltantes en el periodo común, concentrados en ago–oct y en 2019–2021. Con el criterio de "
          f"completitud (≤ 10 % de días faltantes) quedaban {RL['excl']} meses excluidos; el grupo decidió rellenarlos: "
          f"(1) huecos ≤ 15 días, interpolación de ln q; (2) meses con ≥ 50 % de días, media × días del mes; (3) el "
          f"resto, modelo mensual con el caudal simulado de CAMELS-PE. Resultado: {RL['obs']} meses observados completos, "
@@ -493,7 +499,7 @@ TRAT = {
          f"observado. Se estimaron con ERA5-Land + sesgo de cada mes calendario (MAE {float(val['MAE_C']):.2f} °C en la "
          f"validación {val['evaluacion']}) y se guardan en una columna aparte, sin unir las fuentes. En las estadísticas "
          f"del punto 1.3 solo entra PISCOt.",
-    "P_I": "Producto mensual (IMERG V07 Final): los 332 meses del periodo común están completos. La tasa media (mm/h) se "
+    "P_I": f"Producto mensual (IMERG V07 Final): los {N_MESES} meses del periodo común están completos. La tasa media (mm/h) se "
            "convirtió a mm/mes con los días de cada mes y se promedió sobre la cuenca ponderando por área. Nunca baja de "
            "≈ 2 mm/mes y sus picos son mucho menores que los de P<sub>L</sub> (limitación del producto, no error de datos).",
 }
@@ -535,7 +541,7 @@ qc_html = f"""
     todo el análisis; no se presentan sumas parciales como acumulados mensuales completos. Caudal convertido de mm/d a m³/s
     con A = 2 171.6 km². La condición de cada mes (completo, escalado, excluido, sin dato) aparece al pasar el cursor.</p></div>
   </div>
-  <p class="meta"><span class="script">19_control_calidad_1_4.py, 09_datos_camels_pe_el_tambo.py (página: 29_pagina_web.py)</span> ·
+  <p class="meta"><span class="script">19_control_calidad_1_4.py, 09_datos_camels_pe_el_tambo.py (página: 36_pagina_web.py)</span> ·
   Datos: {enlaces([CC / "disponibilidad_condicion_mes.csv", CC / "resumen_disponibilidad_1_4.csv",
                    CC / "registro_anomalias_1_4.csv", SM / "caudal_diario_interpolado.csv"])}</p>
 </article>"""
@@ -570,8 +576,9 @@ pestana("p15a", "1.5.a Climatología", "Punto 1.5.a · Climatología de doce mes
                 csvs=[CL / "climatologia_1_5a.csv"])
         + tarjeta("Precipitación media de cada mes sobre la cuenca",
                   "Doce mapas: la lluvia crece de diciembre a marzo, cuando cubre toda la cuenca, y en junio–agosto casi "
-                  "desaparece. En los meses húmedos llueve más en las cabeceras del sureste. DEF y MAM aportan cada uno cerca "
-                  "del 42–43 % de la lluvia anual, SON el 14 % y JJA el 2 %.",
+                  "desaparece. En los meses húmedos llueve más en las cabeceras del sureste. Del total anual de P<sub>L</sub>, "
+                  f"DEF aporta el {TRIM_PCT['DEF']:.0f} %, MAM el {TRIM_PCT['MAM']:.0f} %, SON el {TRIM_PCT['SON']:.0f} % "
+                  f"y JJA el {TRIM_PCT['JJA']:.0f} %.",
                   "Climatología mensual de CHIRPS (0.05°) en el periodo común, con la georreferencia corregida, interpolada "
                   "a la malla del DEM y con una escala discreta común de naranja (seco) a azul (húmedo). El recuadro de cada "
                   "mapa compara el promedio de cuenca de CHIRPS con el de P<sub>L</sub>.",
@@ -586,7 +593,7 @@ pestana("p15b", "1.5.b Ciclo anual", "Punto 1.5.b · Rasgos del ciclo anual y su
                 "y secos sin el ciclo estacional.",
                 "Anomalía = valor del mes − media del mismo mes calendario en el periodo común. La media móvil exige al menos "
                 "10 de los 12 meses. Para T se usa PISCOt y, desde 2021, la estimación con ERA5-Land.",
-                "21_ciclo_anual_1_5b.py (página: 29_pagina_web.py)", grafica="anom", controles=selector("anom", VARS_ANOM),
+                "21_ciclo_anual_1_5b.py (página: 36_pagina_web.py)", grafica="anom", controles=selector("anom", VARS_ANOM),
                 csvs=[SM_CSV, SM / "imerg_cuenca_mensual.csv"])
         + tarjeta("Anomalía anual (año calendario)",
                   "Suma de las anomalías de cada año (media para T). Los extremos húmedos coinciden con El Niño costero "
@@ -602,7 +609,7 @@ pestana("p15b", "1.5.b Ciclo anual", "Punto 1.5.b · Rasgos del ciclo anual y su
                   f"régimen. (d) Variabilidad entre años por mes; en los meses secos el CV es inestable porque la media es casi "
                   f"cero.",
                   "SI = índice de estacionalidad (Walsh & Lawler, 1981); PCI = índice de concentración (Oliver, 1980); "
-                  "centroide = Markham (1970). Mes pico de cada año, subperiodos 1998–2011 y 2012–2025, y CV por mes con "
+                  f"centroide = Markham (1970). Mes pico de cada año, subperiodos 1998–2011 y 2012–{FIN.year}, y CV por mes con "
                   "prueba jackknife.",
                   "21_ciclo_anual_1_5b.py", png=CL / "fig_ciclo_1_5b.png",
                   csvs=[CL / "indicadores_estacionalidad_1_5b.csv", CL / "mes_pico_por_anio_1_5b.csv",
@@ -649,8 +656,8 @@ pestana("datos", "Datos", "Datos y reproducibilidad",
         "Fuentes usadas y cómo regenerar todos los productos.",
         tabla(fuentes, "Fuentes de datos")
         + '<div class="tabla-cont"><h3>Cómo reproducir</h3><p>Con Python 3 y las dependencias de <code>requirements.txt</code>, '
-          'ejecute en <code>Hidrologiat1/Codigos/</code>, en este orden: <code>06 → 07a → 13 → 14 → 09 → 10 → 28 → 26 → 07b → '
-          '11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 30a → 30b → 31 → 29</code>. Antes del 06 hay que descargar las dos '
+          'ejecute en <code>Hidrologiat1/Codigos/</code>, en este orden: <code>09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → '
+          '11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 29 → 27 → 30 → 31 → 32 → 33 → 34a → 34b → 35 → 36</code>. Antes del 06 hay que descargar las dos '
           'teselas de GLO-30 (ver <code>README.md</code>). Las descargas de IMERG y ERA5/ERA5-Land requieren cuentas '
           'personales (NASA Earthdata y Copernicus CDS), cuyas credenciales no se incluyen en el repositorio. El detalle de '
           'cada conjunto de datos está en <a href="DATOS.md">DATOS.md</a>.</p></div>')
@@ -691,7 +698,7 @@ pagina = f"""<!doctype html>
 </div></nav>
 <main><div class="wrap">{paneles}</div></main>
 <footer><div class="wrap">
-Página generada el {date.today():%Y-%m-%d} con <code>Hidrologiat1/Codigos/29_pagina_web.py</code> a partir de los archivos
+Página generada el {date.today():%Y-%m-%d} con <code>Hidrologiat1/Codigos/36_pagina_web.py</code> a partir de los archivos
 de resultados. Las gráficas marcadas «interactiva» se dibujan con Plotly desde los CSV; las marcadas «imagen» son las figuras
 PNG de los scripts (clic para ampliar). Las descripciones distinguen lo que muestran los datos de las hipótesis, que el grupo
 debe sustentar con bibliografía.

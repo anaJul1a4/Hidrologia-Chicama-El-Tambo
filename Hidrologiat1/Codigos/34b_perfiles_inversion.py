@@ -1,7 +1,7 @@
 """
 Inversión térmica de la costa norte del Perú y su posición respecto a la cuenca El Tambo (apoyo del punto 1.5.c).
 
-Datos (script 30a):
+Datos (script 34a):
   - Radiosondeos observados de Trujillo, IGRA2 PEM00084516 (−8.04°, −79.06°, 127 m), 12 UTC = 7 a.m. local.
   - ERA5 mensual por niveles de presión, promedio de las 12 UTC, celda más cercana a Trujillo (periodo común).
 
@@ -204,7 +204,7 @@ if NC.exists():
     ds = xr.open_dataset(NC)
     ds = ds.rename({k: v for k, v in {"valid_time": "time", "latitude": "lat", "longitude": "lon",
                                        "pressure_level": "level"}.items() if k in ds.dims or k in ds.coords})
-    pt = ds.sel(lat=-8.0, lon=-79.0, method="nearest").sel(time=slice(INI, FIN))
+    pt = ds.sel(lat=-8.0, lon=-79.0, method="nearest").sel(time=slice(INI, FIN + pd.offsets.MonthEnd(0) + pd.Timedelta(hours=23)))
     e5 = {}
     for t, meses in TEMPORADAS.items():
         s = pt.sel(time=pt.time.dt.month.isin(meses)).mean("time")
@@ -213,7 +213,7 @@ if NC.exists():
     E5_PUNTO = (float(pt.lat), float(pt.lon))
     print(f"ERA5 12 UTC: celda {E5_PUNTO}, {pt.time.size} meses")
 else:
-    print("Sin ERA5 (ejecutar 30a); las figuras se generan solo con los sondeos.")
+    print("Sin ERA5 (ejecutar 34a); las figuras se generan solo con los sondeos.")
 
 
 # ------------------------------------------------------------------ 4. parcela (adiabática seca → húmeda)
