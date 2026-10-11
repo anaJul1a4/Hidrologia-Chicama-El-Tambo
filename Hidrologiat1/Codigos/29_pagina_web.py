@@ -568,15 +568,13 @@ pestana("p15a", "1.5.a Climatología", "Punto 1.5.a · Climatología de doce mes
         f"el caudal llega a su máximo en abril ({cmes('Q', 4)['media']:.0f} m³/s).",
         tarjeta("Ciclo anual medio con bandas de dispersión",
                 "Línea continua = media; discontinua = mediana; banda oscura = rango intercuartílico (Q1–Q3); banda clara = "
-                "percentiles 10–90. Las líneas grises finas son los años individuales (curvas anuales superpuestas), para ver "
-                "qué años se salen del promedio; se ocultan con el botón «Años». Elija la variable con los botones. Las "
-                "bandas describen cuánto cambian los años entre sí; no son intervalos de confianza.",
+                "percentiles 10–90. Elija la variable con los botones. Las bandas describen cuánto cambian los años entre sí; "
+                "no son intervalos de confianza.",
                 f"Los meses del periodo común ({PER}) se agrupan por mes calendario y en cada grupo se calculan media, mediana, "
                 "cuartiles y percentiles 10 y 90 (interpolación lineal). Para T se usa PISCOt y, desde 2021, la estimación "
                 "con ERA5-Land.",
                 "20_climatologia_1_5a.py", grafica="clim",
-                controles=selector("clim", VARS_CLIM).replace(
-                    "</div>", '<button type="button" class="anios" aria-pressed="true">Años</button></div>'),
+                controles=selector("clim", VARS_CLIM),
                 csvs=[CL / "climatologia_1_5a.csv"])
         + tarjeta("Precipitación media de cada mes sobre la cuenca",
                   "Doce mapas: la lluvia crece de diciembre a marzo, cuando cubre toda la cuenca, y en junio–agosto casi "

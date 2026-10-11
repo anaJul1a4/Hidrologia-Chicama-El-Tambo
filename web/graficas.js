@@ -4,7 +4,7 @@
   const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const UNID = { P_L: "mm/mes", P_I: "mm/mes", R: "mm/mes", Q: "m³/s", T: "°C" };
   const NOMBRE = { P_L: "P<sub>L</sub>", P_I: "P<sub>I</sub>", R: "R", Q: "Q̄", T: "T" };
-  const estado = { clim: "P_L", anom: "P_L", qc: "P_L", anios: true, serie11: new Set(["P_L", "Q", "R", "T"]) };
+  const estado = { clim: "P_L", anom: "P_L", qc: "P_L", anios: false, serie11: new Set(["P_L", "Q", "R", "T"]) };
   const dibujadas = new Set();
 
   // ------------------------------------------------------------ tema (tokens de estilo.css)

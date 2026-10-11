@@ -50,7 +50,7 @@ h2{font-size:1.4rem;line-height:1.3;margin:0 0 8px;text-wrap:balance}
 .tipo{font-size:.72rem;font-weight:600;letter-spacing:.02em;color:var(--ink2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap}
 .tipo.int{color:var(--acc);background:var(--chip);border-color:transparent}
 .fig-cuerpo{padding:4px 12px 8px}
-.zoom{all:unset;display:block;cursor:zoom-in;background:#fff;border-radius:8px;padding:8px}
+.zoom{all:unset;display:block;box-sizing:border-box;width:100%;cursor:zoom-in;background:#fff;border-radius:8px;padding:8px}
 .zoom:focus-visible{outline:3px solid var(--acc)}
 .zoom img{display:block;max-width:100%;max-height:80vh;width:auto;height:auto;margin:0 auto}
 .plot{width:100%;min-height:420px}
@@ -446,9 +446,9 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
 </article></section><section class="panel" id="tab-p15a" data-tab="p15a" hidden><h2>Punto 1.5.a · Climatología de doce meses</h2><p class="intro">P<sub>L</sub> llega a su máximo en marzo (213 mm de media) y a su mínimo en julio–agosto; el caudal llega a su máximo en abril (90 m³/s).</p>
 <article class="fig">
   <header class="fig-h"><h3>Ciclo anual medio con bandas de dispersión</h3><span class="tipo int">interactiva</span></header>
-  <div class="fig-cuerpo"><div class="selector" data-para="clim" role="group" aria-label="Variable"><button type="button" data-v="P_L" aria-pressed="true">P<sub>L</sub></button><button type="button" data-v="P_I" aria-pressed="false">P<sub>I</sub></button><button type="button" data-v="Q" aria-pressed="false">Q̄</button><button type="button" data-v="R" aria-pressed="false">R</button><button type="button" data-v="T" aria-pressed="false">T</button><button type="button" class="anios" aria-pressed="true">Años</button></div><div class="plot" data-plot="clim" role="img" aria-label="Ciclo anual medio con bandas de dispersión"></div></div>
+  <div class="fig-cuerpo"><div class="selector" data-para="clim" role="group" aria-label="Variable"><button type="button" data-v="P_L" aria-pressed="true">P<sub>L</sub></button><button type="button" data-v="P_I" aria-pressed="false">P<sub>I</sub></button><button type="button" data-v="Q" aria-pressed="false">Q̄</button><button type="button" data-v="R" aria-pressed="false">R</button><button type="button" data-v="T" aria-pressed="false">T</button></div><div class="plot" data-plot="clim" role="img" aria-label="Ciclo anual medio con bandas de dispersión"></div></div>
   <div class="fig-texto">
-    <div><h4>Qué muestra</h4><p>Línea continua = media; discontinua = mediana; banda oscura = rango intercuartílico (Q1–Q3); banda clara = percentiles 10–90. Las líneas grises finas son los años individuales (curvas anuales superpuestas), para ver qué años se salen del promedio; se ocultan con el botón «Años». Elija la variable con los botones. Las bandas describen cuánto cambian los años entre sí; no son intervalos de confianza.</p></div>
+    <div><h4>Qué muestra</h4><p>Línea continua = media; discontinua = mediana; banda oscura = rango intercuartílico (Q1–Q3); banda clara = percentiles 10–90. Elija la variable con los botones. Las bandas describen cuánto cambian los años entre sí; no son intervalos de confianza.</p></div>
     <div><h4>Cómo se construyó</h4><p>Los meses del periodo común (1998-01 a 2025-08) se agrupan por mes calendario y en cada grupo se calculan media, mediana, cuartiles y percentiles 10 y 90 (interpolación lineal). Para T se usa PISCOt y, desde 2021, la estimación con ERA5-Land.</p></div>
   </div>
   <p class="meta"><span class="script">20_climatologia_1_5a.py</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/climatologia/climatologia_1_5a.csv" download>climatologia_1_5a.csv</a></p>
@@ -758,7 +758,7 @@ debe sustentar con bibliografía.
   const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const UNID = { P_L: "mm/mes", P_I: "mm/mes", R: "mm/mes", Q: "m³/s", T: "°C" };
   const NOMBRE = { P_L: "P<sub>L</sub>", P_I: "P<sub>I</sub>", R: "R", Q: "Q̄", T: "T" };
-  const estado = { clim: "P_L", anom: "P_L", qc: "P_L", anios: true, serie11: new Set(["P_L", "Q", "R", "T"]) };
+  const estado = { clim: "P_L", anom: "P_L", qc: "P_L", anios: false, serie11: new Set(["P_L", "Q", "R", "T"]) };
   const dibujadas = new Set();
 
   // ------------------------------------------------------------ tema (tokens de estilo.css)
