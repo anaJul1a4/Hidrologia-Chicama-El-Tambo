@@ -32,13 +32,17 @@ from rasterio.windows import from_bounds
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap, BoundaryNorm, LightSource
+from matplotlib.colors import ListedColormap, BoundaryNorm, LightSource, LinearSegmentedColormap
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 import matplotlib.patheffects as pe
 
 from utils_mapas import formato_grados, escala_y_norte, m_por_grado_lon, M_PER_DEG_Y
 from periodo_comun import periodo_comun, fin_diario
+
+# Escala seco→húmedo del ejemplo del curso (la misma de 27_mapas_precipitacion_mensual.py)
+COLORES_P = ["#e8761c", "#f0a21f", "#f5cf1f", "#eef01c", "#c9e02a", "#8fbf3a", "#5e9f4d", "#4b7f5f",
+             "#4d6466", "#4a4f6e", "#3b3a63"]
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 DATOS = ROOT / "datos"
@@ -324,14 +328,18 @@ def precip_layer(ax):
     base(ax, f"(d) Precipitación media anual {P_PER} – CHIRPS v2.0")
     vmin = np.floor(np.nanmin(precip) / 100) * 100
     vmax = np.ceil(np.nanmax(precip) / 100) * 100
-    im = ax.imshow(precip, cmap="Blues", vmin=vmin, vmax=vmax, extent=EXT, alpha=0.85, interpolation="bilinear")
-    cs = ax.contour(px_lon, px_lat, precip, levels=np.arange(vmin, vmax + 1, 100), colors="#08306b",
+    # Misma escala discreta seco→húmedo (naranja → azul oscuro) que los mapas mensuales del script 27
+    clases = np.arange(vmin, vmax + 1, 50)
+    cmap = LinearSegmentedColormap.from_list("seco_humedo", COLORES_P, N=len(clases) - 1)
+    im = ax.imshow(precip, cmap=cmap, norm=BoundaryNorm(clases, cmap.N), extent=EXT, alpha=0.88,
+                   interpolation="nearest")
+    cs = ax.contour(px_lon, px_lat, precip, levels=np.arange(vmin, vmax + 1, 100), colors="#1d1d1b",
                     linewidths=0.6, alpha=0.8)
     ax.clabel(cs, fmt="%d", fontsize=7, inline=True)
     overlay(ax)
     cax = ax.inset_axes([0.0, -0.105, 1.0, 0.022])              # no encoge el mapa (mismo tamaño que los demás)
     cb = plt.colorbar(im, cax=cax, orientation="horizontal")
-    cb.set_label(f"P (mm/año) · isoyetas cada 100 mm · promedio de cuenca ponderado por área "
+    cb.set_label(f"P (mm/año), clases de 50 mm · isoyetas cada 100 mm · promedio de cuenca ponderado por área "
                  f"{P_MEDIA:.0f} mm/año", fontsize=8)
     cb.ax.tick_params(labelsize=7.5)
     ax.text(0.0, -0.17, "Fuente de apoyo: CHIRPS v2.0 mensual, 0.05° (Funk et al. 2015; doi:10.15780/G2RP4Q),\n"

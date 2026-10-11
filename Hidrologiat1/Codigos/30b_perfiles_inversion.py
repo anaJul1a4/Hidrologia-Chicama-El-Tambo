@@ -324,7 +324,7 @@ a2.set(xlabel="Humedad relativa (%)", xlim=(0, 102))
 plt.setp(a2.get_yticklabels(), visible=False)
 for ax in (a1, a2):
     referencias(ax, ax.get_xlim()[1] - 0.3)
-a1.legend(loc="upper right", fontsize=7.5, framealpha=0.92)
+a1.legend(loc="lower left", fontsize=7.5, framealpha=0.92)
 a1.set_title("(a) Temperatura: mediana y rango intercuartílico", loc="left", fontsize=9.5)
 a2.set_title("(b) Humedad relativa", loc="left", fontsize=9.5)
 
@@ -348,11 +348,11 @@ fig.suptitle(f"Perfiles verticales sobre la costa de Trujillo y capa de inversi�
              f"{inv.index.min():%Y-%m} a {inv.index.max():%Y-%m} (12 UTC)", fontsize=11.5, fontweight="bold",
              x=0.02, ha="left")
 nota = (f"Inversión = primer aumento continuo de T con la altura desde la superficie, por debajo de {Z_MAX_INV:.0f} m y "
-        f"≥ {UMBRAL_INV:.0f} °C. En (c), el porcentaje es la frecuencia de sondeos con inversión. ")
+        f"≥ {UMBRAL_INV:.0f} °C. En (c), el porcentaje es la frecuencia de sondeos con inversión.\n")
 if e5 is not None:
     nota += f"ERA5: promedio mensual de las 12 UTC {INI:%Y-%m} a {FIN:%Y-%m}, celda {E5_PUNTO[0]:.2f}°, {E5_PUNTO[1]:.2f}°."
 fig.text(0.02, 0.008, nota, fontsize=7.5, color="#52514e")
-fig.subplots_adjust(left=0.06, right=0.99, top=0.9, bottom=0.11)
+fig.subplots_adjust(left=0.06, right=0.99, top=0.9, bottom=0.125)
 fig.savefig(OUT / "fig_perfiles_inversion.png", dpi=200)
 plt.close(fig)
 print("Figuras en", OUT)

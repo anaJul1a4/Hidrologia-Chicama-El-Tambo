@@ -132,6 +132,39 @@ DATOS = {
                    "P_L": lista(acal["P_L_anom_total_mm"], 1), "P_I": lista(acal["P_I_anom_total_mm"], 1),
                    "R": lista(acal["R_anom_total_mm"], 1), "T": lista(acal["T_anom_media_C"], 2)},
 }
+# diarios (control de calidad): caudal sin rellenar, días interpolados, precipitación y temperatura
+FIN_D = FIN + pd.offsets.MonthEnd(0)
+dia = leer(PROY / "Tarea 1" / "El_Tambo" / "datos" / "camels_pe" / "PE_47E0A2A8.csv", index_col="date",
+           parse_dates=True).loc[INI:FIN_D]
+qint = leer(SM / "caudal_diario_interpolado.csv", index_col="fecha", parse_dates=True).reindex(dia.index)
+A_KM2 = 2171.585                                                  # área CAMELS-PE, igual que el script 09
+disp_cond = leer(CC / "disponibilidad_condicion_mes.csv", index_col="fecha", parse_dates=True).loc[INI:FIN]
+anios = list(range(INI.year, FIN.year + 1))
+
+
+def matriz(valido):
+    """Fracción de días válidos por año × mes (None fuera del periodo común)."""
+    g = valido.groupby([valido.index.year, valido.index.month]).mean()
+    return [[None if (y, m) not in g.index else round(float(g[(y, m)]), 3) for m in range(1, 13)] for y in anios]
+
+
+def matriz_cond(col):
+    c = disp_cond[col]
+    return [[c.get(pd.Timestamp(y, m, 1), None) for m in range(1, 13)] for y in anios]
+
+
+DATOS["diario"] = {
+    "ini": f"{dia.index[0]:%Y-%m-%d}", "n": len(dia),
+    "P_L": lista(dia["prec"], 1), "T": lista(dia["tmean"], 1),
+    "Q": lista(dia["flow_obs"] * A_KM2 / 86.4, 2),
+    "Q_int": lista((qint["q_mm_d"] * A_KM2 / 86.4).where(qint["interpolado"] == 1), 2),
+}
+DATOS["disp"] = {"anios": anios,
+                 "P_L": {"f": matriz(dia["prec"].notna()), "c": matriz_cond("P_L")},
+                 "Q": {"f": matriz(dia["flow_obs"].notna()), "c": matriz_cond("Q")},
+                 "T": {"f": matriz(dia["tmean"].notna()), "c": matriz_cond("T")},
+                 "P_I": {"f": matriz(imerg.reindex(dia.index, method="ffill").notna()), "c": matriz_cond("P_I")}}
+
 (WEB / "datos.js").write_text("window.DATOS = " + json.dumps(DATOS, ensure_ascii=False, separators=(",", ":")) + ";\n",
                               encoding="utf-8")
 
@@ -201,6 +234,12 @@ def selector(grafica, opciones):
 
 
 VARS_CLIM = [("P_L", "P<sub>L</sub>"), ("P_I", "P<sub>I</sub>"), ("Q", "Q̄"), ("R", "R"), ("T", "T")]
+def conmutador(grafica, opciones, etiqueta):
+    b = "".join(f'<button type="button" data-v="{v}" aria-pressed="true">{t}</button>' for v, t in opciones)
+    return (f'<div class="selector multi" data-para="{grafica}" role="group" aria-label="{etiqueta}">'
+            f'<span class="sel-tit">{etiqueta}:</span>{b}</div>')
+
+
 VARS_ANOM = [("P_L", "P<sub>L</sub>"), ("P_I", "P<sub>I</sub>"), ("R", "R"), ("T", "T")]
 
 # ------------------------------------------------------------------ tablas
@@ -258,8 +297,10 @@ if (INV / "inversion_por_sondeo.csv").exists():
               bh=hum.base_m.median(), th=hum.tope_m.median(), dh=hum.intensidad_C.median(),
               hrb=sec.HR_bajo_base.median(), hrs=sec.HR_sobre_tope.median(),
               fmin=rm.frecuencia_pct.min(), mmin=MESES[int(rm.frecuencia_pct.idxmin()) - 1])
-    era5_txt = (" Las líneas discontinuas son ERA5 (promedio mensual de las 12 UTC del periodo común en la celda de "
-                "Trujillo), que muestra que el patrón de los dos años de sondeos se mantiene en 1998–2025."
+    era5_txt = (" Las líneas discontinuas son ERA5 (promedio mensual de las 12 UTC de 1998–2025 en la celda de Trujillo): "
+                "en el periodo largo se mantiene el contraste entre temporadas (más cálido y seco sobre 1 500 m en may–sep), "
+                "pero la inversión queda muy suavizada porque ERA5 promedia el mes y tiene niveles cada 25 hPa (~250 m). Los "
+                "sondeos son la fuente para la base, el tope y la intensidad."
                 if (PROY / "Tarea 1" / "El_Tambo" / "datos" / "era5_perfiles" / "ERA5_perfiles_12UTC_mensual.nc").exists() else "")
     inversion_html = (
         '<h2 class="sub2">Inversión térmica sobre la costa y la cuenca</h2>'
@@ -363,7 +404,8 @@ pestana("p11", "1.1 Series", "Punto 1.1 · Series mensuales de precipitación, c
                 f"El caudal y la escorrentía tienen sus faltantes rellenados: los marcadores indican el método "
                 f"({RL['interp']} meses con días interpolados, {RL['esc']} escalados y {RL['mod']} reconstruido con modelo, "
                 f"{RL['mes_mod']}), y el fondo naranja los {RL['excl']} meses que sin relleno quedaban excluidos. Desde 2021 "
-                f"la temperatura es una estimación con ERA5-Land (línea discontinua), no PISCOt.",
+                f"la temperatura es una estimación con ERA5-Land (línea discontinua), no PISCOt. Con los botones se eligen los "
+                f"paneles que se muestran; siempre quedan alineados en el mismo eje de tiempo.",
                 "P<sub>L</sub> = suma de la precipitación diaria (PISCOp v2.1 promediado en la cuenca por CAMELS-PE), solo "
                 "meses completos. Q̄ = media del caudal diario observado (SENAMHI), convertido de mm/d a m³/s con "
                 "Q̄ = q̄·A/86.4 y A = 2 171.6 km². R = suma de q diario en mm. T = media de la temperatura diaria (PISCOt "
@@ -371,6 +413,8 @@ pestana("p11", "1.1 Series", "Punto 1.1 · Series mensuales de precipitación, c
                 "≤ 15 días, escalado de la media en meses con ≥ 50 % de días y modelo mensual con el caudal simulado en el "
                 "resto (validación en el punto 1.4).",
                 "09_datos_camels_pe_el_tambo.py, relleno_caudal.py (página: 29_pagina_web.py)", grafica="serie11",
+                controles=conmutador("serie11", [("P_L", "P<sub>L</sub>"), ("Q", "Q̄"), ("R", "R"), ("T", "T")],
+                                     "Paneles visibles"),
                 csvs=[SM_CSV, SM / "temperatura_piscot_extendida_era5land.csv"],
                 leer_="Los máximos de 1998 y 2017 corresponden a eventos de El Niño; el caudal queda alto también en los meses "
                       "siguientes.")
@@ -437,43 +481,102 @@ pestana("p13", "1.3 Distribución", "Punto 1.3 · Distribución de los valores m
                 "Percentiles con interpolación lineal (tipo 7). T solo PISCOt, sin la estimación desde 2021. La tabla del "
                 "registro completo está en estadisticos_1_3_registro_completo.csv."))
 
+_VQC = {"P_L": ("P<sub>L</sub> · precipitación", r"P_L|Todas"), "Q": ("Q̄ · caudal", r"\bQ\b|Todas"),
+        "T": ("T · temperatura", r"\bT\b|Todas"), "P_I": ("P<sub>I</sub> · IMERG", r"P_I")}
+_rd = leer(CC / "resumen_disponibilidad_1_4.csv")
+_rd = _rd[_rd.periodo.str.startswith("periodo")].set_index("variable")
+TRAT = {
+    "P_L": "Sin días faltantes en 1981–2025. P<sub>L</sub> mensual = suma de los días del mes, solo con meses completos. "
+           "No es una observación directa: es PISCOp v2.1 (pluviómetros de SENAMHI + CHIRPS) promediado sobre la cuenca "
+           "por CAMELS-PE, y no se pudo reproducir con PISCOp v3.0 (−14.5 %). Los meses con menos de 1 mm son meses secos "
+           "reales, no faltantes.",
+    "Q": f"3.1 % de días faltantes en el periodo común, concentrados en ago–oct y en 2019–2021. Con el criterio de "
+         f"completitud (≤ 10 % de días faltantes) quedaban {RL['excl']} meses excluidos; el grupo decidió rellenarlos: "
+         f"(1) huecos ≤ 15 días, interpolación de ln q; (2) meses con ≥ 50 % de días, media × días del mes; (3) el "
+         f"resto, modelo mensual con el caudal simulado de CAMELS-PE. Resultado: {RL['obs']} meses observados completos, "
+         f"{RL['interp']} con días interpolados, {RL['esc']} escalados y {RL['mod']} reconstruido ({RL['mes_mod']}). "
+         f"Lo observado se conserva aparte (R_obs, R_flag_obs) y la bandera R_flag indica el origen de cada mes. "
+         f"Validación en la figura de abajo.",
+    "T": f"PISCOt (CAMELS-PE) termina en 2020-12: los {int(_rd.loc['T', 'sin_dato'])} meses desde 2021 no tienen dato "
+         f"observado. Se estimaron con ERA5-Land + sesgo de cada mes calendario (MAE {float(val['MAE_C']):.2f} °C en la "
+         f"validación {val['evaluacion']}) y se guardan en una columna aparte, sin unir las fuentes. En las estadísticas "
+         f"del punto 1.3 solo entra PISCOt.",
+    "P_I": "Producto mensual (IMERG V07 Final): los 332 meses del periodo común están completos. La tasa media (mm/h) se "
+           "convirtió a mm/mes con los días de cada mes y se promedió sobre la cuenca ponderando por área. Nunca baja de "
+           "≈ 2 mm/mes y sus picos son mucho menores que los de P<sub>L</sub> (limitación del producto, no error de datos).",
+}
+
+
+def panel_qc(v, primero):
+    nombre, patron = _VQC[v]
+    r = _rd.loc[v]
+    falt = "—" if pd.isna(r.pct_dias_faltantes) else f"{r.pct_dias_faltantes:.1f} %"
+    chips = "".join(f'<div class="dato">{t}<b>{x}</b></div>' for t, x in [
+        ("Días faltantes", falt), ("Meses completos", int(r.completo)), ("Escalados", int(r.escalado)),
+        ("Excluidos", int(r.excluido)), ("Sin dato", int(r.sin_dato))])
+    filas = reg[reg.variable.str.contains(patron, regex=True)]
+    items = "".join(f'<li><span class="estado e-{html.escape(x.estado.replace(" ", "-"))}">{html.escape(x.estado)}</span> '
+                    f'<b>{html.escape(x.id)}</b> · {html.escape(str(x.fecha_o_periodo))}: {html.escape(x.anomalia)} '
+                    f'<i>→ {html.escape(x.decision)}</i></li>' for _, x in filas.iterrows())
+    return (f'<div class="qc-var" data-var="{v}"{"" if primero else " hidden"}>'
+            f'<h4>{nombre}</h4><p class="nota">Periodo común {PER}, antes del relleno.</p>'
+            f'<div class="datos-clave">{chips}</div>'
+            f'<h4>Qué se hizo</h4><p>{TRAT[v]}</p>'
+            f'<h4>Comprobaciones y decisiones</h4><ul class="qc-lista">{items}</ul></div>')
+
+
+qc_html = f"""
+<article class="fig qc">
+  <header class="fig-h"><h3>Disponibilidad y control de calidad por variable</h3><span class="tipo int">interactiva</span></header>
+  {selector("qc", [("P_L", "P<sub>L</sub>"), ("Q", "Q̄ caudal"), ("T", "T"), ("P_I", "P<sub>I</sub> IMERG")])}
+  <div class="qc-grid">
+    <div class="fig-cuerpo"><div class="plot" data-plot="qc" role="img" aria-label="Disponibilidad y serie diaria"></div></div>
+    <aside class="qc-lado">{"".join(panel_qc(v, i == 0) for i, v in enumerate(_VQC))}</aside>
+  </div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Arriba, la fracción de días con dato de cada mes (año × mes), antes de cualquier relleno: los
+    meses claros tienen faltantes. Abajo, la serie diaria del mismo periodo con los vacíos sin rellenar; en el caudal, los días
+    interpolados se marcan en naranja. A la derecha, lo que se comprobó y se decidió con esa variable, para leerlo junto a la
+    gráfica.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Días válidos contados en el registro diario de CAMELS-PE (P<sub>L</sub>, caudal y T) y
+    meses de IMERG. Un mes es completo si faltan ≤ 10 % de sus días, criterio aplicado igual a todas las variables y durante
+    todo el análisis; no se presentan sumas parciales como acumulados mensuales completos. Caudal convertido de mm/d a m³/s
+    con A = 2 171.6 km². La condición de cada mes (completo, escalado, excluido, sin dato) aparece al pasar el cursor.</p></div>
+  </div>
+  <p class="meta"><span class="script">19_control_calidad_1_4.py, 09_datos_camels_pe_el_tambo.py (página: 29_pagina_web.py)</span> ·
+  Datos: {enlaces([CC / "disponibilidad_condicion_mes.csv", CC / "resumen_disponibilidad_1_4.csv",
+                   CC / "registro_anomalias_1_4.csv", SM / "caudal_diario_interpolado.csv"])}</p>
+</article>"""
+
 pestana("p14", "1.4 Calidad", "Punto 1.4 · Control de calidad",
-        "Comprobaciones sobre los datos diarios (fechas, códigos de faltante, negativos, secuencias constantes, tramos "
-        "interpolados, picos aislados), revisiones manuales y registro de anomalías con la decisión tomada.",
-        tarjeta("Disponibilidad año × mes",
-                "Condición de cada mes y variable según lo observado, antes del relleno. Los faltantes de caudal se concentran "
-                "en septiembre (y agosto–octubre) casi todos los años, además de un periodo con más vacíos en 2019–2021. "
-                "P<sub>L</sub> e IMERG no tienen faltantes.",
-                "Cada celda es un mes; un mes se considera completo si faltan ≤ 10 % de sus días (criterio aplicado igual a "
-                "todas las variables). Se cuentan los días válidos del registro diario de CAMELS-PE.",
-                "19_control_calidad_1_4.py", png=CC / "fig_disponibilidad_1_4.png",
-                csvs=[CC / "disponibilidad_condicion_mes.csv", CC / "resumen_disponibilidad_1_4.csv"])
+        "Elija una variable: su disponibilidad, su serie diaria y todo lo que se hizo con ella quedan en el mismo lugar.",
+        qc_html
         + tarjeta("Relleno de los faltantes de caudal y su validación",
-                  f"(a) Al borrar días de meses completos, la interpolación da errores 3–8 veces menores que el escalado "
-                  f"(≤ 1.5 % de mediana hasta 7 días). (b) El modelo mensual, evaluado dejando un año fuera, tiene un error "
-                  f"típico del 23 % (NSE 0.72); por eso solo se usa donde no hay suficientes días medidos. En el periodo común: "
-                  f"{RL['obs']} meses observados completos, {RL['interp']} con días interpolados, {RL['esc']} escalados y "
-                  f"{RL['mod']} reconstruido ({RL['mes_mod']}).",
+                  "(a) Al borrar días de meses completos, la interpolación da errores 3–8 veces menores que el escalado "
+                  "(≤ 1.5 % de mediana hasta 7 días). (b) El modelo mensual, evaluado dejando un año fuera, tiene un error "
+                  "típico del 23 % (NSE 0.72); por eso solo se usa donde no hay suficientes días medidos.",
                   "Validación sintética: en meses completos se borraron huecos de 1 a 15 días y se compararon los totales "
                   "rellenados con los reales. El modelo mensual ln R<sub>m</sub> = a<sub>mes</sub> + b·ln(flow_sim) + "
                   "c·ln R<sub>m−1</sub> se evaluó con validación cruzada dejando un año fuera.",
                   "relleno_caudal.py, 28_validacion_relleno_caudal.py", png=SM / "fig_validacion_relleno_caudal.png",
                   csvs=[SM / "validacion_relleno_huecos_diarios.csv", SM / "validacion_relleno_modelo_mensual.csv",
-                        SM / "resumen_relleno_caudal.csv"])
-        + tabla(t14, "Registro de anomalías",
-                "Estado: «sin problema» = comprobado, nada que corregir; «incierto» = la duda se declara como limitación."))
+                        SM / "resumen_relleno_caudal.csv"]))
+
 
 pestana("p15a", "1.5.a Climatología", "Punto 1.5.a · Climatología de doce meses",
         f"P<sub>L</sub> llega a su máximo en marzo ({cmes('P_L', 3)['media']:.0f} mm de media) y a su mínimo en julio–agosto; "
         f"el caudal llega a su máximo en abril ({cmes('Q', 4)['media']:.0f} m³/s).",
         tarjeta("Ciclo anual medio con bandas de dispersión",
                 "Línea continua = media; discontinua = mediana; banda oscura = rango intercuartílico (Q1–Q3); banda clara = "
-                "percentiles 10–90. Elija la variable con los botones. Las bandas describen cuánto cambian los años entre sí; "
-                "no son intervalos de confianza.",
+                "percentiles 10–90. Las líneas grises finas son los años individuales (curvas anuales superpuestas), para ver "
+                "qué años se salen del promedio; se ocultan con el botón «Años». Elija la variable con los botones. Las "
+                "bandas describen cuánto cambian los años entre sí; no son intervalos de confianza.",
                 f"Los meses del periodo común ({PER}) se agrupan por mes calendario y en cada grupo se calculan media, mediana, "
                 "cuartiles y percentiles 10 y 90 (interpolación lineal). Para T se usa PISCOt y, desde 2021, la estimación "
                 "con ERA5-Land.",
-                "20_climatologia_1_5a.py", grafica="clim", controles=selector("clim", VARS_CLIM),
+                "20_climatologia_1_5a.py", grafica="clim",
+                controles=selector("clim", VARS_CLIM).replace(
+                    "</div>", '<button type="button" class="anios" aria-pressed="true">Años</button></div>'),
                 csvs=[CL / "climatologia_1_5a.csv"])
         + tarjeta("Precipitación media de cada mes sobre la cuenca",
                   "Doce mapas: la lluvia crece de diciembre a marzo, cuando cubre toda la cuenca, y en junio–agosto casi "
@@ -482,12 +585,7 @@ pestana("p15a", "1.5.a Climatología", "Punto 1.5.a · Climatología de doce mes
                   "Climatología mensual de CHIRPS (0.05°) en el periodo común, con la georreferencia corregida, interpolada "
                   "a la malla del DEM y con una escala discreta común de naranja (seco) a azul (húmedo). El recuadro de cada "
                   "mapa compara el promedio de cuenca de CHIRPS con el de P<sub>L</sub>.",
-                  "27_mapas_precipitacion_mensual.py", png=CL / "mapas_precipitacion_mensual_chirps.png")
-        + tarjeta("Mapa año × mes",
-                  "Cada celda es un mes de un año, de modo que se ven los años individuales detrás del promedio. El caudal va "
-                  "en escala logarítmica; en temperatura, la trama marca los valores estimados con ERA5-Land.",
-                  "Matriz año × mes de cada variable en el periodo común, coloreada con una escala secuencial por variable.",
-                  "20_climatologia_1_5a.py", png=CL / "fig_anio_mes_1_5a.png"))
+                  "27_mapas_precipitacion_mensual.py", png=CL / "mapas_precipitacion_mensual_chirps.png"))
 
 pestana("p15b", "1.5.b Ciclo anual", "Punto 1.5.b · Rasgos del ciclo anual y su variabilidad",
         f"Con los criterios propuestos, el régimen de P<sub>L</sub> es <b>{ip.loc['P_L', 'regimen']}</b>. "

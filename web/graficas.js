@@ -4,7 +4,7 @@
   const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const UNID = { P_L: "mm/mes", P_I: "mm/mes", R: "mm/mes", Q: "m³/s", T: "°C" };
   const NOMBRE = { P_L: "P<sub>L</sub>", P_I: "P<sub>I</sub>", R: "R", Q: "Q̄", T: "T" };
-  const estado = { clim: "P_L", anom: "P_L" };
+  const estado = { clim: "P_L", anom: "P_L", qc: "P_L", anios: true, serie11: new Set(["P_L", "Q", "R", "T"]) };
   const dibujadas = new Set();
 
   // ------------------------------------------------------------ tema (tokens de estilo.css)
@@ -59,51 +59,122 @@
   // 1.1 · cuatro paneles alineados
   G.serie11 = function (t) {
     const x = D.fechas;
-    const dom = [[0.79, 1], [0.54, 0.74], [0.29, 0.49], [0.04, 0.24]];
+    const orden = ["P_L", "Q", "R", "T"].filter((v) => estado.serie11.has(v));
+    const k = orden.length, gap = 0.05, h = (1 - 0.02 - gap * (k - 1)) / k;
+    const dom = {}, ax = {};
+    orden.forEach((v, i) => {                                   // de arriba hacia abajo
+      const top = 1 - i * (h + gap);
+      dom[v] = [top - h, top];
+      ax[v] = i === 0 ? "y" : "y" + (i + 1);
+    });
+    const abajo = ax[orden[k - 1]];
+    const data = [];
+    const PANEL = {
+      P_L: ["P<sub>L</sub> · precipitación acumulada mensual (CAMELS-PE)", "mm/mes"],
+      Q: ["Q̄ · caudal medio mensual (SENAMHI, rellenado)", "m³/s"],
+      R: ["R · escorrentía en lámina", "mm/mes"],
+      T: ["T · temperatura media mensual", "°C"],
+    };
+    if (ax.P_L) data.push({ type: "bar", x, y: D.P_L, name: "P<sub>L</sub>", yaxis: ax.P_L, marker: { color: t.s1 },
+      showlegend: false, hovertemplate: "%{y:.1f} mm/mes" });
+    if (ax.Q) data.push(linea(x, D.Q, "Q̄", t.s1, { yaxis: ax.Q, showlegend: false, line: { color: t.s1, width: 1.6 },
+      hovertemplate: "%{y:.2f} m³/s" }));
+    if (ax.R) data.push(linea(x, D.R, "R", t.s1, { yaxis: ax.R, showlegend: false, line: { color: t.s1, width: 1.6 },
+      hovertemplate: "%{y:.1f} mm/mes" }));
+    if (ax.T) {
+      data.push(linea(x, D.T_piscot, "T PISCOt", t.s1, { yaxis: ax.T, line: { color: t.s1, width: 1.6 },
+        hovertemplate: "%{y:.2f} °C" }));
+      data.push(linea(x, D.T_est, "T estimada (ERA5-Land + sesgo)", t.s3, { yaxis: ax.T,
+        line: { color: t.s3, width: 1.8, dash: "dash" }, hovertemplate: "%{y:.2f} °C" }));
+    }
     const banderas = [["interpolado_diario", "circle-open", "días interpolados"], ["escalado", "square", "mes escalado"],
                       ["modelo_mensual", "diamond", "modelo mensual"]];
-    const data = [
-      { type: "bar", x, y: D.P_L, name: "P<sub>L</sub>", yaxis: "y", marker: { color: t.s1 }, showlegend: false,
-        hovertemplate: "%{y:.1f} mm/mes" },
-      linea(x, D.Q, "Q̄", t.s1, { yaxis: "y2", showlegend: false, line: { color: t.s1, width: 1.6 },
-        hovertemplate: "%{y:.2f} m³/s" }),
-      linea(x, D.R, "R", t.s1, { yaxis: "y3", showlegend: false, line: { color: t.s1, width: 1.6 },
-        hovertemplate: "%{y:.1f} mm/mes" }),
-      linea(x, D.T_piscot, "T PISCOt", t.s1, { yaxis: "y4", line: { color: t.s1, width: 1.6 },
-        hovertemplate: "%{y:.2f} °C" }),
-      linea(x, D.T_est, "T estimada (ERA5-Land + sesgo)", t.s3, { yaxis: "y4",
-        line: { color: t.s3, width: 1.8, dash: "dash" }, hovertemplate: "%{y:.2f} °C" }),
-    ];
     banderas.forEach(([cod, sim, txt]) => {
       const xi = [], yq = [], yr = [];
       D.R_flag.forEach((f, i) => { if (f === cod) { xi.push(x[i]); yq.push(D.Q[i]); yr.push(D.R[i]); } });
       if (!xi.length) return;
       const mk = { color: t.s2, size: 8, symbol: sim, line: { color: t.s2, width: 1.5 } };
-      data.push({ type: "scatter", mode: "markers", x: xi, y: yq, yaxis: "y2", name: "Q̄ rellenado: " + txt,
-        legendgroup: cod, marker: mk, hovertemplate: txt });
-      data.push({ type: "scatter", mode: "markers", x: xi, y: yr, yaxis: "y3", name: txt, legendgroup: cod,
-        showlegend: false, marker: mk, hoverinfo: "skip" });
+      let leyenda = true;
+      [["Q", yq], ["R", yr]].forEach(([v, yy]) => {
+        if (!ax[v]) return;
+        data.push({ type: "scatter", mode: "markers", x: xi, y: yy, yaxis: ax[v], name: "Caudal rellenado: " + txt,
+          legendgroup: cod, showlegend: leyenda, marker: mk, hovertemplate: txt });
+        leyenda = false;
+      });
     });
-    const shapes = [];
-    D.R_flag_obs.forEach((f, i) => {
-      if (f === "excluido" || f === "sin_dato") {
-        shapes.push({ type: "rect", xref: "x", yref: "paper", x0: x[i], x1: mesSiguiente(x[i]), y0: 0, y1: 1,
-          fillcolor: t.excl, line: { width: 0 }, layer: "below" });
-      }
+    const shapes = [];                                          // solo caudal y escorrentía tienen meses excluidos
+    ["Q", "R"].filter((v) => ax[v]).forEach((v) => {
+      D.R_flag_obs.forEach((f, i) => {
+        if (f === "excluido" || f === "sin_dato") {
+          shapes.push({ type: "rect", xref: "x", yref: "paper", x0: x[i], x1: mesSiguiente(x[i]), y0: dom[v][0],
+            y1: dom[v][1], fillcolor: t.excl, line: { width: 0 }, layer: "below" });
+        }
+      });
     });
-    const titulos = ["P<sub>L</sub> · precipitación acumulada mensual (CAMELS-PE)", "Q̄ · caudal medio mensual (SENAMHI, rellenado)",
-                     "R · escorrentía en lámina", "T · temperatura media mensual"];
-    const annotations = titulos.map((txt, i) => ({ text: txt, xref: "paper", yref: "paper", x: 0, y: dom[i][1],
+    const annotations = orden.map((v) => ({ text: PANEL[v][0], xref: "paper", yref: "paper", x: 0, y: dom[v][1],
       xanchor: "left", yanchor: "bottom", showarrow: false, font: { color: t.ink, size: 12.5 } }));
-    return { data, layout: base(t, {
-      height: 860, margin: { l: 62, r: 18, t: 56, b: 30 }, bargap: 0.15, shapes, annotations,
-      legend: { orientation: "h", x: 0, y: 1.035, yanchor: "bottom", font: { color: t.ink2 } },
-      xaxis: ejeTiempo(t, { anchor: "y4", rangeslider: slider(t) }),
-      yaxis: eje(t, { domain: dom[0], title: { text: "mm/mes" }, rangemode: "tozero" }),
-      yaxis2: eje(t, { domain: dom[1], title: { text: "m³/s" }, rangemode: "tozero" }),
-      yaxis3: eje(t, { domain: dom[2], title: { text: "mm/mes" }, rangemode: "tozero" }),
-      yaxis4: eje(t, { domain: dom[3], title: { text: "°C" } }),
-    }) };
+    const layout = base(t, {
+      height: 150 + 190 * k, margin: { l: 62, r: 18, t: 56, b: 30 }, bargap: 0.15, shapes, annotations,
+      legend: { orientation: "h", x: 0, y: 1 + 34 / (150 + 190 * k), yanchor: "bottom", font: { color: t.ink2 } },
+      xaxis: ejeTiempo(t, { anchor: abajo, rangeslider: slider(t) }),
+    });
+    orden.forEach((v) => {
+      const nom = ax[v] === "y" ? "yaxis" : "yaxis" + ax[v].slice(1);
+      layout[nom] = eje(t, { domain: dom[v], title: { text: PANEL[v][1] }, rangemode: v === "T" ? "normal" : "tozero" });
+    });
+    return { data, layout };
+  };
+
+  // 1.4 · disponibilidad (año × mes) y serie diaria de la variable elegida
+  G.qc = function (t) {
+    const v = estado.qc, dsp = D.disp[v], dd = D.diario;
+    const anios = D.disp.anios;
+    const nombreCond = { completo: "completo", escalado: "escalado (incompleto)", excluido: "excluido (> 10 % faltante)",
+                         sin_dato: "sin dato" };
+    const texto = dsp.f.map((fila, i) => fila.map((f, j) => {
+      if (f == null) return "fuera del periodo común";
+      const c = dsp.c[i][j];
+      return `${anios[i]}-${String(j + 1).padStart(2, "0")}<br>${Math.round(100 * f)} % de días con dato<br>` +
+             `condición: ${nombreCond[c] || c || "—"}`;
+    }));
+    const data = [{
+      type: "heatmap", x: MESES, y: anios, z: dsp.f, text: texto, hovertemplate: "%{text}<extra></extra>",
+      zmin: 0, zmax: 1, xgap: 1, ygap: 1, xaxis: "x", yaxis: "y",
+      colorscale: [[0, rgba(t.neg, 0.85)], [0.5, rgba(t.neg, 0.35)], [0.9, rgba(t.s1, 0.25)], [1, t.s1]],
+      colorbar: { title: { text: "fracción de días<br>con dato", font: { size: 11, color: t.ink2 } }, len: 0.52, y: 1,
+                  yanchor: "top", thickness: 12, tickvals: [0, 0.5, 0.9, 1], ticktext: ["0", "0.5", "0.9", "1"],
+                  tickfont: { color: t.muted }, outlinewidth: 0 },
+    }];
+    const layout = base(t, {
+      height: 640, hovermode: "closest", margin: { l: 56, r: 18, t: 30, b: 40 }, showlegend: v === "Q",
+      legend: { orientation: "h", x: 0, y: 0.36, yanchor: "bottom", font: { color: t.ink2 } },
+      xaxis: eje(t, { type: "category", domain: [0, 1], anchor: "y", showgrid: false, side: "top" }),
+      yaxis: eje(t, { domain: [0.48, 1], autorange: "reversed", dtick: 2, showgrid: false, title: { text: "Año" } }),
+      annotations: [],
+    });
+    if (v === "P_I") {
+      layout.annotations.push({ text: "IMERG es un producto mensual: no tiene serie diaria. Los 332 meses están completos.",
+        xref: "paper", yref: "paper", x: 0, y: 0.18, showarrow: false, xanchor: "left", font: { color: t.ink2, size: 13 } });
+      return { data, layout };
+    }
+    const f0 = new Date(dd.ini + "T00:00:00Z");
+    const xd = Array.from({ length: dd.n }, (_, i) => new Date(f0.getTime() + i * 864e5).toISOString().slice(0, 10));
+    const u = { P_L: "mm/día", Q: "m³/s", T: "°C" }[v];
+    const etq = { P_L: "P<sub>L</sub> diaria (PISCOp v2.1)", Q: "Caudal diario observado (vacíos sin rellenar)",
+                  T: "T media diaria (PISCOt; termina en 2020-12)" }[v];
+    data.push({ type: "scattergl", mode: "lines", x: xd, y: dd[v], name: v === "Q" ? "observado" : etq,
+      xaxis: "x2", yaxis: "y2", connectgaps: false, line: { color: t.s1, width: 1 },
+      hovertemplate: `%{x}<br>%{y:.2f} ${u}<extra></extra>` });
+    if (v === "Q") {
+      data.push({ type: "scattergl", mode: "markers", x: xd, y: dd.Q_int, name: "días interpolados (relleno)",
+        xaxis: "x2", yaxis: "y2", marker: { color: t.s2, size: 4 },
+        hovertemplate: `%{x}<br>%{y:.2f} ${u} (interpolado)<extra></extra>` });
+    }
+    layout.xaxis2 = ejeTiempo(t, { domain: [0, 1], anchor: "y2", hoverformat: "%Y-%m-%d" });
+    layout.yaxis2 = eje(t, { domain: [0, 0.34], title: { text: u }, rangemode: v === "T" ? "normal" : "tozero" });
+    layout.annotations.push({ text: etq, xref: "paper", yref: "paper", x: 0, y: 0.345, xanchor: "left",
+      yanchor: "bottom", showarrow: false, font: { color: t.ink, size: 12.5 } });
+    return { data, layout };
   };
 
   // 1.1 · temperatura
@@ -150,7 +221,19 @@
     const f = v === "T" ? ".2f" : (v === "Q" ? ".1f" : ".0f");
     const ht = (n) => `${n}: %{y:${f}} ${u}<extra></extra>`;
     const sin = { width: 0 };
-    return { data: [
+    const anios = [];                                           // curvas anuales superpuestas (años individuales)
+    if (estado.anios) {
+      const serie = v === "T" ? D.T_piscot.map((y, i) => (y == null ? D.T_est[i] : y)) : D[v];
+      const porAnio = {};
+      D.fechas.forEach((f, i) => {
+        const [y, m] = f.split("-").map(Number);
+        (porAnio[y] = porAnio[y] || Array(12).fill(null))[m - 1] = serie[i];
+      });
+      Object.keys(porAnio).forEach((y) => anios.push({ type: "scatter", mode: "lines", x: MESES, y: porAnio[y],
+        name: "Años individuales", legendgroup: "anios", showlegend: anios.length === 0, connectgaps: false,
+        line: { color: rgba(t.muted, 0.55), width: 1 }, hovertemplate: `${y}: %{y:${f}} ${u}<extra></extra>` }));
+    }
+    return { data: anios.concat([
       { type: "scatter", mode: "lines", x: MESES, y: c.P90, line: sin, name: "P90", hovertemplate: ht("P90"), showlegend: false },
       { type: "scatter", mode: "lines", x: MESES, y: c.P10, line: sin, fill: "tonexty", fillcolor: rgba(t.s1, 0.14),
         name: "Percentiles 10–90", hovertemplate: ht("P10") },
@@ -162,7 +245,7 @@
       { type: "scatter", mode: "lines+markers", x: MESES, y: c.media, name: "Media",
         line: { color: t.s1, width: 2.4 }, marker: { size: 8, color: t.s1, line: { color: t.card, width: 2 } },
         hovertemplate: ht("Media") },
-    ], layout: base(t, { height: 440, xaxis: eje(t, { type: "category" }),
+    ]), layout: base(t, { height: 460, hovermode: estado.anios ? "closest" : "x unified", xaxis: eje(t, { type: "category" }),
       yaxis: eje(t, { title: { text: `${NOMBRE[v]} (${u})` }, rangemode: v === "T" ? "normal" : "tozero" }) }) };
   };
 
@@ -206,13 +289,26 @@
   function redibujarTodo() { dibujadas.forEach(dibujar); }
 
   document.querySelectorAll(".selector").forEach((sel) => {
+    const para = sel.dataset.para;
     sel.addEventListener("click", (e) => {
       const b = e.target.closest("button");
       if (!b) return;
-      sel.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      estado[sel.dataset.para] = b.dataset.v;
-      document.querySelectorAll(`.plot[data-plot="${sel.dataset.para}"], .plot[data-plot="${sel.dataset.para}anual"]`)
-        .forEach(dibujar);
+      if (b.classList.contains("anios")) {                      // mostrar u ocultar los años individuales
+        estado.anios = !estado.anios;
+        b.setAttribute("aria-pressed", String(estado.anios));
+      } else if (sel.classList.contains("multi")) {             // varios a la vez; siempre queda al menos uno
+        const on = b.getAttribute("aria-pressed") === "true";
+        if (on && estado[para].size === 1) return;
+        b.setAttribute("aria-pressed", String(!on));
+        if (on) estado[para].delete(b.dataset.v); else estado[para].add(b.dataset.v);
+      } else {
+        sel.querySelectorAll("button[data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        estado[para] = b.dataset.v;
+        if (para === "qc") {
+          document.querySelectorAll(".qc-var").forEach((d) => { d.hidden = d.dataset.var !== b.dataset.v; });
+        }
+      }
+      document.querySelectorAll(`.plot[data-plot="${para}"], .plot[data-plot="${para}anual"]`).forEach(dibujar);
     });
   });
 
