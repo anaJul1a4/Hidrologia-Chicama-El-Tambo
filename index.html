@@ -1,0 +1,1195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cuenca El Tambo</title>
+<meta name="description" content="Clasificación hidroclimática mensual de la cuenca del río Chicama hasta El Tambo (Perú).">
+<style>:root{
+  color-scheme:light;
+  --bg:#f9f9f7;--card:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--axis:#c3c2b7;
+  --acc:#2a78d6;--chip:#e6effa;--code:#f0efec;--borde:rgba(11,11,11,.10);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--pos:#2a78d6;--neg:#e34948;--excl:rgba(235,104,52,.13);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#0d0d0d;--card:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--axis:#383835;
+  --acc:#3987e5;--chip:#1c2a3b;--code:#262624;--borde:rgba(255,255,255,.10);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--pos:#3987e5;--neg:#e66767;--excl:rgba(217,89,38,.20);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d0d0d;--card:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--axis:#383835;
+  --acc:#3987e5;--chip:#1c2a3b;--code:#262624;--borde:rgba(255,255,255,.10);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--pos:#3987e5;--neg:#e66767;--excl:rgba(217,89,38,.20);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:0 16px}
+header.top{background:var(--card);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-top:26px;padding-bottom:20px}
+h1{font-size:1.7rem;line-height:1.25;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--ink2);margin:0}
+.datos-clave{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.dato{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.88rem;color:var(--ink2)}
+.dato b{display:block;font-size:1.02rem;color:var(--ink)}
+nav{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:8px}
+.tabs{display:flex;gap:2px;overflow-x:auto;padding:8px 0;flex:1;min-width:0;scrollbar-width:thin}
+.tabs button{all:unset;white-space:nowrap;color:var(--ink2);padding:6px 11px;border-radius:6px;font-size:.92rem;cursor:pointer}
+.tabs button:hover{background:var(--chip);color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.tabs button[aria-selected="true"]{background:var(--chip);color:var(--acc);font-weight:600}
+.tema{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.85rem;white-space:nowrap}
+main .wrap{padding-top:22px;padding-bottom:44px}
+h2{font-size:1.4rem;line-height:1.3;margin:0 0 8px;text-wrap:balance}
+.intro{color:var(--ink2);max-width:900px;margin:0 0 20px}
+.fig{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 0 24px;overflow:hidden}
+.fig-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 18px 6px}
+.fig-h h3{margin:0;font-size:1.08rem}
+.tipo{font-size:.72rem;font-weight:600;letter-spacing:.02em;color:var(--ink2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.tipo.int{color:var(--acc);background:var(--chip);border-color:transparent}
+.fig-cuerpo{padding:4px 12px 8px}
+.zoom{all:unset;display:block;cursor:zoom-in;background:#fff;border-radius:8px;padding:8px}
+.zoom:focus-visible{outline:3px solid var(--acc)}
+.zoom img{display:block;max-width:100%;max-height:80vh;width:auto;height:auto;margin:0 auto}
+.plot{width:100%;min-height:420px}
+.selector{display:flex;flex-wrap:wrap;gap:4px;padding:4px 6px 8px}
+.selector button{border:1px solid var(--line);background:var(--bg);color:var(--ink2);border-radius:6px;padding:3px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+.selector button[aria-pressed="true"]{background:var(--chip);color:var(--acc);border-color:var(--acc);font-weight:600}
+.selector button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.fig-texto{display:grid;grid-template-columns:1fr 1fr;gap:6px 28px;padding:12px 18px 4px;border-top:1px solid var(--line)}
+.fig-texto>div{min-width:0}
+.fig-texto h4{margin:0 0 4px;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.fig-texto p{margin:0 0 8px;font-size:.95rem}
+.leer{color:var(--ink2)}
+.meta{font-size:.8rem;color:var(--ink2);margin:0;padding:6px 18px 14px;overflow-wrap:anywhere}
+.meta a,.tabla-cont a{color:var(--acc)}
+.script,code{font-family:ui-monospace,Consolas,monospace;background:var(--code);padding:1px 6px;border-radius:4px;font-size:.92em}
+.nota{color:var(--ink2);font-size:.82rem;margin:8px 0 0}
+.tabla-cont{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:0 0 24px}
+.tabla-cont h3{margin:0 0 10px;font-size:1.05rem}
+.scroll{overflow-x:auto}
+table.tabla{border-collapse:collapse;font-size:.84rem;min-width:100%}
+.tabla th,.tabla td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tabla th{background:var(--bg);font-weight:600}
+.tabla td{font-variant-numeric:tabular-nums}
+.pendiente{border:1px dashed var(--axis);border-radius:12px;padding:28px;text-align:center;color:var(--ink2)}
+footer{border-top:1px solid var(--line);background:var(--card);color:var(--ink2);font-size:.86rem}
+footer .wrap{padding-top:18px;padding-bottom:26px}
+#visor{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:20;padding:48px 16px 16px;cursor:zoom-out}
+#visor.abierto{display:flex}
+#visor img{max-width:100%;max-height:100%;background:#fff;border-radius:6px}
+#visor .cerrar{position:absolute;top:8px;right:14px;font-size:1.6rem;background:none;border:0;color:#fff;cursor:pointer}
+#visor .full{position:absolute;top:14px;left:16px;color:#fff;font-size:.9rem}
+@media (max-width:760px){
+  h1{font-size:1.3rem}
+  .fig-texto{grid-template-columns:1fr}
+  .fig-h{padding:12px 12px 4px}.fig-cuerpo{padding:4px 4px 8px}.fig-texto{padding:10px 12px 4px}.meta{padding:6px 12px 12px}
+  .zoom{padding:4px}.plot{min-height:360px}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <h1>Clasificación hidroclimática de la cuenca del río Chicama hasta El Tambo</h1>
+  <p class="sub">Tarea 1 · Hidrología 2026-2S · Universidad Nacional de Colombia, sede Medellín</p>
+  <div class="datos-clave">
+    <div class="dato">Estación<b>El Tambo · PE_47E0A2A8</b></div>
+    <div class="dato">Área<b>2 170 km²</b></div>
+    <div class="dato">Periodo común<b>1998-01 a 2025-08 (332 meses)</b></div>
+    <div class="dato">P<sub>L</sub> media anual<b>841 mm/año</b></div>
+    <div class="dato">P<sub>I</sub> media anual<b>543 mm/año</b></div>
+    <div class="dato">Régimen (propuesto)<b>unimodal, máximo en marzo</b></div>
+  </div>
+</div></header>
+<nav aria-label="Puntos de la tarea"><div class="wrap">
+  <div class="tabs" role="tablist"><button type="button" role="tab" data-ir="cuenca" aria-selected="false">Cuenca</button><button type="button" role="tab" data-ir="contexto" aria-selected="false">Contexto físico</button><button type="button" role="tab" data-ir="p11" aria-selected="false">1.1 Series</button><button type="button" role="tab" data-ir="p12" aria-selected="false">1.2 IMERG</button><button type="button" role="tab" data-ir="p13" aria-selected="false">1.3 Distribución</button><button type="button" role="tab" data-ir="p14" aria-selected="false">1.4 Calidad</button><button type="button" role="tab" data-ir="p15a" aria-selected="false">1.5.a Climatología</button><button type="button" role="tab" data-ir="p15b" aria-selected="false">1.5.b Ciclo anual</button><button type="button" role="tab" data-ir="p15c" aria-selected="false">1.5.c Síntesis</button><button type="button" role="tab" data-ir="p2" aria-selected="false">2 Relaciones</button><button type="button" role="tab" data-ir="p3" aria-selected="false">3 Tendencias</button><button type="button" role="tab" data-ir="p4" aria-selected="false">4 Fourier</button><button type="button" role="tab" data-ir="p5" aria-selected="false">5 Clima global</button><button type="button" role="tab" data-ir="datos" aria-selected="false">Datos</button></div>
+  <button class="tema" type="button" aria-label="Cambiar tema claro u oscuro">◐ Tema</button>
+</div></nav>
+<main><div class="wrap"><section class="panel" id="tab-cuenca" data-tab="cuenca" hidden><h2>La cuenca y su delimitación</h2><p class="intro">Río Chicama hasta la estación hidrométrica El Tambo (SENAMHI 211003; CAMELS-PE PE_47E0A2A8), en la vertiente del Pacífico del norte del Perú (−7.574°, −78.707°; 684 m s.n.m.). La cuenca se delimitó con el modelo digital de elevación Copernicus GLO-30 y se comparó con el polígono oficial de CAMELS-PE.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Mapa de la cuenca</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/delimitacion/mapa_cuenca_el_tambo.png" aria-label="Ampliar: Mapa de la cuenca"><img loading="lazy" src="web/img/mapa_cuenca_el_tambo.png" alt="Mapa de la cuenca"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Relieve sombreado del DEM  límite de la cuenca  río Chicama  red de drenaje  punto de cierre y estaciones de SENAMHI. Área delimitada 2 170 km² (CAMELS-PE: 2 171.6 km²)  con cotas entre unos 680 y 4 300 m s.n.m. El recuadro de Sudamérica muestra el transporte de humedad de ERA5 en la estación húmeda (dic–abr): la humedad entra desde el Atlántico  cruza la Amazonía hacia el oeste y llega a la cuenca desde el este.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Mosaico de dos teselas Copernicus GLO-30 (30 m), recortado y reproyectado a UTM 17S. El DEM se acondicionó (relleno de depresiones y zonas planas) y se calcularon direcciones de flujo D8 y área acumulada con pysheds. El punto de cierre se ajustó a la celda de mayor área acumulada en un radio de 1.5 km de la estación, y la cuenca es el conjunto de celdas que drenan hacia él. La red de drenaje son las celdas con más de 5 km² de área drenada. Las estaciones vienen del mapa web de SENAMHI (copia del 2026-10-06).</p></div>
+  </div>
+  <p class="meta"><span class="script">06_delimitacion_el_tambo_glo30.py</span> · <a href="Tarea%201/El_Tambo/resultados/delimitacion/mapa_cuenca_el_tambo.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/delimitacion/parametros_morfometricos.csv" download>parametros_morfometricos.csv</a> · <a href="Tarea%201/El_Tambo/resultados/delimitacion/estaciones_senamhi_mapa.csv" download>estaciones_senamhi_mapa.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Delimitación propia frente a CAMELS-PE</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/delimitacion/comparacion_camels.png" aria-label="Ampliar: Delimitación propia frente a CAMELS-PE"><img loading="lazy" src="web/img/comparacion_camels.png" alt="Delimitación propia frente a CAMELS-PE"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Los dos polígonos casi coinciden: índice de intersección sobre unión (IoU) = 0.994. Las diferencias se limitan a franjas de borde de pocos píxeles.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Se superpusieron el polígono propio (GLO-30) y el de CAMELS-PE en UTM 17S y se calculó IoU = área de la intersección / área de la unión. Se usa la delimitación propia para ponderar todas las mallas (IMERG, PISCOp, CHIRPS, ERA5-Land).</p></div>
+  </div>
+  <p class="meta"><span class="script">06_delimitacion_el_tambo_glo30.py</span> · <a href="Tarea%201/El_Tambo/resultados/delimitacion/comparacion_camels.png" target="_blank" rel="noopener">PNG en resolución completa</a></p>
+</article><div class="tabla-cont"><h3>Parámetros morfométricos</h3><div class="scroll"><table class="dataframe tabla">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Parámetro</th>
+      <th>Valor</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Área A (km2)</td>
+      <td>2169.996</td>
+    </tr>
+    <tr>
+      <td>Área CAMELS-PE (km2)</td>
+      <td>2171.585</td>
+    </tr>
+    <tr>
+      <td>Diferencia de área vs CAMELS (%)</td>
+      <td>-0.073</td>
+    </tr>
+    <tr>
+      <td>IoU con polígono CAMELS-PE</td>
+      <td>0.994</td>
+    </tr>
+    <tr>
+      <td>Perímetro raster (km)</td>
+      <td>338.64</td>
+    </tr>
+    <tr>
+      <td>Perímetro suavizado P (km)</td>
+      <td>263.662</td>
+    </tr>
+    <tr>
+      <td>Coef. de compacidad Kc = 0.282 P/sqrt(A)</td>
+      <td>1.596</td>
+    </tr>
+    <tr>
+      <td>Longitud río principal L (km)</td>
+      <td>84.373</td>
+    </tr>
+    <tr>
+      <td>Factor de forma Kf = A/L^2</td>
+      <td>0.305</td>
+    </tr>
+    <tr>
+      <td>Cota mínima (m s.n.m.)</td>
+      <td>678.493</td>
+    </tr>
+    <tr>
+      <td>Cota máxima (m s.n.m.)</td>
+      <td>4308.467</td>
+    </tr>
+    <tr>
+      <td>Cota media (m s.n.m.)</td>
+      <td>2555.833</td>
+    </tr>
+    <tr>
+      <td>Cota mediana (m s.n.m.)</td>
+      <td>2577.869</td>
+    </tr>
+    <tr>
+      <td>Pendiente media de la cuenca (°)</td>
+      <td>26.94</td>
+    </tr>
+    <tr>
+      <td>Cota naciente río principal (m)</td>
+      <td>4193.45</td>
+    </tr>
+    <tr>
+      <td>Cota cierre (m)</td>
+      <td>678.493</td>
+    </tr>
+    <tr>
+      <td>Pendiente media río principal (m/m)</td>
+      <td>0.042</td>
+    </tr>
+    <tr>
+      <td>Longitud red de drenaje, umbral 5.0 km2 (km)</td>
+      <td>699.76</td>
+    </tr>
+    <tr>
+      <td>Densidad de drenaje Dd (km/km2)</td>
+      <td>0.322</td>
+    </tr>
+    <tr>
+      <td>Orden de Strahler máximo</td>
+      <td>6.0</td>
+    </tr>
+    <tr>
+      <td>Coord. cierre ajustado UTM17S E (m)</td>
+      <td>753006.562</td>
+    </tr>
+    <tr>
+      <td>Coord. cierre ajustado UTM17S N (m)</td>
+      <td>9162129.002</td>
+    </tr>
+  </tbody>
+</table></div><p class="nota">Calculados sobre el DEM GLO-30 en UTM 17S (script 06).</p></div></section><section class="panel" id="tab-contexto" data-tab="contexto" hidden><h2>Contexto físico</h2><p class="intro">Rasgos del terreno y del clima regional que ayudan a explicar cómo la cuenca recibe, guarda y entrega el agua.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Panel de contexto físico</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/contexto_fisico/panel_contexto_fisico.png" aria-label="Ampliar: Panel de contexto físico"><img loading="lazy" src="web/img/panel_contexto_fisico.png" alt="Panel de contexto físico"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>(a) Orientación de laderas, (b) cobertura del suelo, (c) unidades geológicas de INGEMMET agrupadas por su comportamiento hídrico y (d) precipitación media anual de CHIRPS. En (c), los acuíferos fisurados (areniscas y cuarcitas, 40 %) y los acuitardos sedimentarios (lutitas, 37 %) alternan en franjas NO–SE; los acuíferos porosos se limitan a los fondos de valle (2.5 %).</p><p class="leer"><b>Cómo leerla.</b> La agrupación hidrogeológica es una propuesta del grupo que debe contrastarse con INGEMMET y ANA.</p></div>
+    <div><h4>Cómo se construyó</h4><p>(a) Orientación calculada del DEM GLO-30 a 30 m. (b) ESA WorldCover 2021 (10 m) remuestreado por moda a la malla del DEM. (c) Geología INGEMMET 1:100 000 descargada del servicio GEOCATMIN y recortada; las 25 unidades se agruparon en 6 grupos hidrogeológicos según porosidad y permeabilidad esperadas, con colores de la convención IAH/UNESCO. (d) Climatología CHIRPS del periodo común (ver mapa de precipitación).</p></div>
+  </div>
+  <p class="meta"><span class="script">07a_descarga_contexto_fisico.py, 07b_mapas_contexto_fisico.py</span> · <a href="Tarea%201/El_Tambo/resultados/contexto_fisico/panel_contexto_fisico.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/contexto_fisico/ficha_contexto_fisico.csv" download>ficha_contexto_fisico.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Unidades geológicas de INGEMMET</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/contexto_fisico/mapa_geologia_unidades_ingemmet.png" aria-label="Ampliar: Unidades geológicas de INGEMMET"><img loading="lazy" src="web/img/mapa_geologia_unidades_ingemmet.png" alt="Unidades geológicas de INGEMMET"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Las 25 unidades del mapa geológico 1:100 000 con sus colores oficiales, que indican la edad. La leyenda señala el grupo hidrogeológico (G1–G7) asignado a cada unidad.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Polígonos de GEOCATMIN recortados a la cuenca y disueltos por unidad (±25 m) para quitar los bordes entre hojas; colores tomados de la simbología oficial publicada por el servicio ArcGIS de INGEMMET.</p></div>
+  </div>
+  <p class="meta"><span class="script">07b_mapas_contexto_fisico.py</span> · <a href="Tarea%201/El_Tambo/resultados/contexto_fisico/mapa_geologia_unidades_ingemmet.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/contexto_fisico/unidades_geologicas_cuenca.csv" download>unidades_geologicas_cuenca.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Precipitación media anual (CHIRPS v2.0)</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/contexto_fisico/mapa_d_precipitacion.png" aria-label="Ampliar: Precipitación media anual (CHIRPS v2.0)"><img loading="lazy" src="web/img/mapa_d_precipitacion.png" alt="Precipitación media anual (CHIRPS v2.0)"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Aumenta desde unos 400 mm/año en la salida hasta 900 mm/año en las cabeceras del sureste. CHIRPS da un promedio de cuenca menor que P<sub>L</sub> (636 frente a 841 mm/año), así que el mapa sirve para ver el patrón espacial, no la magnitud.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Recorte mensual de CHIRPS (0.05°) del IRI Data Library. Se corrigió la georreferencia (+0.025° en longitud, verificado contra el GeoTIFF oficial de UCSB), se calculó la media anual del periodo común en cada celda y se interpoló de forma bilineal a la malla del DEM solo para dibujarla continua, con isoyetas cada 100 mm.</p></div>
+  </div>
+  <p class="meta"><span class="script">26_chirps_cuenca.py, 07b_mapas_contexto_fisico.py</span> · <a href="Tarea%201/El_Tambo/resultados/contexto_fisico/mapa_d_precipitacion.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/chirps_cuenca_mensual.csv" download>chirps_cuenca_mensual.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Transporte de humedad y viento regional (ERA5)</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/contexto_fisico/mapa_transporte_humedad_era5.png" aria-label="Ampliar: Transporte de humedad y viento regional (ERA5)"><img loading="lazy" src="web/img/mapa_transporte_humedad_era5.png" alt="Transporte de humedad y viento regional (ERA5)"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Arriba, el flujo de vapor integrado en la vertical (IVT): el color indica cuánta humedad se transporta y las flechas hacia dónde. Abajo, el viento en 500 hPa. En la estación húmeda la humedad entra desde el Atlántico, cruza la Amazonía hacia el oeste y gira al sur a lo largo de los Andes; sobre la cuenca el transporte va hacia el oeste.</p><p class="leer"><b>Cómo leerla.</b> La magnitud del transporte no equivale a lluvia: llueve donde el flujo converge y asciende. ERA5 no resuelve la circulación dentro de los valles.</p></div>
+    <div><h4>Cómo se construyó</h4><p>ERA5 mensual (malla 0.5°, 20°N–40°S × 110°O–20°O) de 1998 a 2025, recortado al periodo común. Se descartaron los niveles bajo el terreno del modelo (presión en superficie menor que la del nivel) y se calculó la climatología estacional (dic–abr, may–sep) promediada a 1°.</p></div>
+  </div>
+  <p class="meta"><span class="script">24_era5_vientos_humedad.py, 25_mapa_transporte_humedad.py</span> · <a href="Tarea%201/El_Tambo/resultados/contexto_fisico/mapa_transporte_humedad_era5.png" target="_blank" rel="noopener">PNG en resolución completa</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Curva hipsométrica</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/contexto_fisico/curva_hipsometrica.png" aria-label="Ampliar: Curva hipsométrica"><img loading="lazy" src="web/img/curva_hipsometrica.png" alt="Curva hipsométrica"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Distribución del área de la cuenca por elevación. La integral hipsométrica (0.52) indica una cuenca de relieve intermedio, con buena parte del área a media ladera.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Fracción del área por encima de cada cota, calculada con las celdas del DEM GLO-30 (30 m, UTM 17S) dentro de la cuenca; la integral es el área bajo la curva normalizada.</p></div>
+  </div>
+  <p class="meta"><span class="script">07b_mapas_contexto_fisico.py</span> · <a href="Tarea%201/El_Tambo/resultados/contexto_fisico/curva_hipsometrica.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/delimitacion/curva_hipsometrica.csv" download>curva_hipsometrica.csv</a></p>
+</article></section><section class="panel" id="tab-p11" data-tab="p11" hidden><h2>Punto 1.1 · Series mensuales de precipitación, caudal y temperatura</h2><p class="intro">Series construidas desde los registros diarios de CAMELS-PE en el <b>periodo común 1998-01 a 2025-08</b> (332 meses: los meses con precipitación de CAMELS-PE y de IMERG a la vez). Use la rueda o arrastre para hacer zoom, la barra inferior para elegir un intervalo y doble clic para volver a la vista completa.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Series mensuales en paneles alineados</h3><span class="tipo int">interactiva</span></header>
+  <div class="fig-cuerpo"><div class="plot" data-plot="serie11" role="img" aria-label="Series mensuales en paneles alineados"></div></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Los cuatro paneles comparten el eje de tiempo: al pasar el cursor se leen los cuatro valores del mismo mes. El caudal y la escorrentía tienen sus faltantes rellenados: los marcadores indican el método (76 meses con días interpolados, 3 escalados y 1 reconstruido con modelo, 1998-08), y el fondo naranja los 27 meses que sin relleno quedaban excluidos. Desde 2021 la temperatura es una estimación con ERA5-Land (línea discontinua), no PISCOt.</p><p class="leer"><b>Cómo leerla.</b> Los máximos de 1998 y 2017 corresponden a eventos de El Niño; el caudal queda alto también en los meses siguientes.</p></div>
+    <div><h4>Cómo se construyó</h4><p>P<sub>L</sub> = suma de la precipitación diaria (PISCOp v2.1 promediado en la cuenca por CAMELS-PE), solo meses completos. Q̄ = media del caudal diario observado (SENAMHI), convertido de mm/d a m³/s con Q̄ = q̄·A/86.4 y A = 2 171.6 km². R = suma de q diario en mm. T = media de la temperatura diaria (PISCOt v1.2) si faltan ≤ 10 % de los días. El relleno de caudal sigue tres pasos: interpolación de ln q en huecos ≤ 15 días, escalado de la media en meses con ≥ 50 % de días y modelo mensual con el caudal simulado en el resto (validación en el punto 1.4).</p></div>
+  </div>
+  <p class="meta"><span class="script">09_datos_camels_pe_el_tambo.py, relleno_caudal.py (página: 29_pagina_web.py)</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/series_mensuales_camels_pe.csv" download>series_mensuales_camels_pe.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/temperatura_piscot_extendida_era5land.csv" download>temperatura_piscot_extendida_era5land.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Temperatura: PISCOt frente a ERA5-Land</h3><span class="tipo int">interactiva</span></header>
+  <div class="fig-cuerpo"><div class="plot" data-plot="temp" role="img" aria-label="Temperatura: PISCOt frente a ERA5-Land"></div></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>PISCOt termina en 2020. En los 276 meses con ambas fuentes varían igual (r = 0.89), pero ERA5-Land es 2.8 °C más fría de forma casi constante. La estimación desde 2021 (ERA5-Land + sesgo de cada mes) tuvo un error medio de 0.19 °C al validarla en 2011-01 a 2020-12. Las dos fuentes no se unen en una sola serie.</p></div>
+    <div><h4>Cómo se construyó</h4><p>ERA5-Land T2m mensual (0.1°) descargado del CDS y promediado sobre la cuenca ponderando por área (30 celdas). El sesgo de cada mes calendario frente a PISCOt se calculó en 1998–2010 y se evaluó fuera de muestra en 2011–2020; con él se estima T desde 2021: T<sub>est</sub> = ERA5-Land + sesgo del mes. Solo unos 0.5 °C del desfase se explican por la altitud del relieve del modelo.</p></div>
+  </div>
+  <p class="meta"><span class="script">17_era5land_temperatura.py</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/era5land_t2m_cuenca_mensual.csv" download>era5land_t2m_cuenca_mensual.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/temperatura_piscot_extendida_era5land.csv" download>temperatura_piscot_extendida_era5land.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/validacion_extension_T.csv" download>validacion_extension_T.csv</a></p>
+</article></section><section class="panel" id="tab-p12" data-tab="p12" hidden><h2>Punto 1.2 · Precipitación satelital IMERG</h2><p class="intro">IMERG V07 Final (0.1°) promediado sobre la cuenca. Frente a P<sub>L</sub>: media 45.3 frente a 70.3 mm/mes, sesgo -24.9 mm/mes, MAE 29.1, RMSE 48.5, r = 0.91. IMERG acumula el 64 % de la lluvia de P<sub>L</sub>. Ninguna de las dos es una observación directa: P<sub>L</sub> interpola pluviómetros con información satelital, e IMERG Final también se ajusta con pluviómetros.</p>
+<article class="fig">
+  <header class="fig-h"><h3>P<sub>L</sub> frente a IMERG, mes a mes</h3><span class="tipo int">interactiva</span></header>
+  <div class="fig-cuerpo"><div class="plot" data-plot="precip" role="img" aria-label="P&lt;sub&gt;L&lt;/sub&gt; frente a IMERG, mes a mes"></div></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>IMERG sigue bien el ritmo de la lluvia, pero sus picos son mucho más bajos, sobre todo en los meses más lluviosos. CHIRPS y PISCOp v3.0 están ocultas: haga clic en su nombre en la leyenda para compararlas.</p></div>
+    <div><h4>Cómo se construyó</h4><p>IMERG mensual: la tasa media (mm/h) se convierte a acumulado con mm/mes = tasa · 24 · días del mes, y se promedia sobre la cuenca ponderando cada celda por su área de intersección con el polígono (UTM 17S): 31 celdas, 10 completas. CHIRPS (0.05°, 98 celdas) y PISCOp v3.0 (0.1°) se promediaron igual. P<sub>L</sub> es el promedio de cuenca que entrega CAMELS-PE.</p></div>
+  </div>
+  <p class="meta"><span class="script">10_imerg_mensual_y_grafica.py, 26_chirps_cuenca.py, 14_piscop_v3_cuenca.py</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/series_mensuales_camels_pe.csv" download>series_mensuales_camels_pe.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/imerg_cuenca_mensual.csv" download>imerg_cuenca_mensual.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/chirps_cuenca_mensual.csv" download>chirps_cuenca_mensual.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/piscop_v3_cuenca_mensual.csv" download>piscop_v3_cuenca_mensual.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Totales anuales de P<sub>L</sub> e IMERG</h3><span class="tipo int">interactiva</span></header>
+  <div class="fig-cuerpo"><div class="plot" data-plot="anual" role="img" aria-label="Totales anuales de P&lt;sub&gt;L&lt;/sub&gt; e IMERG"></div></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>IMERG queda por debajo de P<sub>L</sub> todos los años; la diferencia es mayor en los años muy húmedos (1998, 2017, 2023).</p></div>
+    <div><h4>Cómo se construyó</h4><p>Suma de los 12 meses de cada año calendario, solo con años completos (2025 queda fuera porque termina en agosto).</p></div>
+  </div>
+  <p class="meta"><span class="script">29_pagina_web.py (a partir de las series mensuales)</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/series_mensuales_camels_pe.csv" download>series_mensuales_camels_pe.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/imerg_cuenca_mensual.csv" download>imerg_cuenca_mensual.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Celdas de IMERG y pesos en el promedio de cuenca</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/series_mensuales/mapa_celdas_imerg_pesos.png" aria-label="Ampliar: Celdas de IMERG y pesos en el promedio de cuenca"><img loading="lazy" src="web/img/mapa_celdas_imerg_pesos.png" alt="Celdas de IMERG y pesos en el promedio de cuenca"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>(a) Peso de cada celda = área dentro de la cuenca / área de la cuenca: 31 celdas, 10 completas, 44 % del peso en celdas de borde (≈ 17.8 celdas equivalentes). (b) Desnivel del terreno dentro de cada celda: una sola celda abarca más de 1 000 m.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Intersección de la malla de 0.1° de IMERG con el polígono de la cuenca en UTM 17S; el desnivel es el rango de cotas del DEM GLO-30 dentro de cada celda. Los pesos no consideran la topografía.</p></div>
+  </div>
+  <p class="meta"><span class="script">12_mapa_pesos_imerg.py</span> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/mapa_celdas_imerg_pesos.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/relieve_celdas_imerg.csv" download>relieve_celdas_imerg.csv</a></p>
+</article></section><section class="panel" id="tab-p13" data-tab="p13" hidden><h2>Punto 1.3 · Distribución de los valores mensuales</h2><p class="intro">Histogramas, diagramas de caja y estadísticos descriptivos en el periodo común. P<sub>L</sub> y P<sub>I</sub> usan los mismos meses y los mismos límites de clase.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Histogramas</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/series_mensuales/fig_histogramas_1_3.png" aria-label="Ampliar: Histogramas"><img loading="lazy" src="web/img/fig_histogramas_1_3.png" alt="Histogramas"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>La lluvia y sobre todo el caudal son asimétricos: muchos meses bajos y pocos muy altos. La temperatura es casi simétrica.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Ancho de clase por la regla de Freedman–Diaconis y frecuencia relativa (% de meses), con los meses del periodo común. T solo con PISCOt.</p></div>
+  </div>
+  <p class="meta"><span class="script">18_estadisticos_1_3.py</span> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/fig_histogramas_1_3.png" target="_blank" rel="noopener">PNG en resolución completa</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Diagramas de caja</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/series_mensuales/fig_cajas_1_3.png" aria-label="Ampliar: Diagramas de caja"><img loading="lazy" src="web/img/fig_cajas_1_3.png" alt="Diagramas de caja"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Caja = cuartiles 1 a 3, línea = mediana, rombo = media. Los puntos fuera de los bigotes son meses extremos (sobre todo eventos de El Niño); se muestran, no se eliminan.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Bigotes de Tukey (1.5 × rango intercuartílico) sobre los meses válidos del periodo común.</p></div>
+  </div>
+  <p class="meta"><span class="script">18_estadisticos_1_3.py</span> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/fig_cajas_1_3.png" target="_blank" rel="noopener">PNG en resolución completa</a></p>
+</article><div class="tabla-cont"><h3>Estadísticos en el periodo común (1998-01 a 2025-08)</h3><div class="scroll"><table class="dataframe tabla">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Variable</th>
+      <th>Unidades</th>
+      <th>Meses válidos</th>
+      <th>Media</th>
+      <th>Mediana</th>
+      <th>Desv. est.</th>
+      <th>Mín.</th>
+      <th>Máx.</th>
+      <th>Q1</th>
+      <th>Q3</th>
+      <th>P10</th>
+      <th>P90</th>
+      <th>Asimetría G1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>P_L</td>
+      <td>mm/mes</td>
+      <td>332</td>
+      <td>70.27</td>
+      <td>47.28</td>
+      <td>77.40</td>
+      <td>0.18</td>
+      <td>414.47</td>
+      <td>9.56</td>
+      <td>106.19</td>
+      <td>2.81</td>
+      <td>172.59</td>
+      <td>1.74</td>
+    </tr>
+    <tr>
+      <td>P_I</td>
+      <td>mm/mes</td>
+      <td>332</td>
+      <td>45.32</td>
+      <td>33.69</td>
+      <td>44.04</td>
+      <td>1.97</td>
+      <td>265.02</td>
+      <td>12.08</td>
+      <td>61.87</td>
+      <td>5.45</td>
+      <td>104.57</td>
+      <td>1.70</td>
+    </tr>
+    <tr>
+      <td>Q</td>
+      <td>m³/s</td>
+      <td>332</td>
+      <td>27.28</td>
+      <td>10.70</td>
+      <td>56.26</td>
+      <td>0.36</td>
+      <td>690.88</td>
+      <td>4.23</td>
+      <td>32.54</td>
+      <td>2.17</td>
+      <td>64.22</td>
+      <td>7.23</td>
+    </tr>
+    <tr>
+      <td>R</td>
+      <td>mm/mes</td>
+      <td>332</td>
+      <td>32.83</td>
+      <td>12.68</td>
+      <td>67.89</td>
+      <td>0.43</td>
+      <td>852.12</td>
+      <td>5.14</td>
+      <td>39.92</td>
+      <td>2.62</td>
+      <td>76.66</td>
+      <td>7.42</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>°C</td>
+      <td>276</td>
+      <td>16.22</td>
+      <td>16.18</td>
+      <td>0.51</td>
+      <td>15.05</td>
+      <td>17.75</td>
+      <td>15.85</td>
+      <td>16.55</td>
+      <td>15.58</td>
+      <td>16.81</td>
+      <td>0.40</td>
+    </tr>
+  </tbody>
+</table></div><p class="nota">Percentiles con interpolación lineal (tipo 7). T solo PISCOt, sin la estimación desde 2021. La tabla del registro completo está en estadisticos_1_3_registro_completo.csv.</p></div></section><section class="panel" id="tab-p14" data-tab="p14" hidden><h2>Punto 1.4 · Control de calidad</h2><p class="intro">Comprobaciones sobre los datos diarios (fechas, códigos de faltante, negativos, secuencias constantes, tramos interpolados, picos aislados), revisiones manuales y registro de anomalías con la decisión tomada.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Disponibilidad año × mes</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/control_calidad/fig_disponibilidad_1_4.png" aria-label="Ampliar: Disponibilidad año × mes"><img loading="lazy" src="web/img/fig_disponibilidad_1_4.png" alt="Disponibilidad año × mes"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Condición de cada mes y variable según lo observado, antes del relleno. Los faltantes de caudal se concentran en septiembre (y agosto–octubre) casi todos los años, además de un periodo con más vacíos en 2019–2021. P<sub>L</sub> e IMERG no tienen faltantes.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Cada celda es un mes; un mes se considera completo si faltan ≤ 10 % de sus días (criterio aplicado igual a todas las variables). Se cuentan los días válidos del registro diario de CAMELS-PE.</p></div>
+  </div>
+  <p class="meta"><span class="script">19_control_calidad_1_4.py</span> · <a href="Tarea%201/El_Tambo/resultados/control_calidad/fig_disponibilidad_1_4.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/control_calidad/disponibilidad_condicion_mes.csv" download>disponibilidad_condicion_mes.csv</a> · <a href="Tarea%201/El_Tambo/resultados/control_calidad/resumen_disponibilidad_1_4.csv" download>resumen_disponibilidad_1_4.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Relleno de los faltantes de caudal y su validación</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/series_mensuales/fig_validacion_relleno_caudal.png" aria-label="Ampliar: Relleno de los faltantes de caudal y su validación"><img loading="lazy" src="web/img/fig_validacion_relleno_caudal.png" alt="Relleno de los faltantes de caudal y su validación"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>(a) Al borrar días de meses completos, la interpolación da errores 3–8 veces menores que el escalado (≤ 1.5 % de mediana hasta 7 días). (b) El modelo mensual, evaluado dejando un año fuera, tiene un error típico del 23 % (NSE 0.72); por eso solo se usa donde no hay suficientes días medidos. En el periodo común: 252 meses observados completos, 76 con días interpolados, 3 escalados y 1 reconstruido (1998-08).</p></div>
+    <div><h4>Cómo se construyó</h4><p>Validación sintética: en meses completos se borraron huecos de 1 a 15 días y se compararon los totales rellenados con los reales. El modelo mensual ln R<sub>m</sub> = a<sub>mes</sub> + b·ln(flow_sim) + c·ln R<sub>m−1</sub> se evaluó con validación cruzada dejando un año fuera.</p></div>
+  </div>
+  <p class="meta"><span class="script">relleno_caudal.py, 28_validacion_relleno_caudal.py</span> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/fig_validacion_relleno_caudal.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/validacion_relleno_huecos_diarios.csv" download>validacion_relleno_huecos_diarios.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/validacion_relleno_modelo_mensual.csv" download>validacion_relleno_modelo_mensual.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/resumen_relleno_caudal.csv" download>resumen_relleno_caudal.csv</a></p>
+</article><div class="tabla-cont"><h3>Registro de anomalías</h3><div class="scroll"><table class="dataframe tabla">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Id</th>
+      <th>Variable</th>
+      <th>Fecha / periodo</th>
+      <th>Anomalía</th>
+      <th>Decisión</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CC-01</td>
+      <td>Todas (diario)</td>
+      <td>1981–2025</td>
+      <td>Posibles fechas faltantes, duplicadas o códigos de faltante</td>
+      <td>Ninguna</td>
+      <td>sin problema</td>
+    </tr>
+    <tr>
+      <td>CC-02</td>
+      <td>P_L, Q, PET</td>
+      <td>1981–2025</td>
+      <td>Valores negativos</td>
+      <td>Ninguna</td>
+      <td>sin problema</td>
+    </tr>
+    <tr>
+      <td>CC-03</td>
+      <td>Q (flow_sim)</td>
+      <td>1981–2025</td>
+      <td>La base incluye caudal simulado (PISCO_ARNOVIC) junto al observado</td>
+      <td>flow_sim solo se usa como predictor del modelo de relleno en 1 mes(es) sin datos suficientes (1998-08)</td>
+      <td>sin problema</td>
+    </tr>
+    <tr>
+      <td>CC-04</td>
+      <td>Q</td>
+      <td>1998–2025, sobre todo septiembre</td>
+      <td>Días faltantes concentrados en ago–oct casi todos los años (meses no completos por mes calendario: {1: 3, 2: 2, 3: 3, 5: 1, 6: 2, 7: 8, 8: 11, 9: 26, 10: 10, 11: 8, 12: 5})</td>
+      <td>Relleno (decisión del grupo, 2026-10-10; relleno_caudal.py, validación en el script 28): huecos ≤ 15 días interpolados en ln(q); meses con ≥ 50 % de días tras interpolar → escalados; resto → modelo log-lineal con flow_sim y R del mes anterior</td>
+      <td>corregido</td>
+    </tr>
+    <tr>
+      <td>CC-05</td>
+      <td>Q</td>
+      <td>2019–2021</td>
+      <td>Cambio de cobertura: 61, 56 y 24 días faltantes por año; concentra la mayoría de los 26 meses excluidos del periodo común 1998-01 a 2025-08</td>
+      <td>Meses rellenados con el método de CC-04 (bandera R_flag)</td>
+      <td>corregido</td>
+    </tr>
+    <tr>
+      <td>CC-06</td>
+      <td>Q / R</td>
+      <td>1998-02</td>
+      <td>Segundo mes más lluvioso de P_L (381 mm) sin caudal: 23/28 días válidos (faltan 10, 11, 23, 26 y 27) durante El Niño 1997–98</td>
+      <td>Huecos de 1–2 días interpolados en ln(q) → R = 385 mm (antes excluido por 17.9 % de días faltantes)</td>
+      <td>incierto</td>
+    </tr>
+    <tr>
+      <td>CC-07</td>
+      <td>Q / R</td>
+      <td>1998-03</td>
+      <td>Máximo del registro (Q̄ 678 m³/s, R 837 mm) con 2 días faltantes (24 y 25) y R ≈ 2 × P_L (414 mm)</td>
+      <td>Días 24 y 25 interpolados en ln(q) → R = 852 mm</td>
+      <td>incierto</td>
+    </tr>
+    <tr>
+      <td>CC-08</td>
+      <td>Q / R vs P_L</td>
+      <td>98 de 305 meses del periodo común 1998-01 a 2025-08, sobre todo may–ago</td>
+      <td>R_m &gt; P_m</td>
+      <td>Se conservan (la guía advierte que no es error por sí solo)</td>
+      <td>retenido</td>
+    </tr>
+    <tr>
+      <td>CC-09</td>
+      <td>Q</td>
+      <td>2005-12 y 2016-12</td>
+      <td>Mínimos del registro en diciembre (0.54 y 0.45 m³/s) con P_L 68–79 mm; Q̄ baja frente a oct–nov (~0.8 m³/s)</td>
+      <td>Se conservan</td>
+      <td>incierto</td>
+    </tr>
+    <tr>
+      <td>CC-10</td>
+      <td>Q</td>
+      <td>2007-09-11 a 2007-09-15</td>
+      <td>Secuencia de 5 días con el mismo caudal (&gt; 0)</td>
+      <td>Se conserva (estiaje, caudal casi constante)</td>
+      <td>retenido</td>
+    </tr>
+    <tr>
+      <td>CC-11</td>
+      <td>Q</td>
+      <td>2003–2005</td>
+      <td>Medianas de estiaje (jun–sep) muy bajas: 0.047–0.133 mm/d frente a ~0.2–0.5 en otros años</td>
+      <td>Se conservan</td>
+      <td>sin problema</td>
+    </tr>
+    <tr>
+      <td>CC-12</td>
+      <td>P_L</td>
+      <td>1981–2025</td>
+      <td>P_L es un producto interpolado (PISCOp v2.1), no observación; no reproducible con PISCOp público (15–25 % menor)</td>
+      <td>Se mantiene como P_L principal; PISCOp v3.0 como apoyo</td>
+      <td>incierto</td>
+    </tr>
+    <tr>
+      <td>CC-13</td>
+      <td>P_L</td>
+      <td>15 meses del periodo común 1998-01 a 2025-08 (estación seca)</td>
+      <td>P_L &lt; 1 mm (ningún cero exacto)</td>
+      <td>Se conservan: son meses secos reales, no faltantes</td>
+      <td>sin problema</td>
+    </tr>
+    <tr>
+      <td>CC-14</td>
+      <td>P_I</td>
+      <td>1998-01 a 2025-08</td>
+      <td>Registro hasta 2025-08; P_I nunca &lt; 1.97 mm y P95 de 141 mm frente a 229 mm de P_L</td>
+      <td>Ninguna (limitación del producto, no error de datos)</td>
+      <td>sin problema</td>
+    </tr>
+    <tr>
+      <td>CC-15</td>
+      <td>T</td>
+      <td>1981–2020</td>
+      <td>tmean de PISCOt = (tmin + tmax)/2 exactamente (diferencia máx 0.0005 °C); tmin ≤ tmean ≤ tmax en 100 % de los días</td>
+      <td>Se documenta la definición</td>
+      <td>sin problema</td>
+    </tr>
+    <tr>
+      <td>CC-16</td>
+      <td>T</td>
+      <td>2021–2025</td>
+      <td>Sin dato en PISCOt (termina en 2020)</td>
+      <td>Valores reconstruidos en columna aparte con bandera de fuente; no entran en las estadísticas de 1.3</td>
+      <td>corregido</td>
+    </tr>
+    <tr>
+      <td>CC-17</td>
+      <td>P_L, R, P_I</td>
+      <td>1998-03, 2010-03</td>
+      <td>Revisión manual de agregación y conversión de unidades</td>
+      <td>Ninguna</td>
+      <td>sin problema</td>
+    </tr>
+  </tbody>
+</table></div><p class="nota">Estado: «sin problema» = comprobado, nada que corregir; «incierto» = la duda se declara como limitación.</p></div></section><section class="panel" id="tab-p15a" data-tab="p15a" hidden><h2>Punto 1.5.a · Climatología de doce meses</h2><p class="intro">P<sub>L</sub> llega a su máximo en marzo (213 mm de media) y a su mínimo en julio–agosto; el caudal llega a su máximo en abril (90 m³/s).</p>
+<article class="fig">
+  <header class="fig-h"><h3>Ciclo anual medio con bandas de dispersión</h3><span class="tipo int">interactiva</span></header>
+  <div class="fig-cuerpo"><div class="selector" data-para="clim" role="group" aria-label="Variable"><button type="button" data-v="P_L" aria-pressed="true">P<sub>L</sub></button><button type="button" data-v="P_I" aria-pressed="false">P<sub>I</sub></button><button type="button" data-v="Q" aria-pressed="false">Q̄</button><button type="button" data-v="R" aria-pressed="false">R</button><button type="button" data-v="T" aria-pressed="false">T</button></div><div class="plot" data-plot="clim" role="img" aria-label="Ciclo anual medio con bandas de dispersión"></div></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Línea continua = media; discontinua = mediana; banda oscura = rango intercuartílico (Q1–Q3); banda clara = percentiles 10–90. Elija la variable con los botones. Las bandas describen cuánto cambian los años entre sí; no son intervalos de confianza.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Los meses del periodo común (1998-01 a 2025-08) se agrupan por mes calendario y en cada grupo se calculan media, mediana, cuartiles y percentiles 10 y 90 (interpolación lineal). Para T se usa PISCOt y, desde 2021, la estimación con ERA5-Land.</p></div>
+  </div>
+  <p class="meta"><span class="script">20_climatologia_1_5a.py</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/climatologia/climatologia_1_5a.csv" download>climatologia_1_5a.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Precipitación media de cada mes sobre la cuenca</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/climatologia/mapas_precipitacion_mensual_chirps.png" aria-label="Ampliar: Precipitación media de cada mes sobre la cuenca"><img loading="lazy" src="web/img/mapas_precipitacion_mensual_chirps.png" alt="Precipitación media de cada mes sobre la cuenca"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Doce mapas: la lluvia crece de diciembre a marzo, cuando cubre toda la cuenca, y en junio–agosto casi desaparece. En los meses húmedos llueve más en las cabeceras del sureste. DEF y MAM aportan cada uno cerca del 42–43 % de la lluvia anual, SON el 14 % y JJA el 2 %.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Climatología mensual de CHIRPS (0.05°) en el periodo común, con la georreferencia corregida, interpolada a la malla del DEM y con una escala discreta común de naranja (seco) a azul (húmedo). El recuadro de cada mapa compara el promedio de cuenca de CHIRPS con el de P<sub>L</sub>.</p></div>
+  </div>
+  <p class="meta"><span class="script">27_mapas_precipitacion_mensual.py</span> · <a href="Tarea%201/El_Tambo/resultados/climatologia/mapas_precipitacion_mensual_chirps.png" target="_blank" rel="noopener">PNG en resolución completa</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Mapa año × mes</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/climatologia/fig_anio_mes_1_5a.png" aria-label="Ampliar: Mapa año × mes"><img loading="lazy" src="web/img/fig_anio_mes_1_5a.png" alt="Mapa año × mes"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Cada celda es un mes de un año, de modo que se ven los años individuales detrás del promedio. El caudal va en escala logarítmica; en temperatura, la trama marca los valores estimados con ERA5-Land.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Matriz año × mes de cada variable en el periodo común, coloreada con una escala secuencial por variable.</p></div>
+  </div>
+  <p class="meta"><span class="script">20_climatologia_1_5a.py</span> · <a href="Tarea%201/El_Tambo/resultados/climatologia/fig_anio_mes_1_5a.png" target="_blank" rel="noopener">PNG en resolución completa</a></p>
+</article></section><section class="panel" id="tab-p15b" data-tab="p15b" hidden><h2>Punto 1.5.b · Rasgos del ciclo anual y su variabilidad</h2><p class="intro">Con los criterios propuestos, el régimen de P<sub>L</sub> es <b>unimodal</b>. Años más húmedos según P<sub>L</sub>: 1998, 2023, 2009, 2017; más secos: 2003, 2016, 2005, 2004.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Anomalías mensuales respecto al ciclo anual</h3><span class="tipo int">interactiva</span></header>
+  <div class="fig-cuerpo"><div class="selector" data-para="anom" role="group" aria-label="Variable"><button type="button" data-v="P_L" aria-pressed="true">P<sub>L</sub></button><button type="button" data-v="P_I" aria-pressed="false">P<sub>I</sub></button><button type="button" data-v="R" aria-pressed="false">R</button><button type="button" data-v="T" aria-pressed="false">T</button></div><div class="plot" data-plot="anom" role="img" aria-label="Anomalías mensuales respecto al ciclo anual"></div></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Barras = diferencia de cada mes respecto a la media de su mes calendario (azul por encima de lo normal, rojo por debajo; en T, rojo = más cálido). Línea = media móvil centrada de 12 meses, que deja ver los años húmedos y secos sin el ciclo estacional.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Anomalía = valor del mes − media del mismo mes calendario en el periodo común. La media móvil exige al menos 10 de los 12 meses. Para T se usa PISCOt y, desde 2021, la estimación con ERA5-Land.</p></div>
+  </div>
+  <p class="meta"><span class="script">21_ciclo_anual_1_5b.py (página: 29_pagina_web.py)</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/series_mensuales_camels_pe.csv" download>series_mensuales_camels_pe.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/imerg_cuenca_mensual.csv" download>imerg_cuenca_mensual.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Anomalía anual (año calendario)</h3><span class="tipo int">interactiva</span></header>
+  <div class="fig-cuerpo"><div class="plot" data-plot="anomanual" role="img" aria-label="Anomalía anual (año calendario)"></div></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Suma de las anomalías de cada año (media para T). Los extremos húmedos coinciden con El Niño costero (1998, 2017, 2023).</p></div>
+    <div><h4>Cómo se construyó</h4><p>Suma de las 12 anomalías mensuales de cada año calendario completo del periodo común; usa la misma variable elegida arriba.</p></div>
+  </div>
+  <p class="meta"><span class="script">21_ciclo_anual_1_5b.py</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/climatologia/anomalias_anio_calendario_1_5b.csv" download>anomalias_anio_calendario_1_5b.csv</a> · <a href="Tarea%201/El_Tambo/resultados/climatologia/anomalias_anio_hidrologico_1_5b.csv" download>anomalias_anio_hidrologico_1_5b.csv</a></p>
+</article>
+<article class="fig">
+  <header class="fig-h"><h3>Rasgos del ciclo anual</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/climatologia/fig_ciclo_1_5b.png" aria-label="Ampliar: Rasgos del ciclo anual"><img loading="lazy" src="web/img/fig_ciclo_1_5b.png" alt="Rasgos del ciclo anual"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>(a) Forma y fase: el caudal va 1.3 meses detrás de P<sub>L</sub> según el centroide. (b) El máximo anual de P<sub>L</sub> cae en marzo en el 59 % de los años (feb–abr en el 93 %), y el del caudal en abril en el 59 %. (c) Los dos subperiodos mantienen el mismo régimen. (d) Variabilidad entre años por mes; en los meses secos el CV es inestable porque la media es casi cero.</p></div>
+    <div><h4>Cómo se construyó</h4><p>SI = índice de estacionalidad (Walsh & Lawler, 1981); PCI = índice de concentración (Oliver, 1980); centroide = Markham (1970). Mes pico de cada año, subperiodos 1998–2011 y 2012–2025, y CV por mes con prueba jackknife.</p></div>
+  </div>
+  <p class="meta"><span class="script">21_ciclo_anual_1_5b.py</span> · <a href="Tarea%201/El_Tambo/resultados/climatologia/fig_ciclo_1_5b.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/climatologia/indicadores_estacionalidad_1_5b.csv" download>indicadores_estacionalidad_1_5b.csv</a> · <a href="Tarea%201/El_Tambo/resultados/climatologia/mes_pico_por_anio_1_5b.csv" download>mes_pico_por_anio_1_5b.csv</a> · <a href="Tarea%201/El_Tambo/resultados/climatologia/subperiodos_1_5b.csv" download>subperiodos_1_5b.csv</a> · <a href="Tarea%201/El_Tambo/resultados/climatologia/variabilidad_por_mes_1_5b.csv" download>variabilidad_por_mes_1_5b.csv</a></p>
+</article><div class="tabla-cont"><h3>Indicadores de estacionalidad (periodo común)</h3><div class="scroll"><table class="dataframe tabla">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Variable</th>
+      <th>Mes máx.</th>
+      <th>Mes mín.</th>
+      <th>SI</th>
+      <th>PCI</th>
+      <th>Centroide</th>
+      <th>Concentración</th>
+      <th>Picos</th>
+      <th>Meses húmedos</th>
+      <th>Meses secos (Gaussen)</th>
+      <th>% en dic–abr</th>
+      <th>Régimen</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>P_L</td>
+      <td>Mar</td>
+      <td>Jul</td>
+      <td>0.79</td>
+      <td>15.40</td>
+      <td>Feb (2.06)</td>
+      <td>0.57</td>
+      <td>Mar</td>
+      <td>5: Ene, Feb, Mar, Abr, Dic</td>
+      <td>5: May, Jun, Jul, Ago, Sep</td>
+      <td>80.97</td>
+      <td>unimodal</td>
+    </tr>
+    <tr>
+      <td>P_I</td>
+      <td>Mar</td>
+      <td>Ago</td>
+      <td>0.63</td>
+      <td>13.69</td>
+      <td>Ene (1.97)</td>
+      <td>0.48</td>
+      <td>Mar</td>
+      <td>5: Ene, Feb, Mar, Abr, Dic</td>
+      <td>5: May, Jun, Jul, Ago, Sep</td>
+      <td>73.25</td>
+      <td>unimodal</td>
+    </tr>
+    <tr>
+      <td>R</td>
+      <td>Abr</td>
+      <td>Sep</td>
+      <td>0.91</td>
+      <td>18.83</td>
+      <td>Mar (3.40)</td>
+      <td>0.68</td>
+      <td>Abr</td>
+      <td>4: Feb, Mar, Abr, May</td>
+      <td>—</td>
+      <td>77.10</td>
+      <td>unimodal</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>Sep</td>
+      <td>Jun</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table></div><p class="nota">R = caudal en lámina. Mes seco según Bagnouls–Gaussen (P < 2T). Unimodal si hay un solo pico y el armónico anual domina; bimodal si hay dos picos y el semianual es comparable; estacionalidad débil si SI < 0.40.</p></div></section><section class="panel" id="tab-p15c" data-tab="p15c" hidden><h2>Punto 1.5.c · Síntesis y procesos</h2><p class="intro">Evidencia reunida para proponer la clasificación hidroclimática mensual. Para la aridez se usa un criterio climático (P/PET), no solo el total de lluvia. La clasificación final y su explicación física las sustenta el grupo con bibliografía.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Ciclo anual frente a la demanda de agua</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/climatologia/fig_sintesis_ciclo_1_5c.png" aria-label="Ampliar: Ciclo anual frente a la demanda de agua"><img loading="lazy" src="web/img/fig_sintesis_ciclo_1_5c.png" alt="Ciclo anual frente a la demanda de agua"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Con P<sub>L</sub>, la lluvia supera a la PET solo en feb–abr, y de mayo a agosto el caudal medio supera a la lluvia del mismo mes (aporte de almacenamiento). Aridez UNEP (P/PET): P<sub>L</sub> 0.62 (subhúmedo seco), IMERG 0.42 (semiárido): la clase depende de la fuente de lluvia.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Barras: lluvia media de cada mes (P<sub>L</sub> e IMERG). Líneas: PET de Penman–Monteith de CAMELS-PE (1998–2016), la mitad de la PET y el caudal en lámina. Debajo, cada mes clasificado por varios criterios; fila FAO: húmedo si P ≥ PET, intermedio si P ≥ 0.5·PET, seco si es menor.</p></div>
+  </div>
+  <p class="meta"><span class="script">23_sintesis_ciclo_1_5c.py</span> · <a href="Tarea%201/El_Tambo/resultados/climatologia/fig_sintesis_ciclo_1_5c.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/climatologia/clasificacion_mensual_1_5c.csv" download>clasificacion_mensual_1_5c.csv</a> · <a href="Tarea%201/El_Tambo/resultados/climatologia/aridez_budyko_1_5c.csv" download>aridez_budyko_1_5c.csv</a> · <a href="Tarea%201/El_Tambo/resultados/climatologia/koppen_1_5c.csv" download>koppen_1_5c.csv</a> · <a href="Tarea%201/El_Tambo/resultados/climatologia/laminas_estacionales_1_5c.csv" download>laminas_estacionales_1_5c.csv</a></p>
+</article><div class="tabla-cont"><h3>Criterios, evidencia e incertidumbre</h3><div class="scroll"><table class="dataframe tabla">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Rasgo</th>
+      <th>Criterio</th>
+      <th>Evidencia (P_L)</th>
+      <th>Evidencia alternativa</th>
+      <th>Lectura propuesta</th>
+      <th>Robustez / incertidumbre</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Número de picos</td>
+      <td>picos del ciclo (prominencia ≥ 10 % amplitud) y armónicos (H1 ≥ 2·H2 → unimodal)</td>
+      <td>P_L: 1 pico (Mar); H1 78 %, H2 15 %</td>
+      <td>P_I: 1 pico (Mar); R: 1 pico (Abr)</td>
+      <td>unimodal</td>
+      <td>igual en ambos subperiodos</td>
+    </tr>
+    <tr>
+      <td>Mes del máximo de P</td>
+      <td>mes de mayor media; % de años hidrológicos con el máximo en feb–abr</td>
+      <td>P_L: Mar (213 mm); máximo en feb–abr en 93 % de los años</td>
+      <td>P_I: Mar (135 mm)</td>
+      <td>máximo en marzo</td>
+      <td>máximo fuera de feb–abr: 2019-20 (Dic), 2023-24 (Dic)</td>
+    </tr>
+    <tr>
+      <td>Concentración estacional</td>
+      <td>SI (Walsh &amp; Lawler 1981), PCI (Oliver 1980), % de P en dic–abr</td>
+      <td>P_L: SI 0.79 (estacional); PCI 15.4 (estacional); 81 % en dic–abr</td>
+      <td>P_I: SI 0.63 (estacional); PCI 13.7 (moderada); 73 % en dic–abr</td>
+      <td>estacional a marcadamente estacional</td>
+      <td>SI P_L en subperiodos 0.77–0.80 y PCI 15.2–15.7: en los límites entre clases (SI 0.80; PCI 15–16)</td>
+    </tr>
+    <tr>
+      <td>Estación húmeda y seca (lluvia)</td>
+      <td>meses ≥ media mensual; Gaussen P &lt; 2T</td>
+      <td>P_L húmedos: 5: Ene, Feb, Mar, Abr, Dic; secos (Gaussen): 5: May, Jun, Jul, Ago, Sep</td>
+      <td>P_I: mismos meses húmedos y secos</td>
+      <td>húmeda dic–abr; seca may–sep; oct–nov transición</td>
+      <td>en 2012–2025 P_I suma nov como seco</td>
+    </tr>
+    <tr>
+      <td>Balance de humedad mensual</td>
+      <td>FAO: húmedo P ≥ PET; intermedio 0.5·PET ≤ P &lt; PET; seco P &lt; 0.5·PET (PET_PM 1998–2016)</td>
+      <td>P_L húmedos: Feb, Mar, Abr; intermedios: Ene, Dic</td>
+      <td>P_I húmedos: Mar; intermedios: Ene, Feb, Abr</td>
+      <td>déficit hídrico climático la mayor parte del año</td>
+      <td>el número de meses húmedos depende de la fuente de P</td>
+    </tr>
+    <tr>
+      <td>Aridez anual</td>
+      <td>UNEP AI = P/PET (2 fuentes de PET)</td>
+      <td>P_L: AI 0.62 (subhúmedo seco) con PM; 0.61 (subhúmedo seco) con HS</td>
+      <td>P_I: AI 0.42 (semiárido); PISCOp v3: 0.53 (subhúmedo seco)</td>
+      <td>subhúmedo seco a semiárido</td>
+      <td>la clase cambia con la fuente de P y de PET</td>
+    </tr>
+    <tr>
+      <td>Clima (Köppen–Geiger)</td>
+      <td>Peel et al. (2007) con T y P de cuenca</td>
+      <td>P_L: Cwb (MAP 841 vs umbral B 605 mm)</td>
+      <td>P_I: BSk; PISCOp v3: Cwb</td>
+      <td>Cwb con P_L</td>
+      <td>frontera C/B según la fuente de P; T media de cuenca oculta el gradiente 684–4317 m</td>
+    </tr>
+    <tr>
+      <td>Respuesta del caudal</td>
+      <td>centroide de Markham R − P; mes de máximo Q̄; aguas altas Q̄ ≥ media</td>
+      <td>desfase R−P_L 1.3 meses; máximo Q̄ Abr; aguas altas: Feb, Mar, Abr, May</td>
+      <td>desfase R−P_I 1.4 meses; máximo Q̄ en abr en 16 de 27 años</td>
+      <td>caudal unimodal desfasado ~1–1.5 meses</td>
+      <td>SI de R 0.91 &gt; SI de P_L: caudal más concentrado que la lluvia</td>
+    </tr>
+    <tr>
+      <td>Partición estacional</td>
+      <td>láminas P y R por estación (periodo común)</td>
+      <td>seca may–nov: P_L 160 mm, R 89 mm (R/P_L 0.56)</td>
+      <td>húmeda dic–abr: P_L 681 mm, R 301 mm (R/P_L 0.44)</td>
+      <td>caudal de estación seca sostenido por almacenamiento</td>
+      <td>R &gt; P_L en la climatología de: May, Jun, Jul, Ago</td>
+    </tr>
+    <tr>
+      <td>Coherencia del balance</td>
+      <td>R/P observado vs Budyko (1974)</td>
+      <td>P_L: R/P 0.48 vs Budyko 0.16</td>
+      <td>P_I: R/P 0.72 vs Budyko 0.07</td>
+      <td>R observado mayor que el esperado con cualquier P</td>
+      <td>P subestimada, PET sobrestimada o aportes no representados</td>
+    </tr>
+    <tr>
+      <td>Temperatura</td>
+      <td>amplitud del ciclo de 12 medias</td>
+      <td>T: amplitud 0.62 °C (máx Sep, mín Jun)</td>
+      <td>desv. est. entre años de cada mes 0.36–0.69 °C, del orden de la amplitud del ciclo</td>
+      <td>isotermal (régimen térmico tropical)</td>
+      <td>T de dos fuentes (PISCOt y estimación ERA5-Land desde 2021)</td>
+    </tr>
+  </tbody>
+</table></div><p class="nota">«Lectura propuesta» es un apoyo cuantitativo para la discusión del grupo, no la conclusión.</p></div></section><section class="panel" id="tab-p2" data-tab="p2" hidden><h2>Punto 2 · Relaciones entre series y modelos estadísticos</h2><p class="intro">Diagramas de dispersión entre P<sub>L</sub>, P<sub>I</sub> y caudal, y modelos para estimar la lluvia local desde IMERG y el caudal desde la lluvia.</p><div class="pendiente">En construcción: los resultados se agregarán aquí.</div></section><section class="panel" id="tab-p3" data-tab="p3" hidden><h2>Punto 3 · Tendencias hidroclimáticas y sus posibles causas</h2><p class="intro">Tendencias de P<sub>L</sub>, P<sub>I</sub>, caudal y temperatura con métodos lineales y no lineales, paramétricos y no paramétricos. El tramo de temperatura estimado con ERA5-Land debe tratarse aparte.</p><div class="pendiente">En construcción: los resultados se agregarán aquí.</div></section><section class="panel" id="tab-p4" data-tab="p4" hidden><h2>Punto 4 · Análisis de frecuencias mediante Fourier</h2><p class="intro">Espectros de las series mensuales originales y de sus anomalías para identificar los periodos dominantes.</p><div class="pendiente">En construcción: los resultados se agregarán aquí.</div></section><section class="panel" id="tab-p5" data-tab="p5" hidden><h2>Punto 5 · Mapas de correlación con el clima global</h2><p class="intro">Regiones oceánicas y patrones atmosféricos asociados con la variabilidad mensual de la lluvia y el caudal.</p><div class="pendiente">En construcción: los resultados se agregarán aquí.</div></section><section class="panel" id="tab-datos" data-tab="datos" hidden><h2>Datos y reproducibilidad</h2><p class="intro">Fuentes usadas y cómo regenerar todos los productos.</p><div class="tabla-cont"><h3>Fuentes de datos</h3><div class="scroll"><table class="dataframe tabla">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Variable</th>
+      <th>Fuente</th>
+      <th>DOI / proveedor</th>
+      <th>Resolución</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>P_L – precipitación de referencia</td>
+      <td>CAMELS-PE v1.0.1 (`prec`, PISCOp v2.1 promediado sobre la cuenca)</td>
+      <td>doi:10.5281/zenodo.21195425</td>
+      <td>diaria → mensual</td>
+    </tr>
+    <tr>
+      <td>Q / R – caudal observado</td>
+      <td>CAMELS-PE v1.0.1 (`flow_obs`, SENAMHI)</td>
+      <td>doi:10.5281/zenodo.21195425</td>
+      <td>diaria → mensual</td>
+    </tr>
+    <tr>
+      <td>T – temperatura</td>
+      <td>CAMELS-PE (`tmean`, PISCOt v1.2) hasta 2020; ERA5-Land T2m desde 2021 (estimación aparte)</td>
+      <td>doi:10.24381/cds.68d2bb30</td>
+      <td>diaria / mensual</td>
+    </tr>
+    <tr>
+      <td>P_I – precipitación satelital</td>
+      <td>GPM IMERG V07 Final (GPM_3IMERGM.07, NASA GES DISC)</td>
+      <td>doi:10.5067/GPM/IMERG/3B-MONTH/07</td>
+      <td>mensual, 0.1°</td>
+    </tr>
+    <tr>
+      <td>Precipitación en malla (apoyo)</td>
+      <td>PISCOp v3.0 (SENAMHI)</td>
+      <td>doi:10.6084/m9.figshare.32411886.v1</td>
+      <td>diaria, 0.1°</td>
+    </tr>
+    <tr>
+      <td>Mapas de precipitación</td>
+      <td>CHIRPS v2.0 (UCSB/CHC), recorte del IRI Data Library</td>
+      <td>doi:10.15780/G2RP4Q</td>
+      <td>mensual, 0.05°</td>
+    </tr>
+    <tr>
+      <td>Transporte de humedad y viento</td>
+      <td>ERA5 (C3S/ECMWF), niveles de presión y nivel único</td>
+      <td>doi:10.24381/cds.6860a573; 10.24381/cds.f17050d7</td>
+      <td>mensual, 0.5°</td>
+    </tr>
+    <tr>
+      <td>Relieve</td>
+      <td>Copernicus GLO-30 DSM</td>
+      <td>ESA / Airbus</td>
+      <td>30 m</td>
+    </tr>
+    <tr>
+      <td>Cobertura y geología</td>
+      <td>ESA WorldCover 2021; INGEMMET 1:100 000 (GEOCATMIN)</td>
+      <td>—</td>
+      <td>10 m / vectorial</td>
+    </tr>
+  </tbody>
+</table></div></div><div class="tabla-cont"><h3>Cómo reproducir</h3><p>Con Python 3 y las dependencias de <code>requirements.txt</code>, ejecute en <code>Hidrologiat1/Codigos/</code>, en este orden: <code>06 → 07a → 13 → 14 → 09 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 29</code>. Antes del 06 hay que descargar las dos teselas de GLO-30 (ver <code>README.md</code>). Las descargas de IMERG y ERA5/ERA5-Land requieren cuentas personales (NASA Earthdata y Copernicus CDS), cuyas credenciales no se incluyen en el repositorio. El detalle de cada conjunto de datos está en <a href="DATOS.md">DATOS.md</a>.</p></div></section></div></main>
+<footer><div class="wrap">
+Página generada el 2026-10-11 con <code>Hidrologiat1/Codigos/29_pagina_web.py</code> a partir de los archivos
+de resultados. Las gráficas marcadas «interactiva» se dibujan con Plotly desde los CSV; las marcadas «imagen» son las figuras
+PNG de los scripts (clic para ampliar). Las descripciones distinguen lo que muestran los datos de las hipótesis, que el grupo
+debe sustentar con bibliografía.
+</div></footer>
+<div id="visor" role="dialog" aria-modal="true" aria-label="Figura ampliada">
+  <button type="button" class="cerrar" aria-label="Cerrar">✕</button>
+  <a class="full" target="_blank" rel="noopener">Abrir en resolución completa ↗</a>
+  <img alt="">
+</div>
+<script src="web/lib/plotly-2.35.2.min.js"></script>
+<script src="web/datos.js"></script>
+<script>(function () {
+  "use strict";
+  const D = window.DATOS;
+  const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  const UNID = { P_L: "mm/mes", P_I: "mm/mes", R: "mm/mes", Q: "m³/s", T: "°C" };
+  const NOMBRE = { P_L: "P<sub>L</sub>", P_I: "P<sub>I</sub>", R: "R", Q: "Q̄", T: "T" };
+  const estado = { clim: "P_L", anom: "P_L" };
+  const dibujadas = new Set();
+
+  // ------------------------------------------------------------ tema (tokens de estilo.css)
+  function tema() {
+    const cs = getComputedStyle(document.documentElement);
+    const v = (n) => cs.getPropertyValue(n).trim();
+    return { card: v("--card"), ink: v("--ink"), ink2: v("--ink2"), muted: v("--muted"), line: v("--line"),
+             axis: v("--axis"), s1: v("--s1"), s2: v("--s2"), s3: v("--s3"), pos: v("--pos"), neg: v("--neg"),
+             excl: v("--excl") };
+  }
+  function rgba(hex, a) {
+    const h = hex.replace("#", "");
+    const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+  function eje(t, extra) {
+    return Object.assign({ gridcolor: t.line, linecolor: t.axis, zerolinecolor: t.axis, showline: true,
+      ticks: "outside", tickcolor: t.axis, ticklen: 4, tickfont: { color: t.muted }, automargin: true,
+      title: { font: { color: t.ink2, size: 12 } } }, extra || {});
+  }
+  function base(t, extra) {
+    return Object.assign({
+      paper_bgcolor: t.card, plot_bgcolor: t.card,
+      font: { family: 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif', size: 12, color: t.ink2 },
+      margin: { l: 60, r: 18, t: 40, b: 40 }, hovermode: "x unified",
+      hoverlabel: { bgcolor: t.card, bordercolor: t.line, font: { color: t.ink, size: 12 } },
+      legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", font: { color: t.ink2 }, bgcolor: "rgba(0,0,0,0)" },
+    }, extra);
+  }
+  const CONFIG = { responsive: true, displaylogo: false, scrollZoom: false,
+    modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"],
+    toImageButtonOptions: { format: "png", scale: 2, filename: "el_tambo" } };
+  function ejeTiempo(t, extra) {
+    return eje(t, Object.assign({ type: "date", hoverformat: "%Y-%m", tickformat: "%Y" }, extra || {}));
+  }
+  function slider(t) {
+    return { visible: true, thickness: 0.07, bgcolor: t.card, bordercolor: t.line, borderwidth: 1 };
+  }
+  function mesSiguiente(f) {
+    let [y, m] = f.split("-").map(Number);
+    m += 1; if (m > 12) { m = 1; y += 1; }
+    return `${y}-${String(m).padStart(2, "0")}`;
+  }
+  function linea(x, y, nombre, color, extra) {
+    return Object.assign({ type: "scatter", mode: "lines", x, y, name: nombre, line: { color, width: 2 },
+      connectgaps: false }, extra || {});
+  }
+
+  // ------------------------------------------------------------ gráficas
+  const G = {};
+
+  // 1.1 · cuatro paneles alineados
+  G.serie11 = function (t) {
+    const x = D.fechas;
+    const dom = [[0.79, 1], [0.54, 0.74], [0.29, 0.49], [0.04, 0.24]];
+    const banderas = [["interpolado_diario", "circle-open", "días interpolados"], ["escalado", "square", "mes escalado"],
+                      ["modelo_mensual", "diamond", "modelo mensual"]];
+    const data = [
+      { type: "bar", x, y: D.P_L, name: "P<sub>L</sub>", yaxis: "y", marker: { color: t.s1 }, showlegend: false,
+        hovertemplate: "%{y:.1f} mm/mes" },
+      linea(x, D.Q, "Q̄", t.s1, { yaxis: "y2", showlegend: false, line: { color: t.s1, width: 1.6 },
+        hovertemplate: "%{y:.2f} m³/s" }),
+      linea(x, D.R, "R", t.s1, { yaxis: "y3", showlegend: false, line: { color: t.s1, width: 1.6 },
+        hovertemplate: "%{y:.1f} mm/mes" }),
+      linea(x, D.T_piscot, "T PISCOt", t.s1, { yaxis: "y4", line: { color: t.s1, width: 1.6 },
+        hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_est, "T estimada (ERA5-Land + sesgo)", t.s3, { yaxis: "y4",
+        line: { color: t.s3, width: 1.8, dash: "dash" }, hovertemplate: "%{y:.2f} °C" }),
+    ];
+    banderas.forEach(([cod, sim, txt]) => {
+      const xi = [], yq = [], yr = [];
+      D.R_flag.forEach((f, i) => { if (f === cod) { xi.push(x[i]); yq.push(D.Q[i]); yr.push(D.R[i]); } });
+      if (!xi.length) return;
+      const mk = { color: t.s2, size: 8, symbol: sim, line: { color: t.s2, width: 1.5 } };
+      data.push({ type: "scatter", mode: "markers", x: xi, y: yq, yaxis: "y2", name: "Q̄ rellenado: " + txt,
+        legendgroup: cod, marker: mk, hovertemplate: txt });
+      data.push({ type: "scatter", mode: "markers", x: xi, y: yr, yaxis: "y3", name: txt, legendgroup: cod,
+        showlegend: false, marker: mk, hoverinfo: "skip" });
+    });
+    const shapes = [];
+    D.R_flag_obs.forEach((f, i) => {
+      if (f === "excluido" || f === "sin_dato") {
+        shapes.push({ type: "rect", xref: "x", yref: "paper", x0: x[i], x1: mesSiguiente(x[i]), y0: 0, y1: 1,
+          fillcolor: t.excl, line: { width: 0 }, layer: "below" });
+      }
+    });
+    const titulos = ["P<sub>L</sub> · precipitación acumulada mensual (CAMELS-PE)", "Q̄ · caudal medio mensual (SENAMHI, rellenado)",
+                     "R · escorrentía en lámina", "T · temperatura media mensual"];
+    const annotations = titulos.map((txt, i) => ({ text: txt, xref: "paper", yref: "paper", x: 0, y: dom[i][1],
+      xanchor: "left", yanchor: "bottom", showarrow: false, font: { color: t.ink, size: 12.5 } }));
+    return { data, layout: base(t, {
+      height: 860, margin: { l: 62, r: 18, t: 56, b: 30 }, bargap: 0.15, shapes, annotations,
+      legend: { orientation: "h", x: 0, y: 1.035, yanchor: "bottom", font: { color: t.ink2 } },
+      xaxis: ejeTiempo(t, { anchor: "y4", rangeslider: slider(t) }),
+      yaxis: eje(t, { domain: dom[0], title: { text: "mm/mes" }, rangemode: "tozero" }),
+      yaxis2: eje(t, { domain: dom[1], title: { text: "m³/s" }, rangemode: "tozero" }),
+      yaxis3: eje(t, { domain: dom[2], title: { text: "mm/mes" }, rangemode: "tozero" }),
+      yaxis4: eje(t, { domain: dom[3], title: { text: "°C" } }),
+    }) };
+  };
+
+  // 1.1 · temperatura
+  G.temp = function (t) {
+    const x = D.fechas;
+    return { data: [
+      linea(x, D.T_piscot, "PISCOt v1.2 (CAMELS-PE)", t.s1, { hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_era5, "ERA5-Land sin corregir", t.s2, { line: { color: t.s2, width: 1.6 }, hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_est, "Estimada: ERA5-Land + sesgo mensual", t.s3, { line: { color: t.s3, width: 2, dash: "dash" },
+        hovertemplate: "%{y:.2f} °C" }),
+    ], layout: base(t, { height: 470, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
+      yaxis: eje(t, { title: { text: "Temperatura media mensual (°C)" } }) }) };
+  };
+
+  // 1.2 · fuentes de precipitación
+  G.precip = function (t) {
+    const x = D.fechas;
+    const h = "%{y:.1f} mm/mes";
+    return { data: [
+      linea(x, D.P_L, "P<sub>L</sub> CAMELS-PE", t.s1, { hovertemplate: h }),
+      linea(x, D.P_I, "P<sub>I</sub> IMERG V07", t.s2, { hovertemplate: h }),
+      linea(x, D.chirps, "CHIRPS v2.0", t.s3, { visible: "legendonly", line: { color: t.s3, width: 1.6 }, hovertemplate: h }),
+      linea(x, D.piscop, "PISCOp v3.0", t.muted, { visible: "legendonly", line: { color: t.muted, width: 1.6, dash: "dot" },
+        hovertemplate: h }),
+    ], layout: base(t, { height: 480, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
+      yaxis: eje(t, { title: { text: "Precipitación (mm/mes)" }, rangemode: "tozero" }) }) };
+  };
+
+  // 1.2 · totales anuales
+  G.anual = function (t) {
+    const a = D.anual;
+    const h = "%{y:.0f} mm/año";
+    return { data: [
+      { type: "bar", x: a.anios, y: a.P_L, name: "P<sub>L</sub> CAMELS-PE", marker: { color: t.s1, cornerradius: 3 }, hovertemplate: h },
+      { type: "bar", x: a.anios, y: a.P_I, name: "P<sub>I</sub> IMERG V07", marker: { color: t.s2, cornerradius: 3 }, hovertemplate: h },
+    ], layout: base(t, { height: 420, barmode: "group", bargap: 0.25, bargroupgap: 0.1,
+      xaxis: eje(t, { dtick: 2, tickangle: 0 }),
+      yaxis: eje(t, { title: { text: "Precipitación anual (mm/año)" }, rangemode: "tozero" }) }) };
+  };
+
+  // 1.5.a · climatología con bandas
+  G.clim = function (t) {
+    const v = estado.clim, c = D.clim[v], u = UNID[v];
+    const f = v === "T" ? ".2f" : (v === "Q" ? ".1f" : ".0f");
+    const ht = (n) => `${n}: %{y:${f}} ${u}<extra></extra>`;
+    const sin = { width: 0 };
+    return { data: [
+      { type: "scatter", mode: "lines", x: MESES, y: c.P90, line: sin, name: "P90", hovertemplate: ht("P90"), showlegend: false },
+      { type: "scatter", mode: "lines", x: MESES, y: c.P10, line: sin, fill: "tonexty", fillcolor: rgba(t.s1, 0.14),
+        name: "Percentiles 10–90", hovertemplate: ht("P10") },
+      { type: "scatter", mode: "lines", x: MESES, y: c.Q3, line: sin, name: "Q3", hovertemplate: ht("Q3"), showlegend: false },
+      { type: "scatter", mode: "lines", x: MESES, y: c.Q1, line: sin, fill: "tonexty", fillcolor: rgba(t.s1, 0.30),
+        name: "Rango intercuartílico", hovertemplate: ht("Q1") },
+      { type: "scatter", mode: "lines", x: MESES, y: c.mediana, name: "Mediana",
+        line: { color: t.s1, width: 2, dash: "dash" }, hovertemplate: ht("Mediana") },
+      { type: "scatter", mode: "lines+markers", x: MESES, y: c.media, name: "Media",
+        line: { color: t.s1, width: 2.4 }, marker: { size: 8, color: t.s1, line: { color: t.card, width: 2 } },
+        hovertemplate: ht("Media") },
+    ], layout: base(t, { height: 440, xaxis: eje(t, { type: "category" }),
+      yaxis: eje(t, { title: { text: `${NOMBRE[v]} (${u})` }, rangemode: v === "T" ? "normal" : "tozero" }) }) };
+  };
+
+  function colorSigno(t, v, y) {
+    return y.map((a) => (a == null ? t.muted : ((a >= 0) !== (v === "T") ? t.pos : t.neg)));
+  }
+
+  // 1.5.b · anomalías mensuales
+  G.anom = function (t) {
+    const v = estado.anom, a = D.anom[v], u = UNID[v];
+    const f = v === "T" ? ".2f" : ".1f";
+    return { data: [
+      { type: "bar", x: D.fechas, y: a.m, name: "Anomalía mensual", marker: { color: colorSigno(t, v, a.m) },
+        hovertemplate: `%{y:+${f}} ${u}` },
+      linea(D.fechas, a.mm12, "Media móvil de 12 meses", t.ink, { line: { color: t.ink, width: 1.8 },
+        hovertemplate: `%{y:+${f}} ${u}` }),
+    ], layout: base(t, { height: 440, bargap: 0, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
+      yaxis: eje(t, { title: { text: `Anomalía de ${NOMBRE[v]} (${u})` }, zeroline: true }) }) };
+  };
+
+  // 1.5.b · anomalía anual
+  G.anomanual = function (t) {
+    const v = estado.anom, aa = D.anom_anual;
+    const u = v === "T" ? "°C (media del año)" : "mm/año";
+    const f = v === "T" ? ".2f" : ".0f";
+    return { data: [
+      { type: "bar", x: aa.anios, y: aa[v], name: "Anomalía anual", marker: { color: colorSigno(t, v, aa[v]), cornerradius: 3 },
+        hovertemplate: `%{y:+${f}} ${v === "T" ? "°C" : "mm"}<extra></extra>` },
+    ], layout: base(t, { height: 400, hovermode: "closest", showlegend: false, bargap: 0.2,
+      xaxis: eje(t, { dtick: 2 }), yaxis: eje(t, { title: { text: `Anomalía de ${NOMBRE[v]} (${u})` }, zeroline: true }) }) };
+  };
+
+  // ------------------------------------------------------------ dibujo
+  function dibujar(el) {
+    const f = G[el.dataset.plot];
+    if (!f || !window.Plotly) return;
+    const g = f(tema());
+    Plotly.react(el, g.data, g.layout, CONFIG);
+    dibujadas.add(el);
+  }
+  function redibujarTodo() { dibujadas.forEach(dibujar); }
+
+  document.querySelectorAll(".selector").forEach((sel) => {
+    sel.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      sel.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      estado[sel.dataset.para] = b.dataset.v;
+      document.querySelectorAll(`.plot[data-plot="${sel.dataset.para}"], .plot[data-plot="${sel.dataset.para}anual"]`)
+        .forEach(dibujar);
+    });
+  });
+
+  // ------------------------------------------------------------ pestañas
+  const botones = [...document.querySelectorAll(".tabs button")];
+  const paneles = [...document.querySelectorAll(".panel")];
+  const ALIAS = { p15: "p15a", temp: "p11" };
+  function mostrar(id, empujar) {
+    id = ALIAS[id] || id;
+    if (!paneles.some((p) => p.dataset.tab === id)) id = paneles[0].dataset.tab;
+    paneles.forEach((p) => { p.hidden = p.dataset.tab !== id; });
+    botones.forEach((b) => {
+      const s = b.dataset.ir === id;
+      b.setAttribute("aria-selected", String(s));
+      b.tabIndex = s ? 0 : -1;
+      if (s) {                                          // solo desplaza la barra de pestañas, no la página
+        const bar = b.parentElement;
+        if (b.offsetLeft < bar.scrollLeft || b.offsetLeft + b.offsetWidth > bar.scrollLeft + bar.clientWidth) {
+          bar.scrollLeft = b.offsetLeft - 16;
+        }
+      }
+    });
+    const panel = document.getElementById("tab-" + id);
+    panel.querySelectorAll(".plot").forEach((el) => {
+      if (dibujadas.has(el)) Plotly.Plots.resize(el); else dibujar(el);
+    });
+    if (empujar) history.replaceState(null, "", "#" + id);
+  }
+  botones.forEach((b) => b.addEventListener("click", () => { mostrar(b.dataset.ir, true); window.scrollTo({ top: 0 }); }));
+  document.querySelector(".tabs").addEventListener("keydown", (e) => {
+    const i = botones.findIndex((b) => b.getAttribute("aria-selected") === "true");
+    let j = null;
+    if (e.key === "ArrowRight") j = (i + 1) % botones.length;
+    if (e.key === "ArrowLeft") j = (i - 1 + botones.length) % botones.length;
+    if (j !== null) { e.preventDefault(); botones[j].focus(); mostrar(botones[j].dataset.ir, true); }
+  });
+  window.addEventListener("hashchange", () => mostrar(location.hash.slice(1), false));
+  mostrar(location.hash.slice(1), false);
+
+  // ------------------------------------------------------------ tema claro/oscuro
+  const raiz = document.documentElement, bt = document.querySelector(".tema");
+  function aplicar(tm) { if (tm) raiz.setAttribute("data-theme", tm); else raiz.removeAttribute("data-theme"); }
+  try { aplicar(localStorage.getItem("tema")); } catch (e) { /* sin almacenamiento */ }
+  bt.addEventListener("click", () => {
+    const oscuro = raiz.getAttribute("data-theme") === "dark" ||
+      (!raiz.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+    const tm = oscuro ? "light" : "dark";
+    aplicar(tm);
+    try { localStorage.setItem("tema", tm); } catch (e) { /* sin almacenamiento */ }
+    redibujarTodo();
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redibujarTodo);
+  redibujarTodo();
+
+  // ------------------------------------------------------------ visor de imágenes
+  const visor = document.getElementById("visor"), vimg = visor.querySelector("img"), vfull = visor.querySelector(".full");
+  document.querySelectorAll(".zoom").forEach((b) => b.addEventListener("click", () => {
+    const i = b.querySelector("img");
+    vimg.src = i.src; vimg.alt = i.alt; vfull.href = b.dataset.full;
+    visor.classList.add("abierto"); visor.querySelector(".cerrar").focus();
+  }));
+  function cerrar() { visor.classList.remove("abierto"); vimg.removeAttribute("src"); }
+  visor.addEventListener("click", (e) => { if (e.target !== vfull) cerrar(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrar(); });
+})();
+</script>
+</body>
+</html>
