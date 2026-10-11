@@ -17,12 +17,13 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SERIES = ROOT / "resultados" / "series_mensuales" / "series_mensuales_camels_pe.csv"
 OUT = ROOT / "resultados" / "series_mensuales"
 
-AZUL = "#2a78d6"           # serie 1 (paleta de referencia)
+AZUL = VAR["P_L"]          # color de P_L en todas las figuras (estilo_figuras.py)
 TINTA = "#0b0b0b"
 TINTA_2 = "#52514e"
 GRILLA = "#d9d8d4"

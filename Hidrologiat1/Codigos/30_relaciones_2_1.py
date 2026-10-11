@@ -5,7 +5,7 @@ Pares (meses coincidentes y válidos del periodo común, periodo_comun.py):
   (a) P_I (IMERG) frente a P_L (CAMELS-PE), con línea 1:1 y escalas iguales.
   (b) P_L frente a Q̄ (m³/s); apoyo en lámina: P_L frente a R (mm/mes) con la línea R = P.
   (c) P_I frente a Q̄.
-Puntos coloreados por estación climática (DEF, MAM, JJA, SON). Q̄ y R usan la serie rellenada (script 09);
+Puntos coloreados por estación de la cuenca (húmeda dic–abr, transición oct–nov, seca may–sep; estilo_figuras.py). Q̄ y R usan la serie rellenada (script 09);
 como sensibilidad se repiten las métricas solo con los meses observados completos (R_flag = completo).
 Métricas: n, Pearson r (y p), Spearman ρ; para P_I − P_L: sesgo medio, MAE, RMSE, también por estación.
 Rezagos: correlación de Q̄_t con P_(t−k), k = 0..6 meses (la lluvia antecede al caudal: nunca se usa lluvia
@@ -28,15 +28,16 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, EST as COL_EST, EST_MK, EST_ETQ, ESTACION_MES, TINTA, GRIS, aplicar_estilo
+
+aplicar_estilo()
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SM = ROOT / "resultados" / "series_mensuales"
 OUT = ROOT / "resultados" / "relaciones"
 OUT.mkdir(parents=True, exist_ok=True)
 INI, FIN = periodo_comun()
-EST = {12: "DEF", 1: "DEF", 2: "DEF", 3: "MAM", 4: "MAM", 5: "MAM", 6: "JJA", 7: "JJA", 8: "JJA",
-       9: "SON", 10: "SON", 11: "SON"}
-COL_EST = {"DEF": "#1b6ca8", "MAM": "#0b7a75", "JJA": "#e4572e", "SON": "#c9a227"}
+EST = ESTACION_MES
 REZ = range(0, 7)
 
 cam = pd.read_csv(SM / "series_mensuales_camels_pe.csv", index_col="fecha", parse_dates=True)
@@ -122,15 +123,15 @@ def dispersion(d, titulo_fig, archivo, anom):
             xl, yl = "Anomalía de " + xl, "Anomalía de " + yl
         for e, c in COL_EST.items():
             s = d[d.est == e]
-            ax.scatter(s[xv], s[yv], s=18, color=c, alpha=0.7, edgecolor="white", lw=0.4, label=e)
+            ax.scatter(s[xv], s[yv], s=20, color=c, marker=EST_MK[e], alpha=0.75, edgecolor="white", lw=0.4, label=EST_ETQ[e])
         if yv in ("P_I", "R"):                                    # línea 1:1 y escalas iguales
             lo = min(d[xv].min(), d[yv].min()); hi = max(d[xv].max(), d[yv].max())
             pad = 0.04 * (hi - lo)
-            ax.plot([lo - pad, hi + pad], [lo - pad, hi + pad], color="#3d3d3d", lw=1,
+            ax.plot([lo - pad, hi + pad], [lo - pad, hi + pad], color=TINTA, lw=1,
                     label="1:1" if yv == "P_I" else "R = P$_L$")
             ax.set_xlim(lo - pad, hi + pad); ax.set_ylim(lo - pad, hi + pad); ax.set_aspect("equal")
         if anom:
-            ax.axhline(0, color="#999", lw=0.6); ax.axvline(0, color="#999", lw=0.6)
+            ax.axhline(0, color=GRIS, lw=0.6); ax.axvline(0, color=GRIS, lw=0.6)
         elif yv == "Q":                              # caudal: varía 3 órdenes de magnitud → eje logarítmico
             ax.set_yscale("log")
             yl += " – escala logarítmica"
@@ -148,8 +149,8 @@ def dispersion(d, titulo_fig, archivo, anom):
         ax.grid(alpha=0.3)
     axs[0, 0].legend(loc="lower right", fontsize=8.5, frameon=False, title="Estación", title_fontsize=8.5)
     fig.suptitle(titulo_fig, fontsize=12.5)
-    fig.text(0.5, 0.01, f"Periodo común {INI:%Y-%m} a {FIN:%Y-%m}, {len(d)} meses coincidentes. DEF = dic–feb, MAM = mar–may, "
-             "JJA = jun–ago, SON = sep–nov. Q̄ y R con faltantes rellenados (script 09); ver la sensibilidad sin "
+    fig.text(0.5, 0.01, f"Periodo común {INI:%Y-%m} a {FIN:%Y-%m}, {len(d)} meses coincidentes. Estaciones de la cuenca: húmeda dic–abr, "
+             "transición oct–nov, seca may–sep. Q̄ y R con faltantes rellenados (script 09); ver la sensibilidad sin "
              "relleno en metricas_2_1.csv." + (" Anomalías: valor menos la media de su mes calendario en el periodo "
                                                 "común." if anom else ""), ha="center", fontsize=8, color="#444", wrap=True)
     fig.tight_layout(rect=(0, 0.03, 1, 0.97))
@@ -164,12 +165,12 @@ dispersion(an, "Punto 2.1 – Relaciones mensuales en anomalías (sin el ciclo a
 # ------------------------------------------------------------------ figura de rezagos
 fig, axs = plt.subplots(1, 2, figsize=(13, 4.8), sharey=True)
 for ax, serie in zip(axs, ("original", "anomalías")):
-    for p, col in (("P_L", "#1b6ca8"), ("P_I", "#e4572e")):
+    for p, col in (("P_L", VAR["P_L"]), ("P_I", VAR["P_I"])):
         for tipo, ls, mk in (("rezago P(t−k)", "-", "o"), ("acumulada P(t−k..t)", "--", "s")):
             g = rez[(rez.serie == serie) & (rez.lluvia == p) & (rez.tipo == tipo)]
             ax.plot(g.k, g.spearman_rho, ls=ls, marker=mk, color=col, ms=5,
                     label=f"{'P$_L$' if p == 'P_L' else 'P$_I$'} – {'lluvia del mes t−k' if tipo.startswith('rez') else 'lluvia acumulada de t−k a t'}")
-    ax.axhline(0, color="#999", lw=0.7)
+    ax.axhline(0, color=GRIS, lw=0.7)
     ax.set_xlabel("k (meses de anticipación de la lluvia respecto al caudal)")
     ax.set_title(f"({'ab'[serie == 'anomalías']}) {'Series originales' if serie == 'original' else 'Anomalías'}",
                  loc="left", fontsize=11)

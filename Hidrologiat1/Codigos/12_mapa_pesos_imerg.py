@@ -29,6 +29,7 @@ from matplotlib.colors import LightSource
 from matplotlib.lines import Line2D
 
 from utils_mapas import formato_grados, escala_y_norte, m_por_grado_lon, M_PER_DEG_Y
+from estilo_figuras import CMAP_P, CMAP_NEUTRA
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 DATOS = ROOT / "datos"
@@ -100,7 +101,7 @@ fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 10))
 fig.subplots_adjust(left=0.05, right=0.98, top=0.87, bottom=0.12, wspace=0.08)
 
 marco(a1, "(a) Peso de cada celda en el promedio de cuenca")
-cells.plot(ax=a1, column="peso_pct", cmap="Blues", vmin=0, vmax=cells["peso_pct"].max(),
+cells.plot(ax=a1, column="peso_pct", cmap=CMAP_P, vmin=0, vmax=cells["peso_pct"].max(),
            alpha=0.8, edgecolor="none")
 contorno(a1)
 rotulos(a1, "peso_pct", lambda c: f"{c['peso_pct']:.1f}", 0.6 * cells["peso_pct"].max())
@@ -114,7 +115,7 @@ a1.text(0.01, 0.01, f"{len(cells)} celdas · {cells['completa'].sum()} completas
         bbox=dict(fc="white", alpha=0.85, lw=0), zorder=9)
 
 marco(a2, "(b) Desnivel del terreno dentro de cada celda (GLO-30)")
-cells.plot(ax=a2, column="desnivel_p5_p95_m", cmap="Oranges", vmin=0,
+cells.plot(ax=a2, column="desnivel_p5_p95_m", cmap=CMAP_NEUTRA, vmin=0,
            vmax=cells["desnivel_p5_p95_m"].max(), alpha=0.8, edgecolor="none")
 contorno(a2)
 rotulos(a2, "desnivel_p5_p95_m", lambda c: f"{c['desnivel_p5_p95_m']:.0f}\n({c['z_media_m']:.0f})",

@@ -40,6 +40,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 BASIN = ROOT / "resultados" / "delimitacion" / "cuenca_el_tambo_glo30.gpkg"
@@ -196,7 +197,7 @@ print(f"\nElevación media: ERA5-Land {z_era:.0f} m | cuenca (CAMELS-PE elev_mea
       f"de los {d.mean():+.2f} °C de sesgo")
 
 # ------------------------------------------------------------------ figura
-ROJO_T, MORADO = "#c8553d", "#6a4c93"
+ROJO_T, MORADO = VAR["T"], VAR["T_ERA5L"]   # PISCOt y ERA5-Land: mismo tono (estilo_figuras.py)
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(16, 5.2), gridspec_kw={"width_ratios": [3.2, 1], "wspace": 0.15})
 a1.plot(df.index, df["T_camels_C"], color=ROJO_T, lw=1.1, label="CAMELS-PE `tmean` (PISCOt v1.2)")
 a1.plot(df.index, df["T_era5land_C"], color=MORADO, lw=1.1, alpha=0.9, label="ERA5-Land T 2 m (promedio ponderado por área)")

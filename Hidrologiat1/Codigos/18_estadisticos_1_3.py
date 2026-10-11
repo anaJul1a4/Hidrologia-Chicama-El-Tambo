@@ -40,6 +40,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, EST, TINTA, TINTA2, GRIS, GRIS_CLARO, CMAP_P, aplicar_estilo
+
+aplicar_estilo()
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 OUT = ROOT / "resultados" / "series_mensuales"
@@ -49,11 +52,11 @@ imerg = pd.read_csv(OUT / "imerg_cuenca_mensual.csv", index_col="fecha", parse_d
 df = pd.DataFrame({"P_L": cam["P_L_mm_mes"], "P_I": imerg, "Q": cam["Q_m3_s"], "R": cam["R_mm_mes"],
                    "T": cam["T_C"]})
 VARS = {  # clave: (nombre, unidades, color)
-    "P_L": ("P$_L$ (CAMELS-PE)", "mm/mes", "#1b6ca8"),
-    "P_I": ("P$_I$ (IMERG V07)", "mm/mes", "#e4572e"),
-    "Q": ("$\\bar{Q}$", "m³/s", "#0b7a75"),
-    "R": ("R", "mm/mes", "#5b3f8c"),
-    "T": ("T (PISCOt)", "°C", "#c8553d"),
+    "P_L": ("P$_L$ (CAMELS-PE)", "mm/mes", VAR["P_L"]),
+    "P_I": ("P$_I$ (IMERG V07)", "mm/mes", VAR["P_I"]),
+    "Q": ("$\\bar{Q}$", "m³/s", VAR["Q"]),
+    "R": ("R", "mm/mes", VAR["R"]),
+    "T": ("T (PISCOt)", "°C", VAR["T"]),
 }
 PCT = [5, 10, 25, 50, 75, 90, 95]
 

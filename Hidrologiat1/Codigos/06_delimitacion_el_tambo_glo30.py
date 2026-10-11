@@ -33,6 +33,7 @@ from shapely.geometry import shape, Point, LineString
 from shapely.ops import unary_union
 from pysheds.grid import Grid
 from pysheds.view import Raster
+from estilo_figuras import CMAP_ELEV
 # pysheds 0.5 usa np.in1d, eliminado en NumPy 2.4+; np.isin es el reemplazo equivalente.
 if not hasattr(np, "in1d"):
     np.in1d = lambda a, b, **kw: np.isin(np.ravel(a), b, **kw)
@@ -322,7 +323,7 @@ fig = plt.figure(figsize=(15, 11))
 gs = GridSpec(3, 2, figure=fig, width_ratios=[3.6, 1.7], height_ratios=[1.2, 1, 1.0],
               wspace=0.06, hspace=0.12)
 ax = fig.add_subplot(gs[:, 0])
-im = ax.imshow(zg, cmap="terrain", extent=ext_g, alpha=0.9, interpolation="nearest",
+im = ax.imshow(zg, cmap=CMAP_ELEV, extent=ext_g, alpha=0.9, interpolation="nearest",
                vmin=np.nanmin(zg), vmax=np.nanmax(zg))
 ax.imshow(hs, cmap="gray", extent=ext_g, alpha=0.3, interpolation="nearest")
 for o in sorted(rivers_ll["strahler"].unique()):

@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap, LightSource
 
 from periodo_comun import periodo_comun
+from estilo_figuras import CMAP_P, CLASES_P_MES
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 DATOS = ROOT / "datos"
@@ -38,9 +39,7 @@ SMES = ROOT / "resultados" / "series_mensuales"
 OUT = ROOT / "resultados" / "climatologia"
 MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre",
          "Noviembre", "Diciembre"]
-CLASES = [0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 125, 150, 175, 200, 250]   # mm/mes
-COLORES = ["#e8761c", "#f0a21f", "#f5cf1f", "#eef01c", "#c9e02a", "#8fbf3a", "#5e9f4d", "#4b7f5f",
-           "#4d6466", "#4a4f6e", "#3b3a63"]
+CLASES = CLASES_P_MES                                            # mm/mes, comunes (estilo_figuras.py)
 RES = 0.0025                                                     # malla de representación (°)
 PAD = 0.03
 
@@ -84,7 +83,7 @@ m_PL = cam.groupby(cam.index.month).mean()
 m_CH = chs.groupby(chs.index.month).mean()
 
 # ------------------------------------------------------------------ figura
-cmap = LinearSegmentedColormap.from_list("seco_humedo", COLORES, N=len(CLASES) - 1)
+cmap = CMAP_P                                                    # rampa azul común a los mapas de agua
 assert np.nanmax(campos) < CLASES[-1], f"máximo {np.nanmax(campos):.0f} mm fuera de la escala"
 norm = BoundaryNorm(CLASES, cmap.N)
 ext = (lons[0] - RES / 2, lons[-1] + RES / 2, lats[-1] - RES / 2, lats[0] + RES / 2)

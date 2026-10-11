@@ -26,7 +26,7 @@ Entorno: `Hidrologiat1/` (venv, Python 3.14); dependencias en `requirements.txt`
 | PISCOp oficial SENAMHI (figshare, mensual) | `Tarea 1/El_Tambo/datos/piscop_senamhi/{v2p1_update,v3p0}/` | v2.1 update 1981–2019 (doi:10.6084/m9.figshare.21127423.v2) y v3.0 1981–2025 (doi:10.6084/m9.figshare.32411886.v1); MD5 verificado; malla 0.1° | ✔ descargado · **no reproduce CAMELS-PE** |
 | **PISCOp v3.0 diario** | `…/piscop_senamhi/v3p0/PISCOp_d.nc` (1.5 GB, nacional, **fuera del ZIP**) y `PISCOp_v3_d_El_Tambo_recorte.nc` (2.9 MB, **va en el ZIP**) | 1981-01-01 a 2025-12-31, mm/día, 0.1°; 31 celdas en la cuenca. 0 faltantes, 0 negativos, 0 secuencias constantes; Σ diario = archivo mensual (máx 3.4 mm/mes). Cumple la guía: diario, 28 años comunes con Q (1998–2025), 0 % faltantes | ✔ 2026-10-08 |
 | Temperatura ERA5-Land | `Tarea 1/El_Tambo/datos/era5land/` | T2m mensual 1981-01 a 2025-12 (540 meses, sin faltantes), 0.1°, recorte de la cuenca + geopotencial; `PROCEDENCIA.json` | ✔ 2026-10-08 |
-| Campos globales SST / ERA5 (punto 5) | — | — | ✗ pendiente |
+| Campos globales (punto 5) | `Tarea 1/El_Tambo/datos/campos_globales/` | SST ERSST v5 (NOAA PSL, 2°), presión al nivel del mar (ERA5 msl) y viento zonal en 200 hPa (ERA5 u), malla 2°, 1981-01 a 2025-12, ~50 MB, versionados; `PROCEDENCIA.json` | ✔ 2026-10-11 |
 
 **DEM:** el proyecto usa **Copernicus GLO-30**. FABDEM v1.2 solo aparece en los atributos topográficos
 de CAMELS-PE; no se descargó ni se usa.
@@ -69,6 +69,7 @@ Las tablas del registro completo se conservan solo donde la guía pide distingui
 | `26_chirps_cuenca.py` | CHIRPS v2.0 mensual 0.05° (doi:10.15780/G2RP4Q), recorte del IRI Data Library para el periodo común (332 meses, sin faltantes). **La X del IRI marca el borde oeste de la celda**: se corrige +0.025°, verificado contra el GeoTIFF oficial de UCSB de 2017-03 (diferencia 0.000; sin corregir, ~94 mm). Pesos por área (98 celdas, 71.1 equivalentes) → `chirps_cuenca_mensual.csv`. P media anual 636 mm/año (PISCOp v3 721; CAMELS-PE 841); r mensual con CAMELS-PE 0.915 | ✔ 2026-10-10 |
 | `12_mapa_pesos_imerg.py` | Mapa de celdas IMERG con su peso por área y desnivel del terreno dentro de cada celda (`mapa_celdas_imerg_pesos.png`, `relieve_celdas_imerg.csv`) | ✔ 2026-10-08 |
 | `utils_mapas.py` | Cuadrícula en grados, barra de escala y flecha de norte | ✔ |
+| `estilo_figuras.py` | **Paleta y escalas comunes (2026-10-11).** Un color fijo por variable en todas las figuras y en la web (`web/estilo.css`, tokens `--vPL` …): P_L azul, P_I naranja, Q̄ y R aguamarina (misma variable), T rojo (ERA5-Land más oscuro y discontinuo), fuentes de apoyo en gris. Estaciones de la cuenca únicas: húmeda dic–abr (violeta), transición oct–nov (gris), seca may–sep (ocre). Métodos y particiones en tinta/gris (sin rojo/verde). Rampa azul única para magnitudes de agua (mapas de lluvia anual y mensual, IVT, pesos IMERG); DEM sin azul; divergentes BrBG (agua) y RdBu (T, correlaciones del punto 5). Variables con las mismas unidades comparten escala (P_L y R en 1.1; (b) y (c) en 2.1; P_L e IMERG en las ventanas de 3.5; centrada y anomalía en 4.2). El espectro se presenta en periodo (`fig_espectros_4_2.png`) y en ciclos/mes (`fig_espectros_frecuencia_4_2.png`) | ✔ |
 | `09_datos_camels_pe_el_tambo.py` | Verificación MD5 del DOI, extracción del subconjunto, series mensuales y disponibilidad año × mes. **Relleno del caudal** con `relleno_caudal.py`: columnas observadas `R_obs_mm_mes`, `R_flag_obs`, `Q_obs_*`; columnas rellenadas `R_mm_mes`, `Q_mm_d`, `Q_m3_s`, `R_flag` (completo / interpolado_diario / escalado / modelo_mensual), `R_modelo`, `dias_interpolados_Q`. Serie diaria interpolada en `caudal_diario_interpolado.csv` | ✔ validado (revisión manual de 2010-03 y 1998-03); relleno 2026-10-10 |
 | `relleno_caudal.py` | Módulo del método de relleno (interpolación de ln q en huecos ≤ 15 días; escalado si ≥ 50 % de días; modelo log-lineal con flow_sim y R del mes anterior) | ✔ 2026-10-10 |
 | `28_validacion_relleno_caudal.py` | Validación del relleno: huecos sintéticos (600 por longitud) y validación cruzada dejando un año fuera de 5 modelos mensuales → `validacion_relleno_huecos_diarios.csv`, `validacion_relleno_modelo_mensual.csv`, `resumen_relleno_caudal.csv`, `fig_validacion_relleno_caudal.png` | ✔ 2026-10-10 |
@@ -81,6 +82,9 @@ Las tablas del registro completo se conservan solo donde la guía pide distingui
 | `31_modelos_2_2_2_3.py` | Puntos 2.2–2.3: modelos P_L ← P_I (lin, prop, factor mensual, potencial) y Q̄ ← P_L / P_I (lineal, lineal con rezagos, log con rezagos, log con intercepto mensual, climatología + anomalías; K = 1–4). Selección por validación cruzada dejando un año fuera **dentro** del ajuste. Evaluación por bloques: A ajuste 1998–2015 / evaluación 2016–2024; B ajuste 2007–2024 / evaluación 1998–2006. Referencias: IMERG sin corregir y climatología del caudal con los años de ajuste. Residuos vs tiempo, valor estimado y mes (`resultados/modelos/`) | ✔ 2026-10-11 |
 | `32_tendencias_3.py` | Punto 3 completo: registros y fuentes (3.1), anomalías a y z con climatología fija 1998–2020 (3.2), OLS-HAC (con y sin efectos de mes), MK estacional/Hirsch–Slack, MK Hamed–Rao + Sen con IC de Gilbert, LOWESS con banda por bloques y modelo aditivo, segmentada + Pettitt; todos los meses y 12 subseries; registro completo y periodo común; FDR (BH); sensibilidad (ventanas inicio/fin, sin 1998/2017/2023, ±5 años, fuente: PISCOp v3, CHIRPS, Q solo observado); Niño 1+2 y balance por año hidrológico (3.6) → `resultados/tendencias/` | ✔ 2026-10-11 |
 | `33_espectros_4.py` | Punto 4 completo: periodograma FFT (rect.), Hann y Welch (120 m, 50 %, ν calculado); densidad unilateral con Parseval verificado y contraste con `scipy.signal.periodogram`; series centradas, anomalías (ref. 1998–2020) y ambas sin tendencia; registro completo, periodo común y 1998–2020 (T); fondo AR(1) con umbral 95 % puntual y global (Bonferroni sobre ⌊N/2⌋ frecuencias); tabla de picos con resolución y ciclos; fracción de varianza por bandas; estabilidad (ventana, tendencia, extremos P1–P99, ln Q, mitades, periodo común); efecto de los vacíos de Q con Lomb–Scargle → `resultados/espectros/` | ✔ 2026-10-11 |
+| `37a_descarga_campos_globales.py` | Punto 5.1: descarga ERSST v5 (sst.mnmean.nc de NOAA PSL, recorte 1981–2025) y ERA5 mensual msl y u200 por CDS, malla 2°, global | ✔ 2026-10-11 |
+| `37_correlaciones_5.py` | Punto 5 completo: anomalías por mes y celda (ref. 1998–2020); r_j entre años (27 por mes, 1998–2024, ℓ = 0; Q̄ también ℓ = 1 fijado por el desfase de 1 mes); n efectivo por persistencia entre años (Bretherton et al. 1999); FDR Benjamini–Hochberg α_FDR = 0.10 por mapa en 60°S–60°N (Wilks 2016); 12 mapas por combinación (P_L y Q̄ × SST, SLP, u200; P_I × SST); todos los meses en anomalías; índices Niño 1+2/3.4 y cajas; robustez (Spearman, sin tendencia, sin 1998/2017/2023, IMERG, subperiodos 1981–2002 vs 2003–2024 de P_L) con correlación de patrones → `resultados/correlaciones/` | ✔ 2026-10-11 |
+| `38_onditas_4.py` | Complemento del punto 4: onditas de Morlet (Torrence y Compo 1998, implementación propia) de las anomalías estandarizadas de P_L, Q̄, T ERA5-Land, Niño 1+2 y Niño 3.4; fondo AR(1) 95 %, COI, espectro global, varianza en 2–7 años y componente reconstruida. P_L: banda 4–5 años significativa solo 1983–2000; componente 2–7 a con Niño 1+2 r = 0.59 y con Niño 3.4 r = 0.22 (12 % de la varianza). Q̄ r = 0.46 (7 %). T r = 0.86 con Niño 3.4 (35 %) → `resultados/espectros/fig_onditas*_4_3.png`, `onditas_*_4_3.csv` | ✔ 2026-10-11 |
 | `29_era5_inversion_termica.py` | Inversión térmica y subsidencia (ERA5 mensual, 2°S–12°S × 88°O–72°O, 0.25°): T y ω en 23 niveles (1000–200 hPa; descarga en bloques de 7 años por el límite del CDS), presión en superficie, T2m y relieve del modelo. Produce: corte oeste–este a 7–8°S (θ, ω, capas de inversión) en dic–abr y may–sep; ciclo anual de la LTS costera (θ700 − θsup, 83–80°O × 9–6.5°S), de ω500 sobre la cuenca, de la convergencia del IVT y de P_L; correlación de anomalías en dic–abr (`fig_inversion_termica_era5.png`, `ciclo_inversion_convergencia.csv`, `correlaciones_inversion_lluvia.csv`; `datos/era5_inversion/climatologia_inversion.nc` versionada, NetCDF de ~77 MB fuera de Git) | ✔ 2026-10-11 |
 | `25_mapa_transporte_humedad.py` | Mapa regional de IVT y viento en 500 hPa para dic–abr y may–sep (`resultados/contexto_fisico/mapa_transporte_humedad_era5.png`). Contrasta el esquema de rutas de humedad del recuadro del mapa de la cuenca (script 06) | ✔ 2026-10-10 |
 | `23_sintesis_ciclo_1_5c.py` | Punto 1.5.c (síntesis del ciclo anual; la explicación física con bibliografía queda en pausa): aridez UNEP P/PET con 3 fuentes de P × 2 de PET (Penman–Monteith de CAMELS-PE `pet`, solo hasta 2016-12; Hargreaves–Samani desde Tmin/Tmax de PISCOt hasta 2020-12) y contraste con Budyko; Köppen–Geiger (Peel et al. 2007); clasificación de cada mes (FAO P vs PET, Gaussen, aguas altas, R > P, frecuencia de picos); láminas por estación; tabla de criterios (`criterios_clasificacion_1_5c.csv`, `aridez_budyko_1_5c.csv`, `koppen_1_5c.csv`, `clasificacion_mensual_1_5c.csv`, `laminas_estacionales_1_5c.csv`, `fig_sintesis_ciclo_1_5c.png`) | ✔ 2026-10-10 |
@@ -177,7 +181,7 @@ Las tablas del registro completo se conservan solo donde la guía pide distingui
 6. Armar el ZIP de entrega (`requirements.txt` regenerado con `pip freeze` el 2026-10-11, incluye statsmodels y pymannkendall).
 7. Completar los integrantes en `README.md`.
 8. Borrar las carpetas sobrantes `hidrologia-tarea1-el-tambo/` y `Hidrologia_Rio_Chicama_El_Tambo/` (repositorios vacíos creados por error con GitHub Desktop; el `.gitignore` ya las excluye).
-9. Puntos siguientes de la guía: 1.5.c e hipótesis inicial (interpretación del grupo), punto 5. Puntos 3 y 4 hechos (scripts 32 y 33): el grupo debe revisar las hipótesis de 3.6 y buscar bibliografía sobre usos del agua y cobertura en el Chicama.
+9. Puntos siguientes de la guía: 1.5.c e hipótesis inicial (interpretación del grupo). Punto 5 calculado (scripts 37a y 37; notas en la sección 5): falta la interpretación física con bibliografía. Puntos 3 y 4 hechos (scripts 32 y 33): el grupo debe revisar las hipótesis de 3.6 y buscar bibliografía sobre usos del agua y cobertura en el Chicama.
 
 ---
 
@@ -423,6 +427,55 @@ La explicación física con bibliografía está **en pausa** (decisión del grup
   - Gilman, Fuglister & Mitchell 1963 y Torrence & Compo 1998 (fondo AR(1));
   - Lomb 1976 / Scargle 1982;
   - Wilks, *Statistical Methods in the Atmospheric Sciences* (periodograma y χ²).
+
+### Punto 5 – Mapas de correlación con el clima global (scripts 37a y 37; `resultados/correlaciones/`)
+
+**Campos (5.1), decisión 2026-10-11:**
+- SST (obligatoria): ERSST v5, 2°.
+- Presión al nivel del mar (ERA5 msl): anticiclón del Pacífico sur, que conecta con la inversión y la subsidencia del script 29, y dipolo de presión del ENSO.
+- Viento zonal en 200 hPa (ERA5 u): flujo del este en altura sobre los Andes, ligado al transporte de humedad de los scripts 24–25. A 200 hPa no hay celdas bajo el terreno.
+- Descartados:
+  - Z500: casi uniforme en el trópico y redundante con la SST.
+  - Humedad específica: en 850–700 hPa queda bajo el terreno sobre los Andes, y es casi la lluvia misma.
+
+**Diseño (5.2–5.3):**
+- Correlación entre años por mes calendario: 1998–2024, 27 pares por mes.
+- Anomalías respecto a 1998–2020.
+- Rezago ℓ = 0. En Q̄ también ℓ = 1, fijado de antemano por el desfase de 1 mes (no buscado).
+- Significancia: n efectivo por persistencia entre años; FDR de Benjamini–Hochberg con α_FDR = 0.10 por mapa (familia = celdas de 60°S–60°N).
+- Escala común −1 a 1; tierra enmascarada en la SST.
+- Robustez medida con la correlación de patrones (ponderada por área, 40°S–40°N).
+
+**Resultados:**
+- **Mapas:** muy pocas celdas pasan el FDR (como máximo 3–8 % del área en algún mes). Con 27 años y n efectivo, solo correlaciones |r| ≳ 0.6 sobreviven.
+- **Caudal (ene–mar) frente a Niño 1+2:** r = 0.68 en ene y 0.62 en mar (q FDR 0.01–0.02).
+  - Spearman en ene es solo 0.06 y, sin 1998/2017/2023, el patrón de feb–mar desaparece (correlación de patrones ~0.1).
+  - → Es una asociación **dominada por los Niños costeros extremos**.
+- **P_L frente a Niño 1+2 (ene–abr):** r 0.41–0.47 (p < 0.05 puntual, no pasa el FDR).
+  - El patrón de SST de P_L cambia entre 1981–2002 y 2003–2024 (correlación de patrones mediana ≈ 0.1) → no es estable.
+- **P_L frente a u200 sobre los Andes del norte de Perú (caja 0–15°S, 85–70°O):** más viento del este, más lluvia, en los bordes de la estación húmeda.
+  - abr r = −0.56, sep r = −0.64 (q 0.03).
+  - IMERG da lo mismo en abr (−0.61).
+- **Presión al nivel del mar:** con todos los meses en anomalías es el patrón más extenso (12 % del área con P_L, 19 % con Q̄). Presión baja en el Pacífico este y alta en el oeste: dipolo de la Oscilación del Sur.
+- **IMERG:** debilita la señal de Niño 1+2 en la estación húmeda (feb 0.00, mar 0.35, frente a 0.41 y 0.47 con P_L).
+- **Niño 3.4** (Pacífico central) se asocia menos que Niño 1+2 en la estación húmeda: pesa el mar frente a la costa.
+
+**Para la interpretación (grupo):**
+- El mecanismo a sustentar es el del Niño costero: SST cálida frente a la costa → inversión débil y convección.
+  - Conecta con el script 29: r(LTS, P_L) = −0.47 en dic–abr.
+  - Explica por qué el caudal responde más que la lluvia de CAMELS-PE: crecidas de 1998 y 2017, con R > P.
+- El viento del este en altura explica parte de la lluvia de los bordes de la estación húmeda (inicio y fin).
+- Hay que decir explícitamente que fuera de los años extremos no hay patrones robustos (la guía lo admite como resultado).
+- Correlación ≠ pronóstico.
+- Los campos no son independientes: SLP y SST comparten la señal ENSO.
+
+**Referencias a verificar antes de citar:**
+- Wilks 2016 (BAMS, FDR en campos).
+- Bretherton et al. 1999 (J. Climate, n efectivo).
+- Huang et al. 2017 (ERSST v5).
+- Takahashi et al. 2011 (índices E y C).
+- Garreaud 2018 y Takahashi et al. 2018 (Niño costero 2017).
+- Garreaud 2009 (Andes).
 
 ---
 

@@ -25,6 +25,7 @@ from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
 from periodo_comun import periodo_comun
+from estilo_figuras import EST, CMAP_P
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 CLIM = ROOT / "datos" / "era5" / "era5_viento_ivt_climatologia_estacional.nc"
@@ -34,7 +35,7 @@ INI, FIN = periodo_comun()
 
 TEMP = [("may–sep (seca)", "may-sep", "Estación seca (may–sep)"),
         ("dic–abr (húmeda)", "dic-abr", "Estación húmeda (dic–abr)")]
-COL = {"may–sep (seca)": "#eb6834", "dic–abr (húmeda)": "#2a78d6"}
+COL = {"may–sep (seca)": EST["seca"], "dic–abr (húmeda)": EST["húmeda"]}
 LON, LAT = (-100, -30), (-35, 15)
 PASO = 3
 
@@ -57,7 +58,7 @@ for fila, (t, est, titulo) in enumerate(TEMP):
     # --- transporte de humedad
     ax = fig.add_subplot(gs[fila, 0])
     d = clim.sel(estacion=est, lon=slice(*LON), lat=slice(*LAT))
-    m = ax.pcolormesh(d.lon, d.lat, d["ivt"], cmap="YlGnBu", vmin=0, vmax=VMAX, shading="nearest")
+    m = ax.pcolormesh(d.lon, d.lat, d["ivt"], cmap=CMAP_P, vmin=0, vmax=VMAX, shading="nearest")
     paises.boundary.plot(ax=ax, color="#333333", lw=0.4)
     s = slice(None, None, PASO)
     q = ax.quiver(d.lon[s], d.lat[s], d["ivt_e"][s, s], d["ivt_n"][s, s], scale=2500, width=0.0028, color="#1d1d1b")

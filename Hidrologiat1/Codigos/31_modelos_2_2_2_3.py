@@ -43,6 +43,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, TINTA, TINTA2, GRIS, GRIS_CLARO, PARTICION, aplicar_estilo
+
+aplicar_estilo()
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SM = ROOT / "resultados" / "series_mensuales"
@@ -244,12 +247,13 @@ mostrar = ev[(ev.modelo == "ref") | ev.elegido_cv | ev.modelo.isin(["lin", "lin0
 print(mostrar[cols_v].round(3).to_string(index=False))
 
 # ------------------------------------------------------------------ figuras
-COL = {"obs": "#3d3d3d", "ref": "#9e9e9e", "lin": "#c9a227", "sel": "#1b6ca8"}
+COL = {"obs": TINTA, "ref": GRIS, "lin": TINTA2, "sel": None}   # "sel" toma el color de la variable estimada
 
 
 def figura(obj, y, unidades, archivo, titulo, logy=False):
     part = "A"
     a_aj, a_ev = PARTICIONES[part]
+    COL["sel"] = VAR["P_L"] if y == "P_L" else VAR["Q"]
     te = df[df.anio.isin(a_ev)]
     n_sel, K_sel = elegidos[(part, obj)]
     lin = "lin" if obj.startswith("P_L") else "lin0"
@@ -284,7 +288,7 @@ def figura(obj, y, unidades, archivo, titulo, logy=False):
     res_te = p_sel - te[y]
     res_tr = p_aj - tr[y]
     b1 = fig.add_subplot(gs[1, 0])
-    b1.scatter(tr.index, res_tr, s=8, color="#bbbbbb", label="ajuste")
+    b1.scatter(tr.index, res_tr, s=8, color=GRIS_CLARO, label="ajuste")
     b1.scatter(te.index, res_te, s=12, color=COL["sel"], label="evaluación")
     b1.axhline(0, color="k", lw=0.8); b1.set_title("(b) Residuo (estimado − observado) en el tiempo", loc="left", fontsize=10)
     b1.set_ylabel(unidades); b1.legend(fontsize=8, frameon=False); b1.grid(alpha=0.3)
@@ -316,8 +320,8 @@ for ax, obj in zip(axs, ["P_L ← P_I", "Q̄ ← P_L", "Q̄ ← P_I"]):
     piv = g.pivot_table(index="etq", columns="particion", values="habilidad_MAE")
     piv = piv.loc[g.drop_duplicates("etq").etq]
     y = np.arange(len(piv))
-    ax.barh(y - 0.2, 100 * piv["A"], height=0.38, color="#1b6ca8", label="A: evaluación 2016–2024")
-    ax.barh(y + 0.2, 100 * piv["B"], height=0.38, color="#c9a227", label="B: evaluación 1998–2006")
+    ax.barh(y - 0.2, 100 * piv["A"], height=0.38, color=PARTICION["A"], label="A: evaluación 2016–2024")
+    ax.barh(y + 0.2, 100 * piv["B"], height=0.38, color=PARTICION["B"], label="B: evaluación 1998–2006")
     sels = {elegidos[(p, obj)][0] + (f" K={elegidos[(p, obj)][1]}" if elegidos[(p, obj)][1] else "") for p in "AB"}
     ax.set_yticks(y, [("★ " if e in sels else "") + e for e in piv.index], fontsize=8)
     ax.axvline(0, color="k", lw=0.8); ax.invert_yaxis(); ax.grid(axis="x", alpha=0.3)

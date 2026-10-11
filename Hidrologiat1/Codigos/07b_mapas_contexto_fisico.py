@@ -39,10 +39,9 @@ import matplotlib.patheffects as pe
 
 from utils_mapas import formato_grados, escala_y_norte, m_por_grado_lon, M_PER_DEG_Y
 from periodo_comun import periodo_comun, fin_diario
+from estilo_figuras import CMAP_P
 
-# Escala seco→húmedo del ejemplo del curso (la misma de 27_mapas_precipitacion_mensual.py)
-COLORES_P = ["#e8761c", "#f0a21f", "#f5cf1f", "#eef01c", "#c9e02a", "#8fbf3a", "#5e9f4d", "#4b7f5f",
-             "#4d6466", "#4a4f6e", "#3b3a63"]
+# Precipitación: rampa azul común a todos los mapas de agua (estilo_figuras.CMAP_P), igual que el script 27
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 DATOS = ROOT / "datos"
@@ -328,10 +327,9 @@ def precip_layer(ax):
     base(ax, f"(d) Precipitación media anual {P_PER} – CHIRPS v2.0")
     vmin = np.floor(np.nanmin(precip) / 100) * 100
     vmax = np.ceil(np.nanmax(precip) / 100) * 100
-    # Misma escala discreta seco→húmedo (naranja → azul oscuro) que los mapas mensuales del script 27
+    # Misma rampa que los mapas mensuales del script 27 (claro = seco, oscuro = húmedo), clases de 50 mm
     clases = np.arange(vmin, vmax + 1, 50)
-    cmap = LinearSegmentedColormap.from_list("seco_humedo", COLORES_P, N=len(clases) - 1)
-    im = ax.imshow(precip, cmap=cmap, norm=BoundaryNorm(clases, cmap.N), extent=EXT, alpha=0.88,
+    im = ax.imshow(precip, cmap=CMAP_P, norm=BoundaryNorm(clases, CMAP_P.N), extent=EXT, alpha=0.88,
                    interpolation="nearest")
     cs = ax.contour(px_lon, px_lat, precip, levels=np.arange(vmin, vmax + 1, 100), colors="#1d1d1b",
                     linewidths=0.6, alpha=0.8)

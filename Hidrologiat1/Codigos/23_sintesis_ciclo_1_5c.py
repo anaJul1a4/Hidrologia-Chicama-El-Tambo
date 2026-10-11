@@ -43,6 +43,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, EST, TINTA, TINTA2, GRIS, GRIS_CLARO, CMAP_P, aplicar_estilo
+
+aplicar_estilo()
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SM = ROOT / "resultados" / "series_mensuales"
@@ -53,8 +56,8 @@ FIN_PM = pd.Timestamp("2016-12-01")                        # último mes con PET
 FIN_HS = pd.Timestamp("2020-12-01")                        # último mes con Tmin/Tmax de PISCOt
 MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 HUMEDA, SECA = [12, 1, 2, 3, 4], [5, 6, 7, 8, 9, 10, 11]
-COL = {"P_L": "#1b6ca8", "P_I": "#e4572e", "R": "#5b3f8c", "PET": "#3d3d3d"}
-CLASE_COL = {"húmedo": "#1b6ca8", "intermedio": "#9cc3e0", "seco": "#e8d9b5"}
+COL = {"P_L": VAR["P_L"], "P_I": VAR["P_I"], "R": VAR["R"], "PET": VAR["PET"]}
+CLASE_COL = {"húmedo": EST["húmeda"], "intermedio": "#b9b2ee", "seco": "#f0d9a0"}   # familia de las estaciones
 
 # ------------------------------------------------------------------ datos mensuales
 cam = pd.read_csv(SM / "series_mensuales_camels_pe.csv", index_col="fecha", parse_dates=True)
@@ -307,12 +310,11 @@ ax.bar(x + w / 2, cPIc, w, color=COL["P_I"], label="P$_I$ (IMERG)", zorder=3)
 ax.plot(x, cPET, color=COL["PET"], lw=2, marker="o", ms=5, label="PET Penman–Monteith (1998–2016)", zorder=4)
 ax.plot(x, 0.5 * cPET, color=COL["PET"], lw=1.4, ls="--", label="0.5 · PET (umbral FAO)", zorder=4)
 ax.plot(x, cR, color=COL["R"], lw=2, marker="s", ms=5, label="R (caudal en lámina)", zorder=5)
-ax.axvspan(-0.5, 3.5, color="#1b6ca8", alpha=0.06, lw=0)
-ax.axvspan(10.5, 11.5, color="#1b6ca8", alpha=0.06, lw=0)
-ax.text(1.5, 0.97, "estación húmeda (dic–abr)", transform=ax.get_xaxis_transform(), ha="center", va="top",
-        fontsize=9, color="#333")
-ax.text(7, 0.97, "estación seca (may–nov)", transform=ax.get_xaxis_transform(), ha="center", va="top",
-        fontsize=9, color="#333")
+# estaciones de la cuenca (definición única: estilo_figuras.ESTACION_MES)
+for x0, x1, e in ((-0.5, 3.5, "húmeda"), (10.5, 11.5, "húmeda"), (3.5, 8.5, "seca"), (8.5, 10.5, "transición")):
+    ax.axvspan(x0, x1, color=EST[e], alpha=0.08, lw=0)
+for xc, e in ((1.5, "húmeda (dic–abr)"), (6, "seca (may–sep)"), (9.5, "transición\n(oct–nov)")):
+    ax.text(xc, 0.97, e, transform=ax.get_xaxis_transform(), ha="center", va="top", fontsize=9, color=TINTA2)
 ax.set_ylabel("mm/mes")
 ax.set_xlim(-0.5, 11.5)
 ax.set_ylim(0, max(cPLc.max(), cPET.max()) * 1.18)
@@ -335,9 +337,9 @@ for i, (nombre, clases) in enumerate(filas_f):
         for j, v in enumerate(mens["pct_anios_P_L_ge_media_PET"]):
             bx.text(j, y, f"{v:.0f}%", ha="center", va="center", fontsize=7.5,
                     color="white" if mens["clase_FAO_P_L"][j] == "húmedo" else "#222")
-otras = [("Seco Gaussen (P$_L$ < 2T)", mens["seco_Gaussen_P_L"], "#c9a227"),
-         ("Aguas altas (Q̄ ≥ media)", mens["aguas_altas_Q_ge_media"], COL["R"]),
-         ("R > P$_L$", mens["R_mayor_que_P_L"], "#7f7f7f")]
+otras = [("Seco Gaussen (P$_L$ < 2T)", mens["seco_Gaussen_P_L"], EST["seca"]),
+         ("Aguas altas (Q̄ ≥ media)", mens["aguas_altas_Q_ge_media"], VAR["Q"]),
+         ("R > P$_L$", mens["R_mayor_que_P_L"], "#8fd9bd")]
 for i, (nombre, cond, color) in enumerate(otras):
     y = 3 - i
     for j, c in enumerate(cond):

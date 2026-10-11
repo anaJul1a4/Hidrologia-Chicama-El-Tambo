@@ -222,6 +222,7 @@ imerg.round(4).to_csv(OUT / "imerg_cuenca_mensual.csv")
 
 # ------------------------------------------------------------------ periodo común y gráfica
 from periodo_comun import periodo_comun                          # usa imerg_cuenca_mensual.csv recién escrito
+from estilo_figuras import VAR
 cam = pd.read_csv(SERIES, index_col="fecha", parse_dates=True)["P_L_mm_mes"]
 df = pd.concat([cam.rename("P_L"), P_I.rename("P_I")], axis=1)
 ini, fin = periodo_comun()                                       # años calendario completos con P_L y P_I
@@ -235,8 +236,8 @@ print(f"Medias: P_L {comun['P_L'].mean():.1f} mm/mes | P_I {comun['P_I'].mean():
       f"r Pearson {comun.corr().iloc[0, 1]:.3f}")
 
 fig, a1 = plt.subplots(figsize=(15, 5.5))
-a1.plot(df.index, df["P_L"], color="#1b6ca8", lw=1.3, label="P$_L$ – CAMELS-PE (PISCOp v2.1)")
-a1.plot(df.index, df["P_I"], color="#e4572e", lw=1.3, alpha=0.9,
+a1.plot(df.index, df["P_L"], color=VAR["P_L"], lw=1.3, label="P$_L$ – CAMELS-PE (PISCOp v2.1)")
+a1.plot(df.index, df["P_I"], color=VAR["P_I"], lw=1.3, alpha=0.9,
         label="P$_I$ – IMERG V07 Final (promedio ponderado por área)")
 a1.set_ylabel("Precipitación (mm/mes)")
 a1.set_ylim(-10, df[["P_L", "P_I"]].max().max() * 1.18)        # margen para leyenda y métricas

@@ -27,6 +27,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.patches import Patch
 
 from periodo_comun import periodo_comun, fin_diario
+from estilo_figuras import CMAP_DISP
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SM = ROOT / "resultados" / "series_mensuales"
@@ -81,7 +82,7 @@ res.round(2).to_csv(OUT / "resumen_disponibilidad_1_4.csv", index=False)
 print("\n=== Condición de los meses ===\n", res.round(2).to_string(index=False))
 
 CODES = {"completo": 0, "escalado": 1, "excluido": 2, "sin_dato": 3, "fuera": 4}
-cmap = ListedColormap(["#1b6ca8", "#8fbce6", "#e4572e", "#d9d9d9", "#ffffff"])
+cmap = CMAP_DISP                    # completo / escalado / excluido / sin dato / fuera (estilo_figuras.py)
 fig, axs = plt.subplots(1, 4, figsize=(15, 8), sharey=True, gridspec_kw={"wspace": 0.08})
 anios = np.arange(INI.year, FIN.year + 1)
 cp = cond.loc[f"{INI.year}":f"{FIN.year}"].copy()

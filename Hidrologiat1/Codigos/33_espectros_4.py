@@ -45,6 +45,7 @@ import matplotlib.pyplot as plt
 from scipy import signal, stats
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, TINTA, TINTA2, GRIS_CLARO, colores_ordinales, aplicar_estilo
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SM = ROOT / "resultados" / "series_mensuales"
@@ -64,11 +65,11 @@ cam = pd.read_csv(SM / "series_mensuales_camels_pe.csv", index_col="fecha", pars
 imerg = pd.read_csv(SM / "imerg_cuenca_mensual.csv", index_col="fecha", parse_dates=True)["P_I_mm_mes"]
 t5l = pd.read_csv(SM / "era5land_t2m_cuenca_mensual.csv", index_col="fecha", parse_dates=True)["T_era5land_C"]
 SERIES = {
-    "P_L": (cam["P_L_mm_mes"], "P_L (CAMELS-PE)", "mm/mes", "#1f6fb4"),
-    "P_I": (imerg, "P_I (IMERG)", "mm/mes", "#e4572e"),
-    "Q": (cam["Q_m3_s"], "Q̄ El Tambo", "m³/s", "#2a9d8f"),
-    "T_PISCOt": (cam["T_C"], "T (PISCOt)", "°C", "#8c510a"),
-    "T_ERA5L": (t5l, "T2m (ERA5-Land)", "°C", "#6a4c93"),
+    "P_L": (cam["P_L_mm_mes"], "P_L (CAMELS-PE)", "mm/mes", VAR["P_L"]),
+    "P_I": (imerg, "P_I (IMERG)", "mm/mes", VAR["P_I"]),
+    "Q": (cam["Q_m3_s"], "Q̄ El Tambo", "m³/s", VAR["Q"]),
+    "T_PISCOt": (cam["T_C"], "T (PISCOt)", "°C", VAR["T"]),
+    "T_ERA5L": (t5l, "T2m (ERA5-Land)", "°C", VAR["T_ERA5L"]),
 }
 VARS = list(SERIES)
 SER = {k: v[0].dropna().sort_index() for k, v in SERIES.items()}
@@ -299,6 +300,7 @@ print((LS.set_index("banda") * 100).round(1).to_string())
 print(f"r entre espectros normalizados (log): {np.corrcoef(np.log(fq_n), np.log(ls_n + 1e-12))[0, 1]:.2f}")
 
 # ------------------------------------------------------------------ figuras
+aplicar_estilo()
 plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
 GRIS = "#555555"
 
@@ -309,68 +311,156 @@ PERIODOS_A = [50, 20, 10, 5, 2, 1, 0.5, 0.25]                  # marcas del eje:
 def eje_periodos(ax):
     """Eje x en periodo (años): los datos siguen en frecuencia f (ciclos/mes); periodo = 1/(12 f)."""
     ax.set_xscale("log")
-    ax.set_xlim(1 / 600, 0.5)
+    ax.set_xlim(0.5, 1 / 600)                                   # periodo crece hacia la derecha
     ax.set_xticks([1 / (12 * a) for a in PERIODOS_A], [f"{a:g}" for a in PERIODOS_A])
     ax.set_xticks([], minor=True)
     for m in (12, 6):
         ax.axvline(1 / m, color=GRIS, lw=0.6, ls=":")
-    ax.axvspan(1 / 84, 1 / 24, color="#f0e442", alpha=0.12, lw=0)
+    ax.axvspan(1 / 84, 1 / 24, color=GRIS_CLARO, alpha=0.25, lw=0)
     ax.grid(alpha=0.2, lw=0.5, which="both")
 
 
-# Figura 1: originales centradas vs anomalías (registro completo), periodograma + Welch + fondo AR(1)
-fig, axs = plt.subplots(len(VARS), 2, figsize=(14, 3.0 * len(VARS)))
+FRECUENCIAS = [1 / 480, 1 / 240, 1 / 120, 1 / 60, 1 / 24, 1 / 12, 1 / 6, 1 / 3, 0.5]   # marcas: ciclos/mes
+
+
+def eje_frecuencias(ax):
+    """Eje x en frecuencia (ciclos/mes), escala logarítmica; Nyquist = 0.5 ciclos/mes."""
+    ax.set_xscale("log")
+    ax.set_xlim(1 / 600, 0.5)
+    ax.set_xticks(FRECUENCIAS, [f"{f:.3f}".rstrip("0") if f < 0.5 else "0.5" for f in FRECUENCIAS])
+    ax.set_xticks([], minor=True)
+    ax.tick_params(axis="x", labelrotation=0, labelsize=7.5)
+    for m in (12, 6):
+        ax.axvline(1 / m, color=GRIS, lw=0.6, ls=":")
+    ax.axvspan(1 / 84, 1 / 24, color=GRIS_CLARO, alpha=0.25, lw=0)
+    ax.grid(alpha=0.2, lw=0.5, which="both")
+
+
+# Figura 1: originales centradas vs anomalías (registro completo), periodograma + Welch + fondo AR(1).
+# Dos versiones idénticas salvo el eje x: periodo (años) y frecuencia (ciclos/mes).
+def figura_espectros(eje, xlabel, archivo, nota_eje):
+    fig, axs = plt.subplots(len(VARS), 2, figsize=(14, 3.0 * len(VARS)))
+    for i, k in enumerate(VARS):
+        col, u = SERIES[k][3], SERIES[k][2]
+        # misma escala vertical en las dos columnas de cada variable: se compara cuánto cae la potencia al
+        # retirar la climatología
+        ee = [ESPEC[(k, "completo", tr)] for tr in ("centrada", "anomalia")]
+        ylim = (min(np.percentile(e["S"], 1) for e in ee) / 3, max(e["S"].max() for e in ee) * 3)
+        for j, (tr, e) in enumerate(zip(("centrada", "anomalia"), ee)):
+            ax = axs[i, j]
+            ax.plot(e["f"], e["S"], color=col, lw=0.8, alpha=0.75, label="periodograma (rect.)")
+            ax.plot(e["fw"], e["Sw"], color=TINTA, lw=1.4, label=f"Welch (Hann, {SEG} m, K={e['K']}, ν≈{e['nu']:.0f})")
+            if tr == "anomalia":
+                M = len(e["f"])
+                ax.plot(e["f"], e["fondo"], color=GRIS, lw=1.0, ls="-", label=f"AR(1) ρ={e['rho']:.2f}")
+                ax.plot(e["f"], e["fondo"] * stats.chi2.ppf(1 - ALFA, 2) / 2, color=TINTA2, lw=0.9, ls="--",
+                        label="95 % puntual")
+                ax.plot(e["f"], e["fondo"] * stats.chi2.ppf(1 - ALFA / M, 2) / 2, color=TINTA2, lw=0.9, ls=":",
+                        label=f"95 % global (M={M})")
+            ax.set_yscale("log")
+            eje(ax)
+            ax.set_ylim(*ylim)
+            ax.set_ylabel(f"S(f) [({u})²·mes]")
+            ax.set_title(f"{SERIES[k][1]} · {'centrada (con ciclo anual)' if tr == 'centrada' else 'anomalía (sin climatología)'}"
+                         f" · {e['x'].index[0]:%Y-%m}–{e['x'].index[-1]:%Y-%m}, N={e['N']}, Δf=1/{e['N']}", fontsize=8.5,
+                         loc="left", pad=6)
+            if i == 0 and j == 1:
+                ax.legend(fontsize=6.8, frameon=False, loc="lower left", ncol=2)
+            elif i == 0:
+                ax.legend(fontsize=6.8, frameon=False, loc="lower left")
+            if i == len(VARS) - 1:
+                ax.set_xlabel(xlabel)
+    fig.suptitle("Punto 4 · Espectros de densidad unilaterales (Σ S·Δf = varianza) del registro completo de cada variable\n"
+                 f"{nota_eje} · punteadas verticales: 1 año y 6 meses · sombreado: banda 2–7 años · "
+                 "misma escala vertical en las dos columnas de cada variable", fontsize=9.5)
+    fig.tight_layout(rect=(0, 0, 1, 0.975))
+    fig.savefig(OUT / archivo, dpi=150)
+    plt.close(fig)
+
+
+figura_espectros(eje_periodos, "periodo (años)", "fig_espectros_4_2.png", "Eje x en periodo (años)")
+figura_espectros(eje_frecuencias, "frecuencia (ciclos/mes)", "fig_espectros_frecuencia_4_2.png",
+                 "Eje x en frecuencia (ciclos/mes; Nyquist 0.5)")
+
+
+# Figura 1c: los mismos periodogramas en % de la varianza, eje de periodo lineal (años, creciente hacia la derecha)
+# y picos rotulados: la lectura más directa de "qué periodos dominan". El % de cada bin es S_k·Δf/varianza.
+T_MAX = 20                                                       # años mostrados; periodos más largos ≈ tendencia
+
+
+def picos_pct(T, pct, umbral, n_max=4, t_min=0.4):
+    """Máximos locales en periodos de t_min a T_MAX años, ordenados por % de varianza."""
+    i = np.arange(1, len(pct) - 1)
+    loc = i[(pct[i] > pct[i - 1]) & (pct[i] >= pct[i + 1]) & (T[i] >= t_min) & (T[i] <= T_MAX)]
+    elegidos = []
+    for j in loc[np.argsort(pct[loc])[::-1]]:                   # del mayor al menor, sin rótulos encimados
+        if all(abs(T[j] - T[m]) > max(0.35, 0.25 * T[m]) for m in elegidos):
+            elegidos.append(j)
+        if len(elegidos) == n_max:
+            break
+    return [(T[j], pct[j], pct[j] > umbral[j]) for j in elegidos]
+
+
+fig, axs = plt.subplots(len(VARS), 2, figsize=(14, 2.9 * len(VARS)), sharex=True)
 for i, k in enumerate(VARS):
-    col, u = SERIES[k][3], SERIES[k][2]
+    col = SERIES[k][3]
     for j, tr in enumerate(("centrada", "anomalia")):
         ax = axs[i, j]
         e = ESPEC[(k, "completo", tr)]
-        ax.plot(e["f"], e["S"], color=col, lw=0.8, alpha=0.75, label="periodograma (rect.)")
-        ax.plot(e["fw"], e["Sw"], color="k", lw=1.4, label=f"Welch (Hann, {SEG} m, K={e['K']}, ν≈{e['nu']:.0f})")
-        if tr == "anomalia":
-            M = len(e["f"])
-            ax.plot(e["f"], e["fondo"], color=GRIS, lw=1.0, ls="--", label=f"AR(1) ρ={e['rho']:.2f}")
-            ax.plot(e["f"], e["fondo"] * stats.chi2.ppf(1 - ALFA, 2) / 2, color="#d62728", lw=0.9, ls="--",
-                    label="95 % puntual")
-            ax.plot(e["f"], e["fondo"] * stats.chi2.ppf(1 - ALFA / M, 2) / 2, color="#d62728", lw=0.9, ls=":",
-                    label=f"95 % global (M={M})")
-        ax.set_yscale("log")
-        eje_periodos(ax)
-        lo_ = np.percentile(e["S"], 1)
-        ax.set_ylim(lo_ / 3, e["S"].max() * 3)
-        ax.set_ylabel(f"S(f) [({u})²·mes]")
+        var, N = np.var(e["x"].values), e["N"]
+        T = 1 / (12 * e["f"])                                    # periodo en años
+        pct = 100 * e["S"] * (1 / N) / var
+        umb = 100 * e["fondo"] * stats.chi2.ppf(1 - ALFA, 2) / 2 * (1 / N) / var
+        ok = T <= T_MAX
+        ax.vlines(T[ok], 0, pct[ok], color=col, lw=1.3)
+        ax.plot(T[ok], umb[ok], color=TINTA2, lw=0.9, ls="--", label="95 % puntual frente a AR(1)")
+        for Tp, pp, sig in picos_pct(T, pct, umb):
+            ax.plot(Tp, pp, "o", color=col, ms=4)
+            ax.annotate(f"{Tp:.2f} años{' *' if sig else ''}\n({pp:.1f} %)", (Tp, pp), xytext=(0, 4),
+                        textcoords="offset points", ha="center", va="bottom", fontsize=7.5)
+        fuera = 100 * (e["S"][~ok] * (1 / N)).sum() / var
+        ax.text(0.99, 0.95, f"periodos > {T_MAX} años: {fuera:.1f} % (fuera del eje)", transform=ax.transAxes,
+                ha="right", va="top", fontsize=7, color=TINTA2)
+        ax.set_xlim(0, T_MAX)
+        ax.set_ylim(0, pct[ok].max() * 1.3)                          # margen para los rótulos
         ax.set_title(f"{SERIES[k][1]} · {'centrada (con ciclo anual)' if tr == 'centrada' else 'anomalía (sin climatología)'}"
-                     f" · {e['x'].index[0]:%Y-%m}–{e['x'].index[-1]:%Y-%m}, N={e['N']}, Δf=1/{e['N']}", fontsize=8.5,
-                     loc="left", pad=6)
-        if i == 0:
-            ax.legend(fontsize=6.8, frameon=False, loc="lower left")
-        if i == len(VARS) - 1:
-            ax.set_xlabel("periodo (años)")
-fig.suptitle("Punto 4 · Espectros de densidad unilaterales (Σ S·Δf = varianza) del registro completo de cada variable. "
-             "Líneas punteadas: 1 año y 6 meses; sombreado: banda 2–7 años", fontsize=10)
-fig.tight_layout(rect=(0, 0, 1, 0.98))
-fig.savefig(OUT / "fig_espectros_4_2.png", dpi=150)
+                     f" · {e['x'].index[0]:%Y-%m}–{e['x'].index[-1]:%Y-%m}, N = {N}", fontsize=8.5, loc="left")
+        if j == 0:
+            ax.set_ylabel("% de la varianza total")
+        if i == 0 and j == 1:
+            ax.legend(fontsize=7, frameon=False, loc="center right")
+        ax.grid(alpha=0.25, lw=0.5)
+for ax in axs[-1]:
+    ax.set_xlabel("periodo (años)")
+    ax.set_xticks(range(0, T_MAX + 1, 2))
+fig.suptitle("Punto 4 · Periodograma en % de la varianza total por periodo (registro completo; escala "
+             "vertical propia de cada panel)\nCada línea vertical es una frecuencia de Fourier k/N; los periodos largos tienen pocas frecuencias y "
+             "pocos ciclos en el registro. * el pico supera el 95 % puntual de un fondo AR(1) (no el umbral global).",
+             fontsize=9.5)
+fig.tight_layout(rect=(0, 0, 1, 0.965))
+fig.savefig(OUT / "fig_espectros_porcentaje_4_2.png", dpi=150)
 plt.close(fig)
 
 # Figura 2: fracción de varianza por banda
 fig, axs = plt.subplots(1, 2, figsize=(14, 5.2), sharey=True)
-colb = ["#c6dbef", "#6baed6","#d9d9d9", "#08519c", "#bdbdbd", "#fdae6b", "#e6550d"]
+colb = colores_ordinales(len(BANDAS))          # de periodos cortos (oscuro) a largos (claro)
+NOMBRE = {"P_L": "P_L CAMELS-PE", "P_I": "P_I IMERG", "Q": "Q̄ El Tambo", "T_PISCOt": "T PISCOt", "T_ERA5L": "T ERA5-Land"}
 for ax, tr in zip(axs, ("centrada", "anomalia")):
     filas = [(k, per) for k in VARS for per in ("completo", "comun")]
     etiquetas = []
     base = np.zeros(len(filas))
-    for (b, *_), c in zip(BANDAS, colb):
+    for i_b, ((b, *_), c) in enumerate(zip(BANDAS, colb)):
         vals = np.array([BD[(BD.variable == k) & (BD.periodo == per) & (BD.transformacion == tr) & (BD.banda == b)]
                          ["fraccion"].iloc[0] for k, per in filas])
         ax.barh(range(len(filas)), vals * 100, left=base.copy() * 100, color=c, edgecolor="white", lw=1, label=b)
         for y, (v_, b0) in enumerate(zip(vals, base)):
             if v_ > 0.08:
                 ax.text((b0 + v_ / 2) * 100, y, f"{v_ * 100:.0f}", ha="center", va="center", fontsize=7,
-                        color="white" if c in ("#08519c", "#e6550d") else "k")
+                        color="white" if i_b < 3 else "k")
         base += vals
     for k, per in filas:
         m = META[(META.variable == k) & (META.periodo == per) & (META.transformacion == tr)].iloc[0]
-        etiquetas.append(f"{k} · {m['inicio'][:4]}–{m['fin'][:4]} (N={m['N_meses']})")
+        etiquetas.append(f"{NOMBRE[k]} · {m['inicio'][:4]}–{m['fin'][:4]} (N={m['N_meses']})")
     ax.set_yticks(range(len(filas)), etiquetas, fontsize=8)
     ax.invert_yaxis()
     ax.set_xlim(0, 100)
@@ -397,7 +487,7 @@ for ax, (a_, b_, tit) in zip(axs.flat[:3], pares):
                     label=f"{kk} {'centrada' if tr == 'centrada' else 'anomalía'}")
     ax.set_yscale("log")
     eje_periodos(ax)
-    ax.set_xlim(1 / SEG, 0.5)
+    ax.set_xlim(0.5, 1 / SEG)
     ax.set_ylabel("S(f)/varianza [mes]")
     ax.set_title(tit, fontsize=9.5, loc="left", pad=6)
     ax.legend(fontsize=7, frameon=False, loc="lower left")
@@ -409,7 +499,7 @@ for tr, ls_ in (("centrada", "-"), ("anomalia", "--")):
 ax.axhline(1, color=GRIS, lw=0.7)
 ax.set_yscale("log")
 eje_periodos(ax)
-ax.set_xlim(1 / SEG, 0.5)
+ax.set_xlim(0.5, 1 / SEG)
 ax.set_ylabel("cociente de espectros normalizados Q / P_L")
 ax.set_title("¿Filtra la cuenca las variaciones rápidas? (> 1: el caudal concentra más\nvarianza relativa en esa escala que la lluvia; no contiene fases)",
              fontsize=9, loc="left", pad=6)
@@ -428,8 +518,8 @@ fig, axs = plt.subplots(1, len(VARS), figsize=(19, 5.2), sharey=True)
 for ax, k in zip(axs, VARS):
     d = EST[EST.variable == k].set_index("variante").reindex(ORDEN_V).reset_index()
     y = np.arange(len(d))
-    ax.barh(y - 0.2, d["frac_anual"] * 100, height=0.38, color="#08519c", label="anual 11–13 m")
-    ax.barh(y + 0.2, d["frac_interanual_2_7a"] * 100, height=0.38, color="#fdae6b", label="interanual 2–7 a")
+    ax.barh(y - 0.2, d["frac_anual"] * 100, height=0.38, color=colb[3], label="anual 11–13 m")
+    ax.barh(y + 0.2, d["frac_interanual_2_7a"] * 100, height=0.38, color=colb[5], label="interanual 2–7 a")
     for yi, r in zip(y, d.itertuples()):
         if np.isnan(r.frac_anual):
             ax.text(0.3, yi, "no aplica", va="center", fontsize=7, color=GRIS)
@@ -451,10 +541,10 @@ plt.close(fig)
 # Figura 5: vacíos de caudal
 fig, ax = plt.subplots(figsize=(9, 4.2))
 ax.plot(fq, fq_n, color=SERIES["Q"][3], lw=1.1, label=f"FFT de la serie rellenada (N={len(qa_f)})")
-ax.plot(fq, ls_n, color="k", lw=1.0, ls="--", label=f"Lomb–Scargle solo meses observados completos (n={len(qo_a)})")
+ax.plot(fq, ls_n, color=TINTA, lw=1.0, ls="--", label=f"Lomb–Scargle solo meses observados completos (n={len(qo_a)})")
 ax.set_yscale("log")
 eje_periodos(ax)
-ax.set_xlim(1 / 324, 0.5)
+ax.set_xlim(0.5, 1 / 324)
 ax.set_ylabel("potencia / potencia total")
 ax.set_xlabel("periodo (años)")
 ax.legend(fontsize=7.5, frameon=False, loc="lower left")

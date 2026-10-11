@@ -35,6 +35,7 @@ from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
 from periodo_comun import periodo_comun
+from estilo_figuras import EST
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 TXT = ROOT / "datos" / "radiosondeo" / "PEM00084516-data.txt"
@@ -49,7 +50,7 @@ UMBRAL_INV = 1.0             # °C de calentamiento base→tope
 HR_NUBE = 95.0               # %, capa de nubes (HR interpolada cada 10 m)
 MALLA = np.arange(100, 6001, 25.0)
 TEMPORADAS = {"dic–abr (húmeda)": [12, 1, 2, 3, 4], "may–sep (seca)": [5, 6, 7, 8, 9], "oct–nov": [10, 11]}
-COL_T = {"dic–abr (húmeda)": "#2a78d6", "may–sep (seca)": "#eb6834", "oct–nov": "#1baf7a"}
+COL_T = {"dic–abr (húmeda)": EST["húmeda"], "may–sep (seca)": EST["seca"], "oct–nov": EST["transición"]}
 MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 G, CP, RD, LV, EPS = 9.80665, 1004.0, 287.0, 2.501e6, 0.622
 
@@ -266,20 +267,20 @@ for ax in (a1, a2):
     if pd.notna(r.nube_base_m):
         ax.axhspan(r.nube_base_m, r.nube_tope_m, color="#898781", alpha=0.25, lw=0, zorder=0)
 z_dalr = np.array([d.z_m.iloc[0], 5000])
-a1.plot(d.T_C.iloc[0] - 9.8e-3 * (z_dalr - z_dalr[0]), z_dalr, color="#1baf7a", ls="--", lw=1.6,
+a1.plot(d.T_C.iloc[0] - 9.8e-3 * (z_dalr - z_dalr[0]), z_dalr, color="#52514e", ls="--", lw=1.6,
         label="Adiabática seca (9.8 °C/km)")
-a1.plot(tp, zs, color="#2a78d6", ls=":", lw=2.2, label="Parcela: seca hasta el NCA y luego húmeda")
+a1.plot(tp, zs, color="#898781", ls=":", lw=2.2, label="Parcela: seca hasta el NCA y luego húmeda")
 a1.plot(d5.T_C, d5.z_m, color="#0b0b0b", lw=2.2, marker="o", ms=3, label="Temperatura medida")
 if z_nca:
-    a1.plot(np.interp(z_nca, zs, tp), z_nca, "o", color="#2a78d6", ms=7, zorder=5)
+    a1.plot(np.interp(z_nca, zs, tp), z_nca, "o", color="#52514e", ms=7, zorder=5)
     a1.annotate(f"NCA {z_nca:.0f} m", (np.interp(z_nca, zs, tp), z_nca), xytext=(-70, -4),
-                textcoords="offset points", fontsize=8, color="#2a78d6")
+                textcoords="offset points", fontsize=8, color="#52514e")
 a1.annotate(f"Inversión: +{r.intensidad_C:.1f} °C en {r.espesor_m:.0f} m", (r.T_tope_C, r.tope_m), xytext=(12, 6),
             textcoords="offset points", fontsize=8.5, color="#b8322f", fontweight="bold")
 a1.set(xlabel="Temperatura (°C)", ylabel="Altitud (m s.n.m.)", ylim=(0, 5000),
        xlim=(tp[zs <= 5000].min() - 1, max(d5.T_C.max(), d.T_C.iloc[0]) + 4))
 referencias(a1, a1.get_xlim()[0] + 0.3, "left")
-a2.plot(d5.HR, d5.z_m, color="#2a78d6", lw=2.2, marker="o", ms=3, label="Humedad relativa medida")
+a2.plot(d5.HR, d5.z_m, color="#0b0b0b", lw=2.2, marker="o", ms=3, label="Humedad relativa medida")
 a2.axvline(HR_NUBE, color="#898781", lw=0.8)
 a2.set(xlabel="Humedad relativa (%)", xlim=(0, 102))
 referencias(a2, 2, "left")

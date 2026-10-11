@@ -65,6 +65,9 @@ from statsmodels.stats.multitest import multipletests
 import pymannkendall as pmk
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, LS, METODO, GRIS as GRIS_E, aplicar_estilo
+
+aplicar_estilo()
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
@@ -92,11 +95,11 @@ v3 = pd.read_csv(SM / "piscop_v3_cuenca_mensual.csv", index_col=0, parse_dates=T
 chirps = pd.read_csv(SM / "chirps_cuenca_mensual.csv", index_col=0, parse_dates=True)["P_chirps_mm_mes"]
 
 SERIES = {   # clave: (serie, nombre, unidad, color)
-    "P_L": (cam["P_L_mm_mes"], "P_L (CAMELS-PE, PISCOp v2.1)", "mm/mes", "#1f6fb4"),
-    "P_I": (imerg, "P_I (IMERG V07 Final)", "mm/mes", "#e4572e"),
-    "Q": (cam["Q_m3_s"], "Q̄ El Tambo (relleno documentado)", "m³/s", "#2a9d8f"),
-    "T_PISCOt": (cam["T_C"], "T (CAMELS-PE, PISCOt v1.2)", "°C", "#8c510a"),
-    "T_ERA5L": (t5l, "T2m (ERA5-Land, reanálisis)", "°C", "#6a4c93"),
+    "P_L": (cam["P_L_mm_mes"], "P_L (CAMELS-PE, PISCOp v2.1)", "mm/mes", VAR["P_L"]),
+    "P_I": (imerg, "P_I (IMERG V07 Final)", "mm/mes", VAR["P_I"]),
+    "Q": (cam["Q_m3_s"], "Q̄ El Tambo (relleno documentado)", "m³/s", VAR["Q"]),
+    "T_PISCOt": (cam["T_C"], "T (CAMELS-PE, PISCOt v1.2)", "°C", VAR["T"]),
+    "T_ERA5L": (t5l, "T2m (ERA5-Land, reanálisis)", "°C", VAR["T_ERA5L"]),
 }
 EXTRA = {
     "P_v3": (v3, "P (PISCOp v3.0)", "mm/mes"),
@@ -608,7 +611,7 @@ for i, k in enumerate(PRINC):
         if rep == "original":
             ax.plot(s.index, s.values.mean() + c["fx"], color="k", lw=1.6, label="aditivo s_j + LOWESS 10 a (tendencia f(t) + media)")
             o = sub[sub["metodo"] == "OLS + efectos de mes (HAC 12)"].iloc[0]
-            ax.plot(s.index, s.values.mean() + o["pend"] / 10 * (t - t.mean()), color="#d62728", lw=1.3, ls="--",
+            ax.plot(s.index, s.values.mean() + o["pend"] / 10 * (t - t.mean()), color=METODO["OLS"], lw=1.3, ls="--",
                     label=f"OLS + efectos de mes: {o['pend']:+.2f} [{o['lo']:+.2f}, {o['hi']:+.2f}]")
             me = sub[sub["metodo"] == "MK estacional + Sen estacional"].iloc[0]
             ax.set_title(f"{SERIES[k][1]} — original\nSen estacional {me['pend']:+.2f} {unidad(k, rep)} "
@@ -620,10 +623,10 @@ for i, k in enumerate(PRINC):
             ax.plot(s.index, f, color="k", lw=1.6, label="LOWESS 10 años")
             o = sub[sub["metodo"] == "OLS (HAC 12)"].iloc[0]
             m = sub[sub["metodo"] == "MK Hamed-Rao + Sen"].iloc[0]
-            ax.plot(s.index, o["pend"] / 10 * (t - t.mean()) + np.mean(s.values), color="#d62728", lw=1.3, ls="--",
+            ax.plot(s.index, o["pend"] / 10 * (t - t.mean()) + np.mean(s.values), color=METODO["OLS"], lw=1.3, ls="--",
                     label=f"OLS-HAC {o['pend']:+.2f} [{o['lo']:+.2f}, {o['hi']:+.2f}] p={o['p']:.2f}")
             med_t = np.median(t)
-            ax.plot(s.index, m["pend"] / 10 * (t - med_t) + np.median(s.values), color="#1b9e77", lw=1.3, ls=":",
+            ax.plot(s.index, m["pend"] / 10 * (t - med_t) + np.median(s.values), color=METODO["Sen"], lw=1.5, ls=":",
                     label=f"Sen {m['pend']:+.2f} [{m['lo']:+.2f}, {m['hi']:+.2f}] p H–R={m['p']:.2f}")
             ax.axhline(0, color=GRIS, lw=0.6)
             ax.set_title(f"{SERIES[k][1]} — {'anomalía a' if rep == 'anomalia' else 'anomalía estandarizada z'}"
@@ -649,7 +652,7 @@ x = np.arange(1, 13)
 for i, k in enumerate(PRINC):
     for j, rep in enumerate(("original", "estandarizada")):
         ax = axs[i, j]
-        for dx, met, mk_, col in ((-0.17, "OLS (HAC)", "s", "#d62728"), (0.17, "MK Hamed-Rao + Sen", "o", "#1b9e77")):
+        for dx, met, mk_, col in ((-0.17, "OLS (HAC)", "s", METODO["OLS"]), (0.17, "MK Hamed-Rao + Sen", "o", GRIS)):
             d = MES[(MES["variable"] == k) & (MES["periodo"] == "completo") & (MES["representacion"] == rep)
                     & (MES["metodo"] == met)].set_index("mes").reindex(x)
             ax.errorbar(x + dx, d["pend"], yerr=[d["pend"] - d["lo"], d["hi"] - d["pend"]], fmt="none", ecolor=col,
@@ -690,8 +693,8 @@ for k in PRINC:
         if len(d) == 0:
             continue
         o, mk_ = d.loc["OLS (HAC)"], d.loc["MK Hamed-Rao + Sen"]
-        ax.plot(yr, s.mean() + o["pend"] / 10 * (yr - yr.mean()), color="#d62728", ls="--", lw=1.2)
-        ax.plot(yr, np.median(s.values) + mk_["pend"] / 10 * (yr - np.median(yr)), color="#1b9e77", ls=":", lw=1.4)
+        ax.plot(yr, s.mean() + o["pend"] / 10 * (yr - yr.mean()), color=METODO["OLS"], ls="--", lw=1.2)
+        ax.plot(yr, np.median(s.values) + mk_["pend"] / 10 * (yr - np.median(yr)), color=METODO["Sen"], ls=":", lw=1.4)
         if len(s) >= 15:
             ax.plot(yr, lowess(s.values, yr, frac=0.75, return_sorted=False), color="k", lw=1.3)
         star = "**" if mk_["q_fdr"] < ALFA else ("*" if mk_["p"] < ALFA else "")
@@ -701,7 +704,7 @@ for k in PRINC:
     for i, tri in enumerate(("DEF", "MAM", "JJA", "SON")):
         axs[i, 0].set_ylabel(f"{tri}\n{UNID[k]}", fontsize=9)
     fig.suptitle(f"Punto 3 · {SERIES[k][1]}: cada mes calendario a través de los años ({UNID[k]}). "
-                 f"\nRojo discontinuo OLS, verde punteado Sen, negro LOWESS (75 % de los años, exploratorio). "
+                 f"\nDiscontinuo OLS, punteado Sen, línea gruesa LOWESS (75 % de los años, exploratorio). "
                  f"* p MK–HR < {ALFA}; ** q FDR < {ALFA}", fontsize=9.5)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(OUT / f"fig_subseries_{k}_3_4.png", dpi=140)
@@ -710,7 +713,9 @@ for k in PRINC:
 # Figura 4: robustez — comparación de pendientes de anomalías (métodos, periodos, fuentes, casos)
 grupos = [("Precipitación (mm/mes/década)", ["P_L", "P_I", "P_v3", "P_CHIRPS"]),
           ("Caudal (m³/s/década)", ["Q", "Q_obs"]), ("Temperatura (°C/década)", ["T_PISCOt", "T_ERA5L"])]
-COL_EXTRA = {"P_v3": "#5b7d9a", "P_CHIRPS": "#b07aa1", "Q_obs": "#7a9e3a"}
+COL_EXTRA = {k: VAR[k] for k in ("P_v3", "P_CHIRPS", "Q_obs")}
+NOMBRE = {"P_L": "P_L CAMELS-PE", "P_I": "P_I IMERG", "P_v3": "PISCOp v3.0", "P_CHIRPS": "CHIRPS v2.0", "Q": "Q̄ rellenado",
+          "Q_obs": "Q̄ solo observado", "T_PISCOt": "T PISCOt", "T_ERA5L": "T ERA5-Land"}
 nfil = [SENS["variable"].isin(ks).sum() - (SENS["variable"].isin(ks) & (SENS["unidad"] == "z/década")).sum()
         for _, ks in grupos]
 fig, axs = plt.subplots(3, 1, figsize=(12, 0.3 * sum(nfil) + 2.5), gridspec_kw={"height_ratios": nfil})
@@ -725,7 +730,7 @@ for ax, (tit, ks) in zip(axs, grupos):
         ax.plot(r.sen, yi + 0.15, "o", color=col, mfc=col if r.p_mk_hr < ALFA else "white", ms=5)
         ax.plot([r.ols_lo, r.ols_hi], [yi - 0.15] * 2, color=col, lw=1.0, alpha=0.6)
         ax.plot(r.ols, yi - 0.15, "s", color=col, mfc=col if r.p_ols_hac < ALFA else "white", ms=4, alpha=0.8)
-    ax.set_yticks(y, [f"{r.variable} · {r.caso} · {r.inicio[:4]}–{r.fin[:4]}" for r in rows.itertuples()], fontsize=7)
+    ax.set_yticks(y, [f"{NOMBRE.get(r.variable, r.variable)} · {r.caso} · {r.inicio[:4]}–{r.fin[:4]}" for r in rows.itertuples()], fontsize=7)
     ax.axvline(0, color=GRIS, lw=0.7)
     ax.set_title(tit, fontsize=9.5, loc="left")
     ax.grid(alpha=0.25, lw=0.5, axis="x")
@@ -739,13 +744,14 @@ plt.close(fig)
 fig, axs = plt.subplots(1, len(PRINC), figsize=(4.1 * len(PRINC), 4.4))
 for ax, k in zip(axs, PRINC):
     yrs, M, P = VENT[k]
-    lim = np.nanmax(np.abs(M))
+    # escala de color común entre variables con las mismas unidades (P_L y P_I; las dos T)
+    lim = max(np.nanmax(np.abs(VENT[k2][1])) for k2 in PRINC if UNID[k2] == UNID[k])
     im = ax.pcolormesh(yrs, yrs, M.T, cmap="RdBu_r" if k.startswith("T") else "BrBG", vmin=-lim, vmax=lim, shading="nearest")
     ii, jj = np.where(P < ALFA)
     ax.scatter(yrs[ii], yrs[jj], s=3, c="k", marker=".")
     ax.set_xlabel("año inicial")
     ax.set_ylabel("año final")
-    ax.set_title(f"{k}: Sen de anomalías anuales\n({UNID[k]}/década; • p MK < {ALFA}, sin corregir)", fontsize=8.5)
+    ax.set_title(f"{NOMBRE.get(k, k)}: Sen de anomalías anuales\n({UNID[k]}/década; • p MK < {ALFA}, sin corregir)", fontsize=8.5)
     plt.colorbar(im, ax=ax, shrink=0.8)
     ax.set_xlim(yrs[0] - 0.5, yrs[-1] - 13.5)
     ax.set_ylim(yrs[0] + 13.5, yrs[-1] + 0.5)
@@ -769,7 +775,7 @@ ax.set_title("(a) Niño 1+2 anual (ERSST v5, CPC/NOAA; anomalías respecto a 199
 ax = axs[1]
 for k in ("P_L", "Q", "T_ERA5L"):
     z = anual(ZZ[k])
-    ax.plot(z.index, z.values, "o-", ms=3, lw=1.2, color=SERIES[k][3], label=k)
+    ax.plot(z.index, z.values, "o-", ms=3, lw=1.2, color=SERIES[k][3], ls=LS.get(k, "-"), label=NOMBRE.get(k, k))
 ax.axhline(0, color=GRIS, lw=0.6)
 ax.set_ylabel("z (media anual)")
 ax.legend(fontsize=7.5, frameon=False, ncol=3, loc="upper left")

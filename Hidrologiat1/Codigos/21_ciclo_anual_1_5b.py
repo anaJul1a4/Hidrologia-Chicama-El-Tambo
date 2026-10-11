@@ -44,6 +44,9 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, EST, TINTA, TINTA2, GRIS, GRIS_CLARO, CMAP_P, aplicar_estilo
+
+aplicar_estilo()
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SM = ROOT / "resultados" / "series_mensuales"
@@ -56,7 +59,7 @@ imerg = pd.read_csv(SM / "imerg_cuenca_mensual.csv", index_col="fecha", parse_da
 text = pd.read_csv(SM / "temperatura_piscot_extendida_era5land.csv", index_col="fecha", parse_dates=True).loc[INI:FIN]
 df = pd.DataFrame({"P_L": cam["P_L_mm_mes"], "P_I": imerg, "R": cam["R_mm_mes"], "Q": cam["Q_m3_s"],
                    "T": text["T_piscot_C"].fillna(text["T_estimada_era5land_C"])})
-COL = {"P_L": "#1b6ca8", "P_I": "#e4572e", "R": "#5b3f8c", "Q": "#0b7a75", "T": "#c8553d"}
+COL = {"P_L": VAR["P_L"], "P_I": VAR["P_I"], "R": VAR["R"], "Q": VAR["Q"], "T": VAR["T"]}
 ETQ = {"P_L": "P$_L$", "P_I": "P$_I$", "R": "R ($\\bar{Q}$ en lámina)", "Q": "$\\bar{Q}$", "T": "T"}
 MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 INICIO_AH = 9                                              # año hidrológico sep–ago
@@ -333,7 +336,7 @@ plt.close(fig)
 fig, axs = plt.subplots(4, 1, figsize=(15, 11), sharex=True, gridspec_kw={"hspace": 0.15})
 for ax, k, unid in zip(axs, ("P_L", "P_I", "R", "T"), ("mm/mes", "mm/mes", "mm/mes", "°C")):
     a = anom[k]
-    ax.bar(a.index, a.values, width=25, color=np.where(a >= 0, COL[k], "#9e9e9e"), lw=0)
+    ax.bar(a.index, a.values, width=25, color=np.where(a >= 0, COL[k], GRIS), lw=0)
     ax.plot(a.index, a.rolling(12, center=True, min_periods=10).mean(), color="k", lw=1.4)
     ax.axhline(0, color="k", lw=0.6)
     ax.set_ylabel(unid)
@@ -341,13 +344,13 @@ for ax, k, unid in zip(axs, ("P_L", "P_I", "R", "T"), ("mm/mes", "mm/mes", "mm/m
                  loc="left", fontsize=10)
     ax.grid(alpha=0.3)
     if k == "T":
-        ax.axvspan(pd.Timestamp("2021-01-01"), FIN + pd.offsets.MonthBegin(1), color="#6a4c93", alpha=0.1, lw=0)
+        ax.axvspan(pd.Timestamp("2021-01-01"), FIN + pd.offsets.MonthBegin(1), color=VAR["T"], alpha=0.1, lw=0)
         ax.text(pd.Timestamp("2021-02-01"), ax.get_ylim()[1] * 0.85, "T estimada (ERA5-Land + sesgo)", fontsize=8,
-                color="#6a4c93")
+                color=VAR["T"])
 for y in o.tail(3)["anio"].tolist() + o.head(3)["anio"].tolist():
     y0 = pd.Timestamp(f"{y}-01-01")
     for ax in axs:
-        ax.axvspan(y0, y0 + pd.DateOffset(years=1), color="#fde68a", alpha=0.25, lw=0, zorder=0)
+        ax.axvspan(y0, y0 + pd.DateOffset(years=1), color=GRIS_CLARO, alpha=0.35, lw=0, zorder=0)
     axs[0].text(y0 + pd.Timedelta(days=182), axs[0].get_ylim()[1] * 0.92, str(y), ha="center", fontsize=7.5)
 axs[-1].xaxis.set_major_locator(mdates.YearLocator(2))
 axs[-1].xaxis.set_major_formatter(mdates.DateFormatter("%Y"))

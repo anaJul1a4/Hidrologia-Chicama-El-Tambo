@@ -25,6 +25,9 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, EST, TINTA, TINTA2, GRIS, GRIS_CLARO, CMAP_P, aplicar_estilo
+
+aplicar_estilo()
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 SM = ROOT / "resultados" / "series_mensuales"
@@ -40,11 +43,11 @@ T_est = text["T_piscot_C"].isna() & text["T_estimada_era5land_C"].notna()
 
 df = pd.DataFrame({"P_L": cam["P_L_mm_mes"], "P_I": imerg, "Q": cam["Q_m3_s"], "R": cam["R_mm_mes"], "T": T})
 VARS = {  # clave: (etiqueta, unidades, color)
-    "P_L": ("P$_L$ (CAMELS-PE)", "mm/mes", "#1b6ca8"),
-    "P_I": ("P$_I$ (IMERG V07)", "mm/mes", "#e4572e"),
-    "Q": ("$\\bar{Q}$", "m³/s", "#0b7a75"),
-    "R": ("R", "mm/mes", "#5b3f8c"),
-    "T": ("T (PISCOt + estimación ERA5-Land desde 2021)", "°C", "#c8553d"),
+    "P_L": ("P$_L$ (CAMELS-PE)", "mm/mes", VAR["P_L"]),
+    "P_I": ("P$_I$ (IMERG V07)", "mm/mes", VAR["P_I"]),
+    "Q": ("$\\bar{Q}$", "m³/s", VAR["Q"]),
+    "R": ("R", "mm/mes", VAR["R"]),
+    "T": ("T (PISCOt + estimación ERA5-Land desde 2021)", "°C", VAR["T"]),
 }
 MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
 assert df[["P_L", "P_I"]].notna().all().all(), "P_L y P_I deben tener los mismos meses en el periodo común"
@@ -141,10 +144,10 @@ def matriz(s):
 
 fig, axs = plt.subplots(1, 4, figsize=(16, 9), sharey=True, gridspec_kw={"wspace": 0.1})
 pmax = df[["P_L", "P_I"]].max().max()
-specs = [("P_L", "Blues", dict(vmin=0, vmax=pmax), "mm/mes"),
-         ("P_I", "Blues", dict(vmin=0, vmax=pmax), "mm/mes"),
-         ("Q", "GnBu", dict(norm=LogNorm(vmin=max(df["Q"].min(), 0.1), vmax=df["Q"].max())), "m³/s (escala log)"),
-         ("T", "OrRd", dict(vmin=df["T"].min(), vmax=df["T"].max()), "°C")]
+specs = [("P_L", CMAP_P, dict(vmin=0, vmax=pmax), "mm/mes"),
+         ("P_I", CMAP_P, dict(vmin=0, vmax=pmax), "mm/mes"),
+         ("Q", CMAP_P, dict(norm=LogNorm(vmin=max(df["Q"].min(), 0.1), vmax=df["Q"].max())), "m³/s (escala log)"),
+         ("T", "Reds", dict(vmin=df["T"].min(), vmax=df["T"].max()), "°C")]
 for ax, (k, cmap, kw, unid) in zip(axs, specs):
     M = matriz(df[k])
     cm = plt.get_cmap(cmap).copy()

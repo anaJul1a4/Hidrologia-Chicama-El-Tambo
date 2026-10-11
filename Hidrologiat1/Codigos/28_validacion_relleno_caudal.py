@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 
 import relleno_caudal as rc
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR, TINTA, GRIS
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 OUT = ROOT / "resultados" / "series_mensuales"
@@ -102,8 +103,8 @@ print(f"Meses con algún relleno: {len(cambio)} | días interpolados: {int(pc['d
 
 # ------------------------------------------------------------------ figura
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(13, 5.2))
-for metodo, col, etq in (("interpolacion_ln_q", "#1b6ca8", "Interpolación de ln(q) (método elegido)"),
-                         ("escalado", "#e4572e", "Escalado: media de días válidos × n$_m$ (método anterior)")):
+for metodo, col, etq in (("interpolacion_ln_q", TINTA, "Interpolación de ln(q) (método elegido)"),
+                         ("escalado", GRIS, "Escalado: media de días válidos × n$_m$ (método anterior)")):
     h = hue[hue.metodo == metodo]
     a1.plot(h.dias_borrados, h.error_abs_mediano_pct, "-o", color=col, label=f"{etq} – mediana")
     a1.plot(h.dias_borrados, h.error_abs_P90_pct, "--", color=col, alpha=0.7, label="  percentil 90")
@@ -112,7 +113,7 @@ a1.set_ylabel("Error absoluto del total mensual (%)")
 a1.set_title("(a) Huecos diarios sintéticos en meses completos", loc="left", fontsize=10.5)
 a1.grid(alpha=0.3); a1.legend(fontsize=8, frameon=False)
 o, pr = preds["S, R(m−1)"]
-a2.loglog(o, pr, "o", ms=3.5, color="#5b3f8c", alpha=0.6)
+a2.loglog(o, pr, "o", ms=3.5, color=VAR["R"], alpha=0.6)
 lim = [min(o.min(), pr.min()) * 0.8, max(o.max(), pr.max()) * 1.2]
 a2.plot(lim, lim, color="#555", lw=1)
 fila = mod[mod.modelo.str.endswith("S, R(m−1)")].iloc[0]

@@ -17,13 +17,14 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 from periodo_comun import periodo_comun
+from estilo_figuras import VAR
 
 ROOT = Path(__file__).resolve().parents[2] / "Tarea 1" / "El_Tambo"
 OUT = ROOT / "resultados" / "series_mensuales"
 IMERG = OUT / "imerg_cuenca_mensual.csv"
 CAMELS = OUT / "series_mensuales_camels_pe.csv"
 
-ROJO = "#e4572e"           # color de P_I en fig_P_L_vs_IMERG_mensual.png
+ROJO = VAR["P_I"]          # color de P_I en todas las figuras (estilo_figuras.py)
 TINTA = "#0b0b0b"
 TINTA_2 = "#52514e"
 GRILLA = "#d9d8d4"

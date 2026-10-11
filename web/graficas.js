@@ -13,7 +13,12 @@
     const v = (n) => cs.getPropertyValue(n).trim();
     return { card: v("--card"), ink: v("--ink"), ink2: v("--ink2"), muted: v("--muted"), line: v("--line"),
              axis: v("--axis"), s1: v("--s1"), s2: v("--s2"), s3: v("--s3"), pos: v("--pos"), neg: v("--neg"),
-             excl: v("--excl") };
+             excl: v("--excl"), vPL: v("--vPL"), vPI: v("--vPI"), vQ: v("--vQ"), vT: v("--vT"), vTE: v("--vTE"),
+             apoyo: v("--apoyo") };
+  }
+  // color fijo por variable (mismo esquema que los PNG: estilo_figuras.py)
+  function colVar(t, v) {
+    return { P_L: t.vPL, P_I: t.vPI, Q: t.vQ, R: t.vQ, T: t.vT, T_PISCOt: t.vT, T_ERA5L: t.vTE, PL: t.vPL }[v] || t.ink;
   }
   function rgba(hex, a) {
     const h = hex.replace("#", "");
@@ -75,17 +80,17 @@
       R: ["R · escorrentía en lámina", "mm/mes"],
       T: ["T · temperatura media mensual", "°C"],
     };
-    if (ax.P_L) data.push({ type: "bar", x, y: D.P_L, name: "P<sub>L</sub>", yaxis: ax.P_L, marker: { color: t.s1 },
+    if (ax.P_L) data.push({ type: "bar", x, y: D.P_L, name: "P<sub>L</sub>", yaxis: ax.P_L, marker: { color: t.vPL },
       showlegend: false, hovertemplate: "%{y:.1f} mm/mes" });
-    if (ax.Q) data.push(linea(x, D.Q, "Q̄", t.s1, { yaxis: ax.Q, showlegend: false, line: { color: t.s1, width: 1.6 },
+    if (ax.Q) data.push(linea(x, D.Q, "Q̄", t.vQ, { yaxis: ax.Q, showlegend: false, line: { color: t.vQ, width: 1.6 },
       hovertemplate: "%{y:.2f} m³/s" }));
-    if (ax.R) data.push(linea(x, D.R, "R", t.s1, { yaxis: ax.R, showlegend: false, line: { color: t.s1, width: 1.6 },
+    if (ax.R) data.push(linea(x, D.R, "R", t.vQ, { yaxis: ax.R, showlegend: false, line: { color: t.vQ, width: 1.6 },
       hovertemplate: "%{y:.1f} mm/mes" }));
     if (ax.T) {
-      data.push(linea(x, D.T_piscot, "T PISCOt", t.s1, { yaxis: ax.T, line: { color: t.s1, width: 1.6 },
+      data.push(linea(x, D.T_piscot, "T PISCOt", t.vT, { yaxis: ax.T, line: { color: t.vT, width: 1.6 },
         hovertemplate: "%{y:.2f} °C" }));
-      data.push(linea(x, D.T_est, "T estimada (ERA5-Land + sesgo)", t.s3, { yaxis: ax.T,
-        line: { color: t.s3, width: 1.8, dash: "dash" }, hovertemplate: "%{y:.2f} °C" }));
+      data.push(linea(x, D.T_est, "T estimada (ERA5-Land + sesgo)", t.vT, { yaxis: ax.T,
+        line: { color: t.vT, width: 1.8, dash: "dash" }, hovertemplate: "%{y:.2f} °C" }));
     }
     const banderas = [["interpolado_diario", "circle-open", "días interpolados"], ["escalado", "square", "mes escalado"],
                       ["modelo_mensual", "diamond", "modelo mensual"]];
@@ -93,7 +98,7 @@
       const xi = [], yq = [], yr = [];
       D.R_flag.forEach((f, i) => { if (f === cod) { xi.push(x[i]); yq.push(D.Q[i]); yr.push(D.R[i]); } });
       if (!xi.length) return;
-      const mk = { color: t.s2, size: 8, symbol: sim, line: { color: t.s2, width: 1.5 } };
+      const mk = { color: t.ink, size: 8, symbol: sim, line: { color: t.ink, width: 1.5 } };   // relleno en tinta, no en un color de variable
       let leyenda = true;
       [["Q", yq], ["R", yr]].forEach(([v, yy]) => {
         if (!ax[v]) return;
@@ -163,11 +168,11 @@
     const etq = { P_L: "P<sub>L</sub> diaria (PISCOp v2.1)", Q: "Caudal diario observado (vacíos sin rellenar)",
                   T: "T media diaria (PISCOt; termina en 2020-12)" }[v];
     data.push({ type: "scattergl", mode: "lines", x: xd, y: dd[v], name: v === "Q" ? "observado" : etq,
-      xaxis: "x2", yaxis: "y2", connectgaps: false, line: { color: t.s1, width: 1 },
+      xaxis: "x2", yaxis: "y2", connectgaps: false, line: { color: colVar(t, v), width: 1 },
       hovertemplate: `%{x}<br>%{y:.2f} ${u}<extra></extra>` });
     if (v === "Q") {
       data.push({ type: "scattergl", mode: "markers", x: xd, y: dd.Q_int, name: "días interpolados (relleno)",
-        xaxis: "x2", yaxis: "y2", marker: { color: t.s2, size: 4 },
+        xaxis: "x2", yaxis: "y2", marker: { color: t.ink, size: 4 },
         hovertemplate: `%{x}<br>%{y:.2f} ${u} (interpolado)<extra></extra>` });
     }
     layout.xaxis2 = ejeTiempo(t, { domain: [0, 1], anchor: "y2", hoverformat: "%Y-%m-%d" });
@@ -181,9 +186,9 @@
   G.temp = function (t) {
     const x = D.fechas;
     return { data: [
-      linea(x, D.T_piscot, "PISCOt v1.2 (CAMELS-PE)", t.s1, { hovertemplate: "%{y:.2f} °C" }),
-      linea(x, D.T_era5, "ERA5-Land sin corregir", t.s2, { line: { color: t.s2, width: 1.6 }, hovertemplate: "%{y:.2f} °C" }),
-      linea(x, D.T_est, "Estimada: ERA5-Land + sesgo mensual", t.s3, { line: { color: t.s3, width: 2, dash: "dash" },
+      linea(x, D.T_piscot, "PISCOt v1.2 (CAMELS-PE)", t.vT, { hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_era5, "ERA5-Land sin corregir", t.vTE, { line: { color: t.vTE, width: 1.6 }, hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_est, "Estimada: ERA5-Land + sesgo mensual", t.vT, { line: { color: t.vT, width: 2, dash: "dash" },
         hovertemplate: "%{y:.2f} °C" }),
     ], layout: base(t, { height: 470, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
       yaxis: eje(t, { title: { text: "Temperatura media mensual (°C)" } }) }) };
@@ -194,9 +199,9 @@
     const x = D.fechas;
     const h = "%{y:.1f} mm/mes";
     return { data: [
-      linea(x, D.P_L, "P<sub>L</sub> CAMELS-PE", t.s1, { hovertemplate: h }),
-      linea(x, D.P_I, "P<sub>I</sub> IMERG V07", t.s2, { hovertemplate: h }),
-      linea(x, D.chirps, "CHIRPS v2.0", t.s3, { visible: "legendonly", line: { color: t.s3, width: 1.6 }, hovertemplate: h }),
+      linea(x, D.P_L, "P<sub>L</sub> CAMELS-PE", t.vPL, { hovertemplate: h }),
+      linea(x, D.P_I, "P<sub>I</sub> IMERG V07", t.vPI, { hovertemplate: h }),
+      linea(x, D.chirps, "CHIRPS v2.0", t.apoyo, { visible: "legendonly", line: { color: t.apoyo, width: 1.6 }, hovertemplate: h }),
       linea(x, D.piscop, "PISCOp v3.0", t.muted, { visible: "legendonly", line: { color: t.muted, width: 1.6, dash: "dot" },
         hovertemplate: h }),
     ], layout: base(t, { height: 480, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
@@ -208,8 +213,8 @@
     const a = D.anual;
     const h = "%{y:.0f} mm/año";
     return { data: [
-      { type: "bar", x: a.anios, y: a.P_L, name: "P<sub>L</sub> CAMELS-PE", marker: { color: t.s1, cornerradius: 3 }, hovertemplate: h },
-      { type: "bar", x: a.anios, y: a.P_I, name: "P<sub>I</sub> IMERG V07", marker: { color: t.s2, cornerradius: 3 }, hovertemplate: h },
+      { type: "bar", x: a.anios, y: a.P_L, name: "P<sub>L</sub> CAMELS-PE", marker: { color: t.vPL, cornerradius: 3 }, hovertemplate: h },
+      { type: "bar", x: a.anios, y: a.P_I, name: "P<sub>I</sub> IMERG V07", marker: { color: t.vPI, cornerradius: 3 }, hovertemplate: h },
     ], layout: base(t, { height: 420, barmode: "group", bargap: 0.25, bargroupgap: 0.1,
       xaxis: eje(t, { dtick: 2, tickangle: 0 }),
       yaxis: eje(t, { title: { text: "Precipitación anual (mm/año)" }, rangemode: "tozero" }) }) };
@@ -217,7 +222,7 @@
 
   // 1.5.a · climatología con bandas
   G.clim = function (t) {
-    const v = estado.clim, c = D.clim[v], u = UNID[v];
+    const v = estado.clim, c = D.clim[v], u = UNID[v], cv = colVar(t, v);
     const f = v === "T" ? ".2f" : (v === "Q" ? ".1f" : ".0f");
     const ht = (n) => `${n}: %{y:${f}} ${u}<extra></extra>`;
     const sin = { width: 0 };
@@ -235,15 +240,15 @@
     }
     return { data: anios.concat([
       { type: "scatter", mode: "lines", x: MESES, y: c.P90, line: sin, name: "P90", hovertemplate: ht("P90"), showlegend: false },
-      { type: "scatter", mode: "lines", x: MESES, y: c.P10, line: sin, fill: "tonexty", fillcolor: rgba(t.s1, 0.14),
+      { type: "scatter", mode: "lines", x: MESES, y: c.P10, line: sin, fill: "tonexty", fillcolor: rgba(cv, 0.14),
         name: "Percentiles 10–90", hovertemplate: ht("P10") },
       { type: "scatter", mode: "lines", x: MESES, y: c.Q3, line: sin, name: "Q3", hovertemplate: ht("Q3"), showlegend: false },
-      { type: "scatter", mode: "lines", x: MESES, y: c.Q1, line: sin, fill: "tonexty", fillcolor: rgba(t.s1, 0.30),
+      { type: "scatter", mode: "lines", x: MESES, y: c.Q1, line: sin, fill: "tonexty", fillcolor: rgba(cv, 0.30),
         name: "Rango intercuartílico", hovertemplate: ht("Q1") },
       { type: "scatter", mode: "lines", x: MESES, y: c.mediana, name: "Mediana",
-        line: { color: t.s1, width: 2, dash: "dash" }, hovertemplate: ht("Mediana") },
+        line: { color: cv, width: 2, dash: "dash" }, hovertemplate: ht("Mediana") },
       { type: "scatter", mode: "lines+markers", x: MESES, y: c.media, name: "Media",
-        line: { color: t.s1, width: 2.4 }, marker: { size: 8, color: t.s1, line: { color: t.card, width: 2 } },
+        line: { color: cv, width: 2.4 }, marker: { size: 8, color: cv, line: { color: t.card, width: 2 } },
         hovertemplate: ht("Media") },
     ]), layout: base(t, { height: 460, hovermode: estado.anios ? "closest" : "x unified", xaxis: eje(t, { type: "category" }),
       yaxis: eje(t, { title: { text: `${NOMBRE[v]} (${u})` }, rangemode: v === "T" ? "normal" : "tozero" }) }) };
@@ -283,13 +288,14 @@
     const m = D.modelos, v = estado.modelos, d = m[v];
     const u = v === "PL" ? "mm/mes" : "m³/s";
     const f = v === "PL" ? ".1f" : ".1f";
-    const estilos = [{ color: t.muted, width: 1.4, dash: "dot" }, { color: t.s2, width: 1.4 }, { color: t.s3, width: 2.2 }];
+    const estilos = [{ color: t.muted, width: 1.4, dash: "dot" }, { color: t.ink2, width: 1.4, dash: "dash" },
+                     { color: colVar(t, v), width: 2.2 }];   // referencia, lineal simple, modelo elegido
     const data = [linea(m.fechas, d.obs, v === "PL" ? "Observado (P<sub>L</sub>)" : "Observado (Q̄)", t.ink,
       { line: { color: t.ink, width: 1.6 }, hovertemplate: `%{y:${f}} ${u}` })];
     d.mods.forEach((mo, i) => data.push(linea(m.fechas, mo.y, mo.nombre, estilos[i].color,
       { line: estilos[i], hovertemplate: `%{y:${f}} ${u}`, visible: i === 1 ? "legendonly" : true })));
     const sombra = (x0, x1) => ({ type: "rect", xref: "x", yref: "paper", x0, x1, y0: 0, y1: 1,
-      fillcolor: rgba(t.s1, 0.06), line: { width: 0 }, layer: "below" });
+      fillcolor: rgba(t.muted, 0.10), line: { width: 0 }, layer: "below" });
     return { data, layout: base(t, { height: 470, shapes: [sombra("1998-01", "2007-01"), sombra("2016-01", "2025-01")],
       annotations: [["2002-06", "evaluación B"], ["2020-06", "evaluación A"], ["2011-06", "sin evaluar"]].map(([x, txt]) =>
         ({ x, y: 1, xref: "x", yref: "paper", yanchor: "bottom", text: txt, showarrow: false, font: { color: t.muted, size: 11 } })),

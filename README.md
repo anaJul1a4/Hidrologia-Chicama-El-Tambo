@@ -9,8 +9,8 @@ Clasificación hidroclimática mensual de la cuenca del río Chicama hasta la es
 
 **Página web:** https://anajul1a4.github.io/Hidrologia-Chicama-El-Tambo/
 
-La página tiene una pestaña por punto de la tarea (cuenca, contexto físico, 1.1 a 1.5.c y los puntos 2 a 5,
-que se irán agregando). En cada gráfica se explica **qué muestra** y **cómo se construyó**, con el script y los
+La página tiene una pestaña por punto de la tarea (cuenca, contexto físico, 1.1 a 1.5.c, puntos 2 a 5) y una
+pestaña final de síntesis. Al pie de cada pestaña se resume qué se hizo en ese punto. En cada gráfica se explica **qué muestra** y **cómo se construyó**, con el script y los
 archivos de datos que la generan.
 
 - Las **series de tiempo y los ciclos anuales son interactivos** (Plotly): zoom, lectura del valor al pasar el
@@ -44,7 +44,7 @@ pip install -r requirements.txt
 cd Hidrologiat1/Codigos
 ```
 
-Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 29 → 27 → 30 → 31 → 32 → 33 → 22 → 34a → 34b → 35 → 36`.
+Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 29 → 27 → 30 → 31 → 32 → 33 → 22 → 34a → 34b → 35 → 37a → 37 → 38 → 36`. Todos los scripts de figuras importan `estilo_figuras.py` (paleta y escalas comunes).
 
 El script 09 descarga y verifica CAMELS-PE v1.0.1 desde Zenodo. Después hay que **extraer el ZIP**
 en `Tarea 1/CAMELS_PE/`, porque el script 06 lee de ahí el polígono y las estaciones.
@@ -60,8 +60,9 @@ done
 ```
 
 No se incluyen en el repositorio, por tamaño, el DEM, la geología INGEMMET, los NetCDF nacionales de PISCOp,
-el CAMELS-PE completo ni el ERA5 regional mensual. Los scripts 07a, 09, 13 y 24 los descargan. Las descargas de
-IMERG (script 10) y ERA5/ERA5-Land (scripts 17 y 24) requieren cuentas personales gratuitas en NASA Earthdata
+el CAMELS-PE completo ni el ERA5 regional mensual. Los scripts 07a, 09, 13 y 24 los descargan. Los campos globales del punto 5 (SST ERSST v5, presión al nivel del mar y viento en 200 hPa de ERA5, malla 2°, ~50 MB) sí se
+incluyen; el script 37a los vuelve a descargar si faltan. Las descargas de
+IMERG (script 10) y ERA5/ERA5-Land (scripts 17, 24 y 37a) requieren cuentas personales gratuitas en NASA Earthdata
 (`~/_netrc`) y en Copernicus CDS (`~/.cdsapirc`). Las credenciales nunca se guardan en el repositorio.
 
 ## Fuentes
@@ -69,4 +70,4 @@ IMERG (script 10) y ERA5/ERA5-Land (scripts 17 y 24) requieren cuentas personale
 CAMELS-PE v1.0.1 (PISCOp v2.1, PISCOt v1.2, caudales SENAMHI) · GPM IMERG V07 Final mensual ·
 PISCOp v3.0 (doi:10.6084/m9.figshare.32411886.v1) · ERA5-Land mensual (doi:10.24381/cds.68d2bb30) ·
 CHIRPS v2.0 (doi:10.15780/G2RP4Q) · ERA5 mensual (doi:10.24381/cds.6860a573, 10.24381/cds.f17050d7) ·
-Copernicus GLO-30 · Plotly.js 2.35.2 (MIT).
+ERSST v5 (doi:10.7289/V5T72FNM) · Copernicus GLO-30 · Plotly.js 2.35.2 (MIT).

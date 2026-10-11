@@ -2,19 +2,23 @@
   color-scheme:light;
   --bg:#f9f9f7;--card:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--axis:#c3c2b7;
   --acc:#2a78d6;--chip:#e6effa;--code:#f0efec;--borde:rgba(11,11,11,.10);
-  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--pos:#2a78d6;--neg:#e34948;--excl:rgba(235,104,52,.13);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--pos:#2a78d6;--neg:#e34948;--excl:rgba(208,59,59,.12);
+  /* color fijo por variable (igual que estilo_figuras.py en los PNG) */
+  --vPL:#2a78d6;--vPI:#eb6834;--vQ:#1baf7a;--vT:#c0392b;--vTE:#7d1f16;--apoyo:#898781;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   color-scheme:dark;
   --bg:#0d0d0d;--card:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--axis:#383835;
   --acc:#3987e5;--chip:#1c2a3b;--code:#262624;--borde:rgba(255,255,255,.10);
-  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--pos:#3987e5;--neg:#e66767;--excl:rgba(217,89,38,.20);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--pos:#3987e5;--neg:#e66767;--excl:rgba(230,103,103,.18);
+  --vPL:#3987e5;--vPI:#d95926;--vQ:#199e70;--vT:#e66767;--vTE:#f0a39b;--apoyo:#a3a19b;
 }}
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#0d0d0d;--card:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--axis:#383835;
   --acc:#3987e5;--chip:#1c2a3b;--code:#262624;--borde:rgba(255,255,255,.10);
-  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--pos:#3987e5;--neg:#e66767;--excl:rgba(217,89,38,.20);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--pos:#3987e5;--neg:#e66767;--excl:rgba(230,103,103,.18);
+  --vPL:#3987e5;--vPI:#d95926;--vQ:#199e70;--vT:#e66767;--vTE:#f0a39b;--apoyo:#a3a19b;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -97,3 +101,6 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
 .estado.e-corregido{color:var(--acc);border-color:var(--acc)}
 .estado.e-incierto{color:var(--neg);border-color:var(--neg)}
 @media (max-width:900px){.qc-grid{grid-template-columns:1fr}.qc-lado{padding:4px 12px 8px}}
+.pie-metodo{margin:28px 0 8px;padding:16px 20px;border-left:3px solid var(--acc);background:var(--card);border-radius:0 10px 10px 0}
+.pie-metodo h3{margin:0 0 6px;font-size:.95rem}
+.pie-metodo p{margin:0;color:var(--ink2);font-size:.9rem;max-width:960px}
