@@ -32,3 +32,5 @@ __pycache__/
 _netrc
 .netrc
 *.env
+/Tarea 1/El_Tambo/datos/radiosondeo/*.zip
+/Tarea 1/El_Tambo/datos/era5_perfiles/*.tmp

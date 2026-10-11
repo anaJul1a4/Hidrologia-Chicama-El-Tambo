@@ -486,6 +486,59 @@ pestana("p15b", "1.5.b Ciclo anual", "Punto 1.5.b · Rasgos del ciclo anual y su
                 "R = caudal en lámina. Mes seco según Bagnouls–Gaussen (P < 2T). Unimodal si hay un solo pico y el armónico "
                 "anual domina; bimodal si hay dos picos y el semianual es comparable; estacionalidad débil si SI < 0.40."))
 
+INV = R / "inversion"
+inversion_html = ""
+if (INV / "inversion_por_sondeo.csv").exists():
+    sd = leer(INV / "inversion_por_sondeo.csv", parse_dates=["fecha"])
+    S = {t: g for t, g in sd.groupby("temporada")}
+    sec, hum = S["may–sep (seca)"], S["dic–abr (húmeda)"]
+    rm = leer(INV / "inversion_resumen_mensual.csv").set_index("mes")
+    IV = dict(n=len(sd), ini=f"{sd.fecha.min():%Y-%m}", fin=f"{sd.fecha.max():%Y-%m}", f=100 * sd.inversion.mean(),
+              fs=100 * sec.inversion.mean(), fh=100 * hum.inversion.mean(),
+              bs=sec.base_m.median(), ts=sec.tope_m.median(), ds=sec.intensidad_C.median(),
+              bh=hum.base_m.median(), th=hum.tope_m.median(), dh=hum.intensidad_C.median(),
+              hrb=sec.HR_bajo_base.median(), hrs=sec.HR_sobre_tope.median(),
+              fmin=rm.frecuencia_pct.min(), mmin=MESES[int(rm.frecuencia_pct.idxmin()) - 1])
+    era5_txt = (" Las líneas discontinuas son ERA5 (promedio mensual de las 12 UTC del periodo común en la celda de "
+                "Trujillo), que muestra que el patrón de los dos años de sondeos se mantiene en 1998–2025."
+                if (PROY / "Tarea 1" / "El_Tambo" / "datos" / "era5_perfiles" / "ERA5_perfiles_12UTC_mensual.nc").exists() else "")
+    inversion_html = (
+        '<h2 class="sub2">Inversión térmica sobre la costa y la cuenca</h2>'
+        f'<p class="intro">Radiosondeos observados de Trujillo (IGRA2 84516, a ~40 km de la salida de la cuenca): {IV["n"]} '
+        f'sondeos de las 7 a.m. entre {IV["ini"]} y {IV["fin"]}. Hay inversión en el {IV["f"]:.0f} % de ellos. En la estación '
+        f'seca su base está a unos {IV["bs"]:.0f} m, apenas por encima del cierre de la cuenca (678 m): casi toda la cuenca '
+        f'queda por encima de la inversión, en aire subsidente y seco.</p>'
+        + tarjeta("Sondeo típico de la estación seca",
+                  f"La temperatura baja con la altura cerca de la adiabática seca hasta el nivel de condensación, donde se "
+                  f"forman los estratocúmulos (HR ≈ 100 %). En la base de la inversión el aire se calienta de golpe, unos "
+                  f"{IV['ds']:.0f} °C, y por encima la humedad cae a menos del 50 %. Por debajo de la inversión hay aire marino "
+                  f"frío y húmedo; por encima, aire de la troposfera libre que desciende y se calienta. La capa de nubes "
+                  f"queda atrapada a la altura del cierre de la cuenca y no llega a la cuenca alta.",
+                  "Sondeo observado (temperatura y punto de rocío por nivel). Las alturas de los niveles significativos se "
+                  "calcularon con la ecuación hipsométrica desde la superficie y se ajustaron a la altura geopotencial de los "
+                  "niveles estándar. La inversión es el primer aumento continuo de T con la altura (≥ 1 °C). La parcela sube por "
+                  "la adiabática seca hasta el nivel de condensación por ascenso (NCA) y luego por la adiabática húmeda. Se eligió "
+                  "el sondeo de may–sep más cercano a las medianas de base, tope e intensidad de esa estación.",
+                  "30a_descarga_perfiles.py, 30b_perfiles_inversion.py", png=INV / "fig_sondeo_tipico_inversion.png",
+                  csvs=[INV / "inversion_por_sondeo.csv"])
+        + tarjeta("Perfiles por temporada y capa de inversión mes a mes",
+                  f"(a–b) En may–sep la inversión es fuerte (base {IV['bs']:.0f} m, tope {IV['ts']:.0f} m, +{IV['ds']:.1f} °C, "
+                  f"en el {IV['fs']:.0f} % de los sondeos): debajo, HR ≈ {IV['hrb']:.0f} %; encima, el aire es seco (HR de "
+                  f"~40 % hacia 2 000–2 500 m, la cota mediana de la cuenca). En dic–abr la inversión es más baja y débil "
+                  f"(base {IV['bh']:.0f} m, tope {IV['th']:.0f} m, +{IV['dh']:.1f} °C) y a veces no aparece (solo el "
+                  f"{IV['fmin']:.0f} % de los sondeos de {IV['mmin']}), y la troposfera sobre la cuenca es mucho más húmeda "
+                  f"(HR ~80 %): es la estación de las lluvias. (c) La capa sube y se engrosa de mayo a noviembre y se rebaja en "
+                  f"verano.{era5_txt}",
+                  "Cada sondeo se interpoló a una malla vertical de 25 m y se calcularon mediana y rango intercuartílico por "
+                  "temporada (las mismas del ciclo anual: dic–abr, may–sep, oct–nov). En (c), las barras van de la mediana de la "
+                  "base a la del tope de cada mes; los segmentos son los rangos intercuartílicos y el porcentaje es la "
+                  "frecuencia de sondeos con inversión.",
+                  "30a_descarga_perfiles.py, 30b_perfiles_inversion.py", png=INV / "fig_perfiles_inversion.png",
+                  csvs=[INV / "inversion_resumen_mensual.csv", INV / "perfiles_compuestos_temporada.csv"],
+                  leer_="Los sondeos cubren solo dos años y son de las 7 a.m.; a mediodía la capa de mezcla crece y la "
+                        "inversión puede subir. La explicación física (anticiclón del Pacífico sur, corriente de Humboldt, "
+                        "afloramiento) debe sustentarse con bibliografía."))
+
 pestana("p15c", "1.5.c Síntesis", "Punto 1.5.c · Síntesis y procesos",
         "Evidencia reunida para proponer la clasificación hidroclimática mensual. Para la aridez se usa un criterio climático "
         "(P/PET), no solo el total de lluvia. La clasificación final y su explicación física las sustenta el grupo con "
@@ -503,7 +556,8 @@ pestana("p15c", "1.5.c Síntesis", "Punto 1.5.c · Síntesis y procesos",
                 csvs=[CL / "clasificacion_mensual_1_5c.csv", CL / "aridez_budyko_1_5c.csv", CL / "koppen_1_5c.csv",
                       CL / "laminas_estacionales_1_5c.csv"])
         + tabla(t15c, "Criterios, evidencia e incertidumbre",
-                "«Lectura propuesta» es un apoyo cuantitativo para la discusión del grupo, no la conclusión."))
+                "«Lectura propuesta» es un apoyo cuantitativo para la discusión del grupo, no la conclusión.")
+        + inversion_html)
 
 PENDIENTES = [
     ("p2", "2 Relaciones", "Punto 2 · Relaciones entre series y modelos estadísticos",
@@ -525,7 +579,7 @@ pestana("datos", "Datos", "Datos y reproducibilidad",
         tabla(fuentes, "Fuentes de datos")
         + '<div class="tabla-cont"><h3>Cómo reproducir</h3><p>Con Python 3 y las dependencias de <code>requirements.txt</code>, '
           'ejecute en <code>Hidrologiat1/Codigos/</code>, en este orden: <code>06 → 07a → 13 → 14 → 09 → 10 → 28 → 26 → 07b → '
-          '11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 29</code>. Antes del 06 hay que descargar las dos '
+          '11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 27 → 30a → 30b → 29</code>. Antes del 06 hay que descargar las dos '
           'teselas de GLO-30 (ver <code>README.md</code>). Las descargas de IMERG y ERA5/ERA5-Land requieren cuentas '
           'personales (NASA Earthdata y Copernicus CDS), cuyas credenciales no se incluyen en el repositorio. El detalle de '
           'cada conjunto de datos está en <a href="DATOS.md">DATOS.md</a>.</p></div>')
