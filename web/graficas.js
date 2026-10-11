@@ -4,7 +4,7 @@
   const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const UNID = { P_L: "mm/mes", P_I: "mm/mes", R: "mm/mes", Q: "m³/s", T: "°C" };
   const NOMBRE = { P_L: "P<sub>L</sub>", P_I: "P<sub>I</sub>", R: "R", Q: "Q̄", T: "T" };
-  const estado = { clim: "P_L", anom: "P_L", qc: "P_L", anios: false, serie11: new Set(["P_L", "Q", "R", "T"]) };
+  const estado = { clim: "P_L", anom: "P_L", qc: "P_L", modelos: "PL", tend: "P_L", anios: false, serie11: new Set(["P_L", "Q", "R", "T"]) };
   const dibujadas = new Set();
 
   // ------------------------------------------------------------ tema (tokens de estilo.css)
@@ -276,6 +276,41 @@
         hovertemplate: `%{y:+${f}} ${v === "T" ? "°C" : "mm"}<extra></extra>` },
     ], layout: base(t, { height: 400, hovermode: "closest", showlegend: false, bargap: 0.2,
       xaxis: eje(t, { dtick: 2 }), yaxis: eje(t, { title: { text: `Anomalía de ${NOMBRE[v]} (${u})` }, zeroline: true }) }) };
+  };
+
+  // 2.3 · observado frente a modelado en los años de evaluación
+  G.modelos = function (t) {
+    const m = D.modelos, v = estado.modelos, d = m[v];
+    const u = v === "PL" ? "mm/mes" : "m³/s";
+    const f = v === "PL" ? ".1f" : ".1f";
+    const estilos = [{ color: t.muted, width: 1.4, dash: "dot" }, { color: t.s2, width: 1.4 }, { color: t.s3, width: 2.2 }];
+    const data = [linea(m.fechas, d.obs, v === "PL" ? "Observado (P<sub>L</sub>)" : "Observado (Q̄)", t.ink,
+      { line: { color: t.ink, width: 1.6 }, hovertemplate: `%{y:${f}} ${u}` })];
+    d.mods.forEach((mo, i) => data.push(linea(m.fechas, mo.y, mo.nombre, estilos[i].color,
+      { line: estilos[i], hovertemplate: `%{y:${f}} ${u}`, visible: i === 1 ? "legendonly" : true })));
+    const sombra = (x0, x1) => ({ type: "rect", xref: "x", yref: "paper", x0, x1, y0: 0, y1: 1,
+      fillcolor: rgba(t.s1, 0.06), line: { width: 0 }, layer: "below" });
+    return { data, layout: base(t, { height: 470, shapes: [sombra("1998-01", "2007-01"), sombra("2016-01", "2025-01")],
+      annotations: [["2002-06", "evaluación B"], ["2020-06", "evaluación A"], ["2011-06", "sin evaluar"]].map(([x, txt]) =>
+        ({ x, y: 1, xref: "x", yref: "paper", yanchor: "bottom", text: txt, showarrow: false, font: { color: t.muted, size: 11 } })),
+      xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
+      yaxis: eje(t, { title: { text: v === "PL" ? "P<sub>L</sub> (mm/mes)" : "Q̄ (m³/s)" }, rangemode: "tozero" }) }) };
+  };
+
+  // 3.4 · anomalías con la tendencia de Sen
+  G.tend = function (t) {
+    const v = estado.tend, d = D.tend[v];
+    const esT = v.startsWith("T");
+    const f = esT ? ".2f" : ".1f";
+    return { data: [
+      { type: "bar", x: d.fechas, y: d.a, name: "Anomalía mensual", marker: { color: colorSigno(t, esT ? "T" : v, d.a) },
+        hovertemplate: `%{y:+${f}} ${d.unid}` },
+      linea(d.fechas, d.mm12, "Media móvil de 12 meses", t.muted, { line: { color: t.ink2, width: 1.4 },
+        hovertemplate: `%{y:+${f}} ${d.unid}` }),
+      { type: "scatter", mode: "lines", x: d.sen_x, y: d.sen, name: d.txt, line: { color: t.ink, width: 2.6 },
+        hoverinfo: "skip" },
+    ], layout: base(t, { height: 450, bargap: 0, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
+      yaxis: eje(t, { title: { text: `Anomalía (${d.unid})` }, zeroline: true }) }) };
   };
 
   // ------------------------------------------------------------ dibujo

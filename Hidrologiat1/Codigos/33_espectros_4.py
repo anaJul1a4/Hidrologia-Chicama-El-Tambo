@@ -303,12 +303,15 @@ plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.righ
 GRIS = "#555555"
 
 
+PERIODOS_A = [50, 20, 10, 5, 2, 1, 0.5, 0.25]                  # marcas del eje: periodo en años
+
+
 def eje_periodos(ax):
+    """Eje x en periodo (años): los datos siguen en frecuencia f (ciclos/mes); periodo = 1/(12 f)."""
     ax.set_xscale("log")
     ax.set_xlim(1 / 600, 0.5)
-    sec = ax.secondary_xaxis("top", functions=(lambda f: 1 / np.maximum(f, 1e-9), lambda T: 1 / np.maximum(T, 1e-9)))
-    sec.set_xticks([m for m, _ in MARCAS], [t for _, t in MARCAS])
-    sec.tick_params(labelsize=7.5, colors=GRIS)
+    ax.set_xticks([1 / (12 * a) for a in PERIODOS_A], [f"{a:g}" for a in PERIODOS_A])
+    ax.set_xticks([], minor=True)
     for m in (12, 6):
         ax.axvline(1 / m, color=GRIS, lw=0.6, ls=":")
     ax.axvspan(1 / 84, 1 / 24, color="#f0e442", alpha=0.12, lw=0)
@@ -338,13 +341,13 @@ for i, k in enumerate(VARS):
         ax.set_ylabel(f"S(f) [({u})²·mes]")
         ax.set_title(f"{SERIES[k][1]} · {'centrada (con ciclo anual)' if tr == 'centrada' else 'anomalía (sin climatología)'}"
                      f" · {e['x'].index[0]:%Y-%m}–{e['x'].index[-1]:%Y-%m}, N={e['N']}, Δf=1/{e['N']}", fontsize=8.5,
-                     loc="left", pad=16)
+                     loc="left", pad=6)
         if i == 0:
             ax.legend(fontsize=6.8, frameon=False, loc="lower left")
         if i == len(VARS) - 1:
-            ax.set_xlabel("frecuencia (ciclos/mes)")
+            ax.set_xlabel("periodo (años)")
 fig.suptitle("Punto 4 · Espectros de densidad unilaterales (Σ S·Δf = varianza) del registro completo de cada variable. "
-             "Líneas punteadas: 12 y 6 meses; sombreado: banda 2–7 años", fontsize=10)
+             "Líneas punteadas: 1 año y 6 meses; sombreado: banda 2–7 años", fontsize=10)
 fig.tight_layout(rect=(0, 0, 1, 0.98))
 fig.savefig(OUT / "fig_espectros_4_2.png", dpi=150)
 plt.close(fig)
@@ -396,7 +399,7 @@ for ax, (a_, b_, tit) in zip(axs.flat[:3], pares):
     eje_periodos(ax)
     ax.set_xlim(1 / SEG, 0.5)
     ax.set_ylabel("S(f)/varianza [mes]")
-    ax.set_title(tit, fontsize=9.5, loc="left", pad=16)
+    ax.set_title(tit, fontsize=9.5, loc="left", pad=6)
     ax.legend(fontsize=7, frameon=False, loc="lower left")
 ax = axs.flat[3]
 for tr, ls_ in (("centrada", "-"), ("anomalia", "--")):
@@ -409,10 +412,10 @@ eje_periodos(ax)
 ax.set_xlim(1 / SEG, 0.5)
 ax.set_ylabel("cociente de espectros normalizados Q / P_L")
 ax.set_title("¿Filtra la cuenca las variaciones rápidas? (> 1: el caudal concentra más\nvarianza relativa en esa escala que la lluvia; no contiene fases)",
-             fontsize=9, loc="left", pad=16)
+             fontsize=9, loc="left", pad=6)
 ax.legend(fontsize=7.5, frameon=False)
 for a in axs[1]:
-    a.set_xlabel("frecuencia (ciclos/mes)")
+    a.set_xlabel("periodo (años)")
 fig.suptitle(f"Punto 4 · Formas espectrales normalizadas por la varianza (Welch, Hann, {SEG} meses, 50 % traslape); "
              "las alturas no son variabilidad absoluta", fontsize=10)
 fig.tight_layout(rect=(0, 0, 1, 0.97))
@@ -453,10 +456,10 @@ ax.set_yscale("log")
 eje_periodos(ax)
 ax.set_xlim(1 / 324, 0.5)
 ax.set_ylabel("potencia / potencia total")
-ax.set_xlabel("frecuencia (ciclos/mes)")
+ax.set_xlabel("periodo (años)")
 ax.legend(fontsize=7.5, frameon=False, loc="lower left")
 ax.set_title(f"Punto 4.1 · Efecto de los vacíos del caudal sobre el espectro (anomalías, {PC_INI:%Y}–{PC_FIN:%Y})",
-             fontsize=9.5, loc="left", pad=16)
+             fontsize=9.5, loc="left", pad=6)
 fig.tight_layout()
 fig.savefig(OUT / "fig_vacios_caudal_4_1.png", dpi=150)
 plt.close(fig)
