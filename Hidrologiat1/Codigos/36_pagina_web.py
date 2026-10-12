@@ -610,15 +610,7 @@ qc_html = f"""
 
 pestana("p14", "1.4 Calidad", "Punto 1.4 · Control de calidad",
         "Elija una variable: su disponibilidad, su serie diaria y todo lo que se hizo con ella quedan en el mismo lugar.",
-        tarjeta("Disponibilidad año × mes de las cuatro variables",
-                "Lluvia de referencia y temperatura completas en todo el periodo (la temperatura de PISCOt termina en "
-                "2020-12); IMERG completo; el caudal tiene meses incompletos concentrados en el estiaje (ago–oct) y en "
-                "2019–2021. Es la misma figura del informe.",
-                "Condición de cada mes antes del relleno: completo, escalado (≤ 10 % de días faltantes), excluido "
-                "(> 10 %) o sin dato. El número indica los días con dato en los meses incompletos.",
-                "19_control_calidad_1_4.py", png=CC / "fig_disponibilidad_1_4.png",
-                csvs=[CC / "disponibilidad_condicion_mes.csv", CC / "resumen_disponibilidad_1_4.csv"])
-        + qc_html
+        qc_html
         + tarjeta("Relleno de los faltantes de caudal y su validación",
                   "(a) Al borrar días de meses completos, la interpolación da errores 3–8 veces menores que el escalado "
                   "(≤ 1.5 % de mediana hasta 7 días). (b) El modelo mensual, evaluado dejando un año fuera, tiene un error "

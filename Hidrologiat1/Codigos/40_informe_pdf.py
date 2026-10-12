@@ -1,11 +1,22 @@
 """
-Informe final en PDF (Tarea 1). Reúne el texto, las figuras de resultados/ y las tablas leídas de los CSV.
-Requiere reportlab. Fuente DejaVu Sans (incluida en matplotlib) para los símbolos griegos y matemáticos.
+Informe final (Tarea 1) en PDF y en Word editable, generados del mismo texto. Reúne el texto, las figuras de
+resultados/ y las tablas leídas de los CSV. Requiere reportlab y python-docx. Fuente DejaVu Sans (incluida en
+matplotlib) en el PDF para los símbolos griegos y matemáticos.
 
-Salida: Informe_Tarea1_Chicama_El_Tambo.pdf (raíz del proyecto)
+Salidas (raíz del proyecto): Informe_Tarea1_Chicama_El_Tambo.pdf y Informe_Tarea1_Chicama_El_Tambo.docx
+El .docx es la versión para editar en grupo; si se edita a mano, ese archivo pasa a ser la fuente del informe.
 """
+import html as _html
+import re
 from pathlib import Path
 
+import docx
+from docx.enum.section import WD_SECTION
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Pt, Cm, RGBColor
 import matplotlib
 import pandas as pd
 from PIL import Image as PILImage
@@ -22,6 +33,7 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Image, Tab
 PROY = Path(__file__).resolve().parents[2]
 R = PROY / "Tarea 1" / "El_Tambo" / "resultados"
 SALIDA = PROY / "Informe_Tarea1_Chicama_El_Tambo.pdf"
+SALIDA_DOCX = PROY / "Informe_Tarea1_Chicama_El_Tambo.docx"
 
 TTF = Path(matplotlib.__file__).parent / "mpl-data" / "fonts" / "ttf"
 for nombre, archivo in (("DV", "DejaVuSans.ttf"), ("DV-B", "DejaVuSans-Bold.ttf"), ("DV-I", "DejaVuSans-Oblique.ttf"),
@@ -51,22 +63,113 @@ st = {
 ANCHO = letter[0] - 4 * cm
 story = []
 
+# ---------------------------------------------------------------------- Word (python-docx), en paralelo al PDF
+W = docx.Document()
+_sec = W.sections[0]
+_sec.page_width, _sec.page_height = Cm(21.59), Cm(27.94)                 # carta, igual que el PDF
+_sec.left_margin = _sec.right_margin = Cm(2)
+_sec.top_margin = _sec.bottom_margin = Cm(1.8)
+ANCHO_W = Cm(21.59 - 4)
+_n = W.styles["Normal"]
+_n.font.name = "Calibri"; _n.font.size = Pt(10.5)
+_n.element.rPr.rFonts.set(qn("w:eastAsia"), "Calibri")
+_n.paragraph_format.space_after = Pt(5); _n.paragraph_format.line_spacing = 1.15
+for _nivel, _tam, _col in ((1, 14, RGBColor(0x18, 0x4F, 0x95)), (2, 11.5, RGBColor(0x0B, 0x0B, 0x0B))):
+    _h = W.styles[f"Heading {_nivel}"]
+    _h.font.name = "Calibri"; _h.font.size = Pt(_tam); _h.font.bold = True; _h.font.color.rgb = _col
+    _h.element.rPr.rFonts.set(qn("w:eastAsia"), "Calibri")
+GRIS_W = RGBColor(0x52, 0x51, 0x4E)
+_TOKEN = re.compile(r"(<br/>|</?b>|</?i>|</?sub>|</?super>)")
+
+
+def runs(par, texto, tam=None, color=None, italica=False):
+    """Escribe en un párrafo de Word el marcado simple de reportlab (<b>, <i>, <sub>, <super>, <br/>)."""
+    b = i = sub = sup = False
+    for trozo in _TOKEN.split(texto):
+        if trozo == "<br/>":
+            par.add_run().add_break(); continue
+        if trozo in ("<b>", "</b>"):
+            b = trozo == "<b>"; continue
+        if trozo in ("<i>", "</i>"):
+            i = trozo == "<i>"; continue
+        if trozo in ("<sub>", "</sub>"):
+            sub = trozo == "<sub>"; continue
+        if trozo in ("<super>", "</super>"):
+            sup = trozo == "<super>"; continue
+        if not trozo:
+            continue
+        r = par.add_run(_html.unescape(trozo))
+        r.bold = b or None; r.italic = (i or italica) or None
+        if sub: r.font.subscript = True                         # (asignar None a una borra la otra)
+        if sup: r.font.superscript = True
+        if tam: r.font.size = Pt(tam)
+        if color is not None: r.font.color.rgb = color
+
+
+def W_par(texto, estilo="p"):
+    par = W.add_paragraph()
+    if estilo == "ref":
+        par.paragraph_format.left_indent = Cm(0.6); par.paragraph_format.first_line_indent = Cm(-0.6)
+        runs(par, texto, tam=9)
+    elif estilo == "aviso":
+        runs(par, texto, tam=9.5, color=GRIS_W, italica=True)
+        _borde(par)
+    elif estilo == "cap":
+        runs(par, texto, tam=9, color=GRIS_W)
+    else:
+        par.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        runs(par, texto)
+    return par
+
+
+def _borde(par):
+    pPr = par._p.get_or_add_pPr()
+    bdr = OxmlElement("w:pBdr")
+    for lado in ("top", "left", "bottom", "right"):
+        e = OxmlElement(f"w:{lado}")
+        for k, v in (("val", "single"), ("sz", "4"), ("space", "4"), ("color", "52514E")):
+            e.set(qn(f"w:{k}"), v)
+        bdr.append(e)
+    pPr.append(bdr)
+
+
+def _sombra(celda, color):
+    tcPr = celda._tc.get_or_add_tcPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear"); shd.set(qn("w:color"), "auto"); shd.set(qn("w:fill"), color)
+    tcPr.append(shd)
+
+
+def _campo_pagina(par):
+    r = par.add_run()
+    for tipo, texto in (("begin", None), (None, "PAGE"), ("end", None)):
+        if tipo:
+            e = OxmlElement("w:fldChar"); e.set(qn("w:fldCharType"), tipo); r._r.append(e)
+        else:
+            e = OxmlElement("w:instrText"); e.set(qn("xml:space"), "preserve"); e.text = texto; r._r.append(e)
+
 
 def P(t, s="p"):
     story.append(Paragraph(t, st[s]))
+    W_par(t, s)
 
 
 def B(t):
     story.append(Paragraph(t, st["bul"], bulletText="•"))
+    par = W.add_paragraph(style="List Bullet")
+    par.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    runs(par, t)
 
 
 def H1(t):
     story.append(Paragraph(t, st["h1"]))
+    W.add_heading(_html.unescape(t), level=1)
 
 
 def H2(t):
     story.append(CondPageBreak(7 * cm))                      # no dejar un subtítulo solo al pie de página
     story.append(Paragraph(t, st["h2"]))
+    W.add_heading(_html.unescape(t), level=2)
 
 
 N_FIG = [0]
@@ -75,12 +178,17 @@ N_FIG = [0]
 def FIG(ruta, leyenda, ancho=1.0, alto_max=17 * cm):
     N_FIG[0] += 1
     w, h = PILImage.open(ruta).size
-    W = ANCHO * ancho
+    W = ANCHO * ancho                                           # (variable local; el documento Word es globals()["W"])
     H = W * h / w
     if H > alto_max:
         H, W = alto_max, alto_max * w / h
     story.append(KeepTogether([Image(str(ruta), width=W, height=H),
                                Paragraph(f"<b>Figura {N_FIG[0]}.</b> {leyenda}", st["cap"])]))
+    par = globals()["W"].add_paragraph()
+    par.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    par.paragraph_format.keep_with_next = True
+    par.add_run().add_picture(str(ruta), width=int(ANCHO_W * W / ANCHO))
+    W_par(f"<b>Figura {N_FIG[0]}.</b> {leyenda}", "cap")
 
 
 N_TAB = [0]
@@ -101,6 +209,19 @@ def TAB(filas, leyenda, anchos, cabecera=True):
     story.append(Paragraph(f"<b>Tabla {N_TAB[0]}.</b> {leyenda}", st["cap"]))
     story.append(t)
     story.append(Spacer(1, 8))
+    W_par(f"<b>Tabla {N_TAB[0]}.</b> {leyenda}", "cap").paragraph_format.keep_with_next = True
+    tw = W.add_table(rows=len(filas), cols=len(filas[0]))
+    tw.style = "Table Grid"
+    tw.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for i, fila in enumerate(filas):
+        for j, c in enumerate(fila):
+            celda = tw.cell(i, j)
+            celda.width = int(ANCHO_W * anchos[j])
+            runs(celda.paragraphs[0], str(c) if not (i == 0 and cabecera) else f"<b>{c}</b>", tam=8.5)
+            celda.paragraphs[0].paragraph_format.space_after = Pt(0)
+            if i == 0 and cabecera:
+                _sombra(celda, "E1E0D9")
+    W.add_paragraph()
 
 
 def pie(canvas, doc):
@@ -133,6 +254,23 @@ story += [Spacer(1, 2.2 * cm),
           Paragraph("Código, datos y página de resultados: https://github.com/anaJul1a4/Hidrologia-Chicama-El-Tambo · "
                     "https://anajul1a4.github.io/Hidrologia-Chicama-El-Tambo/", st["subtitulo"]),
           PageBreak()]
+for _txt, _tam, _neg, _antes in (
+        ("Clasificación hidroclimática mensual de la cuenca del río Chicama hasta la estación El Tambo", 20, True, 120),
+        ("¿Por qué hay una estación seca de cinco meses si la cuenca está en el trópico, al alcance de la Zona de "
+         "Convergencia Intertropical?", 12, False, 8),
+        ("Hidrología · Semestre 2026-2 · Universidad Nacional de Colombia, Sede Medellín<br/>Profesor: Carlos David Hoyos",
+         11, False, 40),
+        ("Integrantes: Juan [apellido por completar] · Marlin Julie Schwebel · [tercer integrante por completar]", 11, False, 18),
+        ("Cuenca: río Chicama hasta la estación hidrométrica El Tambo (SENAMHI 211003; CAMELS-PE PE_47E0A2A8), 7.574° S, "
+         "78.707° O, 684 m s.n.m., La Libertad, Perú · Área de drenaje 2 170 km² (delimitación propia con GLO-30; "
+         "2 171.6 km² en CAMELS-PE) · Periodo común de análisis: enero de 1998 a diciembre de 2024 (324 meses, 27 años "
+         "completos)", 10.5, False, 40),
+        ("Código, datos y página de resultados: https://github.com/anaJul1a4/Hidrologia-Chicama-El-Tambo · "
+         "https://anajul1a4.github.io/Hidrologia-Chicama-El-Tambo/", 10, False, 30)):
+    _p = W.add_paragraph(); _p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _p.paragraph_format.space_before = Pt(_antes)
+    runs(_p, f"<b>{_txt}</b>" if _neg else _txt, tam=_tam, color=None if _neg else GRIS_W)
+W.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
 # ====================================================================== 1. Introducción
 H1("1. Introducción")
@@ -535,3 +673,11 @@ doc = SimpleDocTemplate(str(SALIDA), pagesize=letter, leftMargin=2 * cm, rightMa
                         author="Grupo Tarea 1 Hidrología 2026-2")
 doc.build(story, onFirstPage=pie, onLaterPages=pie)
 print(f"{SALIDA} · {N_FIG[0]} figuras · {N_TAB[0]} tablas")
+
+_pie = W.sections[0].footer.paragraphs[0]
+runs(_pie, "Hidrología 2026-2 · Tarea 1 · Río Chicama hasta El Tambo · página ", tam=8, color=GRIS_W)
+_campo_pagina(_pie)
+W.core_properties.title = "Clasificación hidroclimática del río Chicama hasta El Tambo"
+W.core_properties.author = "Grupo Tarea 1 Hidrología 2026-2"
+W.save(str(SALIDA_DOCX))
+print(SALIDA_DOCX)

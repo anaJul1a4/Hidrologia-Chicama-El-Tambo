@@ -422,15 +422,6 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
     </tr>
   </tbody>
 </table></div><p class="nota">Percentiles con interpolación lineal (tipo 7). T solo PISCOt, sin la estimación desde 2021. La tabla del registro completo está en estadisticos_1_3_registro_completo.csv.</p></div><aside class="pie-metodo"><h3>Qué se hizo en este punto</h3><p>Se calcularon estadísticos (media, mediana, cuartiles, percentiles 5–95, asimetría) sobre el periodo común y el registro completo, histogramas con ancho de Freedman–Diaconis y los mismos límites para las dos lluvias, y diagramas de caja de Tukey. Se buscaron los meses extremos en las series. Script 18.</p></aside></section><section class="panel" id="tab-p14" data-tab="p14" hidden><h2>Punto 1.4 · Control de calidad</h2><p class="intro">Elija una variable: su disponibilidad, su serie diaria y todo lo que se hizo con ella quedan en el mismo lugar.</p>
-<article class="fig">
-  <header class="fig-h"><h3>Disponibilidad año × mes de las cuatro variables</h3><span class="tipo">imagen</span></header>
-  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/control_calidad/fig_disponibilidad_1_4.png" aria-label="Ampliar: Disponibilidad año × mes de las cuatro variables"><img loading="lazy" src="web/img/fig_disponibilidad_1_4.png" alt="Disponibilidad año × mes de las cuatro variables"></button></div>
-  <div class="fig-texto">
-    <div><h4>Qué muestra</h4><p>Lluvia de referencia y temperatura completas en todo el periodo (la temperatura de PISCOt termina en 2020-12); IMERG completo; el caudal tiene meses incompletos concentrados en el estiaje (ago–oct) y en 2019–2021. Es la misma figura del informe.</p></div>
-    <div><h4>Cómo se construyó</h4><p>Condición de cada mes antes del relleno: completo, escalado (≤ 10 % de días faltantes), excluido (> 10 %) o sin dato. El número indica los días con dato en los meses incompletos.</p></div>
-  </div>
-  <p class="meta"><span class="script">19_control_calidad_1_4.py</span> · <a href="Tarea%201/El_Tambo/resultados/control_calidad/fig_disponibilidad_1_4.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/control_calidad/disponibilidad_condicion_mes.csv" download>disponibilidad_condicion_mes.csv</a> · <a href="Tarea%201/El_Tambo/resultados/control_calidad/resumen_disponibilidad_1_4.csv" download>resumen_disponibilidad_1_4.csv</a></p>
-</article>
 <article class="fig qc">
   <header class="fig-h"><h3>Disponibilidad y control de calidad por variable</h3><span class="tipo int">interactiva</span></header>
   <div class="selector" data-para="qc" role="group" aria-label="Variable"><button type="button" data-v="P_L" aria-pressed="true">P<sub>L</sub></button><button type="button" data-v="Q" aria-pressed="false">Q̄ caudal</button><button type="button" data-v="T" aria-pressed="false">T</button><button type="button" data-v="P_I" aria-pressed="false">P<sub>I</sub> IMERG</button></div>
