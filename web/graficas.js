@@ -92,21 +92,7 @@
       data.push(linea(x, D.T_est, "T estimada (ERA5-Land + sesgo)", t.vT, { yaxis: ax.T,
         line: { color: t.vT, width: 1.8, dash: "dash" }, hovertemplate: "%{y:.2f} °C" }));
     }
-    const banderas = [["interpolado_diario", "circle-open", "días interpolados"], ["escalado", "square", "mes escalado"],
-                      ["modelo_mensual", "diamond", "modelo mensual"]];
-    banderas.forEach(([cod, sim, txt]) => {
-      const xi = [], yq = [], yr = [];
-      D.R_flag.forEach((f, i) => { if (f === cod) { xi.push(x[i]); yq.push(D.Q[i]); yr.push(D.R[i]); } });
-      if (!xi.length) return;
-      const mk = { color: t.ink, size: 8, symbol: sim, line: { color: t.ink, width: 1.5 } };   // relleno en tinta, no en un color de variable
-      let leyenda = true;
-      [["Q", yq], ["R", yr]].forEach(([v, yy]) => {
-        if (!ax[v]) return;
-        data.push({ type: "scatter", mode: "markers", x: xi, y: yy, yaxis: ax[v], name: "Caudal rellenado: " + txt,
-          legendgroup: cod, showlegend: leyenda, marker: mk, hovertemplate: txt });
-        leyenda = false;
-      });
-    });
+    // los meses de caudal rellenados no se marcan; quedan sombreados los que sin relleno se excluían
     const shapes = [];                                          // solo caudal y escorrentía tienen meses excluidos
     ["Q", "R"].filter((v) => ax[v]).forEach((v) => {
       D.R_flag_obs.forEach((f, i) => {

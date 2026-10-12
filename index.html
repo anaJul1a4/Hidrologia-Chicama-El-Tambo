@@ -268,7 +268,7 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
   <header class="fig-h"><h3>Series mensuales en paneles alineados</h3><span class="tipo int">interactiva</span></header>
   <div class="fig-cuerpo"><div class="selector multi" data-para="serie11" role="group" aria-label="Paneles visibles"><span class="sel-tit">Paneles visibles:</span><button type="button" data-v="P_L" aria-pressed="true">P<sub>L</sub></button><button type="button" data-v="Q" aria-pressed="true">Q̄</button><button type="button" data-v="R" aria-pressed="true">R</button><button type="button" data-v="T" aria-pressed="true">T</button></div><div class="plot" data-plot="serie11" role="img" aria-label="Series mensuales en paneles alineados"></div></div>
   <div class="fig-texto">
-    <div><h4>Qué muestra</h4><p>Los cuatro paneles comparten el eje de tiempo: al pasar el cursor se leen los cuatro valores del mismo mes. El caudal y la escorrentía tienen sus faltantes rellenados: los marcadores indican el método (76 meses con días interpolados, 3 escalados y 1 reconstruido con modelo, 1998-08), y el fondo rojo claro los 27 meses que sin relleno quedaban excluidos. Desde 2021 la temperatura es una estimación con ERA5-Land (línea discontinua), no PISCOt. Con los botones se eligen los paneles que se muestran; siempre quedan alineados en el mismo eje de tiempo.</p><p class="leer"><b>Cómo leerla.</b> Los máximos de 1998 y 2017 corresponden a eventos de El Niño; el caudal queda alto también en los meses siguientes.</p></div>
+    <div><h4>Qué muestra</h4><p>Los cuatro paneles comparten el eje de tiempo: al pasar el cursor se leen los cuatro valores del mismo mes. El caudal y la escorrentía tienen sus faltantes rellenados (76 meses con días interpolados, 3 escalados y 1 reconstruido con modelo, 1998-08; el método de cada mes está en la columna R_flag del CSV); el fondo rojo claro marca los 27 meses que sin relleno quedaban excluidos. Desde 2021 la temperatura es una estimación con ERA5-Land (línea discontinua), no PISCOt. Con los botones se eligen los paneles que se muestran; siempre quedan alineados en el mismo eje de tiempo.</p><p class="leer"><b>Cómo leerla.</b> Los máximos de 1998 y 2017 corresponden a eventos de El Niño; el caudal queda alto también en los meses siguientes.</p></div>
     <div><h4>Cómo se construyó</h4><p>P<sub>L</sub> = suma de la precipitación diaria (PISCOp v2.1 promediado en la cuenca por CAMELS-PE), solo meses completos. Q̄ = media del caudal diario observado (SENAMHI), convertido de mm/d a m³/s con Q̄ = q̄·A/86.4 y A = 2 171.6 km². R = suma de q diario en mm. T = media de la temperatura diaria (PISCOt v1.2) si faltan ≤ 10 % de los días. El relleno de caudal sigue tres pasos: interpolación de ln q en huecos ≤ 15 días, escalado de la media en meses con ≥ 50 % de días y modelo mensual con el caudal simulado en el resto (validación en el punto 1.4).</p></div>
   </div>
   <p class="meta"><span class="script">09_datos_camels_pe_el_tambo.py, relleno_caudal.py (página: 36_pagina_web.py)</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/series_mensuales_camels_pe.csv" download>series_mensuales_camels_pe.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/temperatura_piscot_extendida_era5land.csv" download>temperatura_piscot_extendida_era5land.csv</a></p>
@@ -1081,7 +1081,7 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
   <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/espectros/fig_onditas_4_3.png" aria-label="Ampliar: Onditas: en qué años aparece cada periodo"><img loading="lazy" src="web/img/fig_onditas_4_3.png" alt="Onditas: en qué años aparece cada periodo"></button></div>
   <div class="fig-texto">
     <div><h4>Qué muestra</h4><p>La variabilidad fuera del ciclo anual no es constante en el tiempo. En la lluvia, la banda de 4–5 años es significativa entre 1983 y 2000 (El Niño 1983 y 1997–98) y después casi desaparece; por eso los mapas de SST del punto 5 cambian entre 1981–2002 y 2003–2024. El caudal solo muestra pulsos cortos en 1998 y 2017. La temperatura mantiene una banda de 3–5 años durante todo el registro, igual que Niño 1+2.</p></div>
-    <div><h4>Cómo se construyó</h4><p>Transformada continua con la ondita de Morlet (ω0 = 6) de las anomalías estandarizadas (Torrence y Compo 1998). Contorno: supera el 95 % de un ruido rojo AR(1); rayado: cono de influencia (efecto de los bordes); a la derecha, el espectro global (promedio en el tiempo). El relleno con ceros es interno a la transformada; los datos no se rellenan.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Transformada continua con la ondita de Morlet (ω0 = 6) de las anomalías estandarizadas (Torrence y Compo 1998), con la potencia corregida por sesgo (Liu et al. 2007: se divide por la escala, porque sin corregir se inflan los periodos largos) y expresada en % de la varianza por octava de periodo. Contorno: supera el 95 % de un ruido rojo AR(1); rayado: cono de influencia (efecto de los bordes); a la derecha, el espectro global (promedio en el tiempo) sobre el periodograma de Fourier en la misma unidad: el espectro global es un Fourier suavizado, por eso coinciden los picos. El relleno con ceros es interno a la transformada; los datos no se rellenan.</p></div>
   </div>
   <p class="meta"><span class="script">38_onditas_4.py</span> · <a href="Tarea%201/El_Tambo/resultados/espectros/fig_onditas_4_3.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/espectros/onditas_resumen_4_3.csv" download>onditas_resumen_4_3.csv</a></p>
 </article>
@@ -1684,21 +1684,7 @@ debe sustentar con bibliografía.
       data.push(linea(x, D.T_est, "T estimada (ERA5-Land + sesgo)", t.vT, { yaxis: ax.T,
         line: { color: t.vT, width: 1.8, dash: "dash" }, hovertemplate: "%{y:.2f} °C" }));
     }
-    const banderas = [["interpolado_diario", "circle-open", "días interpolados"], ["escalado", "square", "mes escalado"],
-                      ["modelo_mensual", "diamond", "modelo mensual"]];
-    banderas.forEach(([cod, sim, txt]) => {
-      const xi = [], yq = [], yr = [];
-      D.R_flag.forEach((f, i) => { if (f === cod) { xi.push(x[i]); yq.push(D.Q[i]); yr.push(D.R[i]); } });
-      if (!xi.length) return;
-      const mk = { color: t.ink, size: 8, symbol: sim, line: { color: t.ink, width: 1.5 } };   // relleno en tinta, no en un color de variable
-      let leyenda = true;
-      [["Q", yq], ["R", yr]].forEach(([v, yy]) => {
-        if (!ax[v]) return;
-        data.push({ type: "scatter", mode: "markers", x: xi, y: yy, yaxis: ax[v], name: "Caudal rellenado: " + txt,
-          legendgroup: cod, showlegend: leyenda, marker: mk, hovertemplate: txt });
-        leyenda = false;
-      });
-    });
+    // los meses de caudal rellenados no se marcan; quedan sombreados los que sin relleno se excluían
     const shapes = [];                                          // solo caudal y escorrentía tienen meses excluidos
     ["Q", "R"].filter((v) => ax[v]).forEach((v) => {
       D.R_flag_obs.forEach((f, i) => {

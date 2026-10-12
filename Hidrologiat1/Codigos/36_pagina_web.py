@@ -459,9 +459,9 @@ pestana("p11", "1.1 Series", "Punto 1.1 · Series mensuales de precipitación, c
         f"inferior para elegir un intervalo y doble clic para volver a la vista completa.",
         tarjeta("Series mensuales en paneles alineados",
                 f"Los cuatro paneles comparten el eje de tiempo: al pasar el cursor se leen los cuatro valores del mismo mes. "
-                f"El caudal y la escorrentía tienen sus faltantes rellenados: los marcadores indican el método "
-                f"({RL['interp']} meses con días interpolados, {RL['esc']} escalados y {RL['mod']} reconstruido con modelo, "
-                f"{RL['mes_mod']}), y el fondo rojo claro los {RL['excl']} meses que sin relleno quedaban excluidos. Desde 2021 "
+                f"El caudal y la escorrentía tienen sus faltantes rellenados ({RL['interp']} meses con días interpolados, "
+                f"{RL['esc']} escalados y {RL['mod']} reconstruido con modelo, {RL['mes_mod']}; el método de cada mes está en "
+                f"la columna R_flag del CSV); el fondo rojo claro marca los {RL['excl']} meses que sin relleno quedaban excluidos. Desde 2021 "
                 f"la temperatura es una estimación con ERA5-Land (línea discontinua), no PISCOt. Con los botones se eligen los "
                 f"paneles que se muestran; siempre quedan alineados en el mismo eje de tiempo.",
                 "P<sub>L</sub> = suma de la precipitación diaria (PISCOp v2.1 promediado en la cuenca por CAMELS-PE), solo "
@@ -940,8 +940,11 @@ pestana("p4", "4 Fourier", "Punto 4 · Escalas dominantes de variabilidad (Fouri
                   "SST del punto 5 cambian entre 1981–2002 y 2003–2024. El caudal solo muestra pulsos cortos en 1998 y "
                   "2017. La temperatura mantiene una banda de 3–5 años durante todo el registro, igual que Niño 1+2.",
                   "Transformada continua con la ondita de Morlet (ω0 = 6) de las anomalías estandarizadas (Torrence y "
-                  "Compo 1998). Contorno: supera el 95 % de un ruido rojo AR(1); rayado: cono de influencia (efecto de los "
-                  "bordes); a la derecha, el espectro global (promedio en el tiempo). El relleno con ceros es interno a la "
+                  "Compo 1998), con la potencia corregida por sesgo (Liu et al. 2007: se divide por la escala, porque sin "
+                  "corregir se inflan los periodos largos) y expresada en % de la varianza por octava de periodo. Contorno: "
+                  "supera el 95 % de un ruido rojo AR(1); rayado: cono de influencia (efecto de los bordes); a la derecha, el "
+                  "espectro global (promedio en el tiempo) sobre el periodograma de Fourier en la misma unidad: el espectro "
+                  "global es un Fourier suavizado, por eso coinciden los picos. El relleno con ceros es interno a la "
                   "transformada; los datos no se rellenan.",
                   "38_onditas_4.py", png=ES / "fig_onditas_4_3.png", csvs=[ES / "onditas_resumen_4_3.csv"])
         + tarjeta("¿La banda de 2–7 años va con el ENSO?",

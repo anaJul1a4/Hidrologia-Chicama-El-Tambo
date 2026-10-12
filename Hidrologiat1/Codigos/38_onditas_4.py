@@ -9,6 +9,10 @@ Método (Torrence & Compo 1998, BAMS 79:61–78; implementación propia con FFT)
   · Ondita de Morlet, ω0 = 6; Δt = 1 mes; escalas s_j = 2 meses · 2^(j/12) hasta ~20 años; periodo de Fourier
     = 1.033 s. Se rellena con ceros hasta la siguiente potencia de 2 (procedimiento estándar de la transformada; los
     datos no se rellenan): las zonas afectadas por los bordes quedan fuera del cono de influencia (COI), sombreado.
+  · Corrección de sesgo (Liu, Liang y Weisberg 2007, J. Atmos. Oceanic Technol. 24:2093–2102): la potencia |W|² sin
+    corregir infla los periodos largos; se divide por la escala. Expresada como 100·|W|²/(C_δ·s)/σ² es el % de la
+    varianza por octava de periodo (su integral en escala recupera la varianza, TC98 ec. 14), la misma unidad que el
+    periodograma de Fourier por octava, 100·S_k·f_k·ln2/σ², que se superpone al espectro global para compararlos.
   · Significancia: fondo de ruido rojo AR(1) con la autocorrelación de rezago 1 de cada serie; 95 % puntual con
     χ²₂/2 (contorno negro). Espectro global (promedio en el tiempo) con sus grados de libertad (TC98 ec. 23).
   · Varianza promediada en la banda 2–7 años (TC98 ec. 24) con su umbral de 95 % (ec. 25–28), y reconstrucción de la
@@ -108,7 +112,17 @@ for k, (s, nom, col) in SERIES.items():
     sig_b = DJ / CDELTA * (teor[b] / esc[b]).sum() * stats.chi2.ppf(0.95, dof_b) / dof_b
     comp = DJ / (CDELTA * PSI0) * (W[b].real / np.sqrt(esc[b, None])).sum(0)   # componente 2–7 años (σ = 1)
     dentro = per[:, None] <= coi[None, :]
-    RES[k] = dict(t=s.index, pot=pot, sig=sig, per=per, coi=coi, glob=glob, glob_sig=glob_sig, alfa=alfa, nom=nom, col=col)
+    var = np.var(x)
+    rect = 100 * pot / (CDELTA * esc[:, None]) / var             # Liu et al. 2007: % de la varianza por octava
+    glob_oct = rect.mean(1)
+    glob_sig_oct = 100 * glob_sig / (CDELTA * esc) / var
+    X = np.fft.rfft(x - x.mean())
+    fk = np.arange(len(X)) / n
+    Sk = 2 * np.abs(X) ** 2 / n                                  # densidad unilateral, Δt = 1 mes
+    four_oct = 100 * Sk[1:] * fk[1:] * np.log(2) / var
+    RES[k] = dict(t=s.index, pot=pot, sig=sig, per=per, coi=coi, glob=glob, glob_sig=glob_sig, alfa=alfa, nom=nom, col=col,
+                  rect=rect, glob_oct=glob_oct, glob_sig_oct=glob_sig_oct, four_per=1 / fk[1:] / 12, four_oct=four_oct,
+                  suma_oct=float(glob_oct.sum() * DJ))
     BAND[k] = pd.Series(savg, index=s.index)
     COMP[k] = pd.Series(comp, index=s.index)
     frac_sig_banda = float(((sig[b] > 1) & dentro[b]).any(0).mean())
@@ -118,7 +132,10 @@ for k, (s, nom, col) in SERIES.items():
                   "umbral_95_varianza_banda": float(sig_b),
                   "frac_tiempo_varianza_banda_sobre_umbral": float((savg > sig_b).mean()),
                   "periodo_max_espectro_global_2_7a_anios": float(per[b][np.argmax(glob[b])] / 12),
-                  "global_supera_95_en_banda": bool((glob[b] > glob_sig[b]).any())})
+                  "global_supera_95_en_banda": bool((glob[b] > glob_sig[b]).any()),
+                  "pico_global_corregido_anios": float(per[np.argmax(glob_oct)] / 12),
+                  "pico_global_corregido_2_7a_anios": float(per[b][np.argmax(glob_oct[b])] / 12),
+                  "pct_varianza_reconstruida": float(glob_oct.sum() * DJ)})
     RES[k]["sig_b"] = sig_b
 
 # correlación entre componentes de 2–7 años (descriptiva)
@@ -140,7 +157,7 @@ print(RS.round(2).T.to_string())
 
 # ------------------------------------------------------------------ figura 1: potencia de onditas
 ORDEN = ["P_L", "Q", "T_ERA5L", "N12"]
-NIV = [0, 0.5, 1, 2, 4, 8, 16, 32]
+NIV = [0, 5, 10, 20, 40, 80, 160, 320]
 NORM = BoundaryNorm(NIV, CMAP_P.N, extend="max")
 fig = plt.figure(figsize=(15, 3.0 * len(ORDEN)))
 gs = fig.add_gridspec(len(ORDEN), 2, width_ratios=[5, 1], hspace=0.45, wspace=0.04, bottom=0.12, top=0.89)
@@ -150,7 +167,7 @@ for i, k in enumerate(ORDEN):
     ax = fig.add_subplot(gs[i, 0])
     T = d["t"]
     P = d["per"] / 12
-    m = ax.contourf(T, P, d["pot"], levels=NIV, cmap=CMAP_P, norm=NORM, extend="max")
+    m = ax.contourf(T, P, d["rect"], levels=NIV, cmap=CMAP_P, norm=NORM, extend="max")
     ax.contour(T, P, d["sig"], levels=[1], colors=TINTA, linewidths=0.9)
     ax.fill_between(T, d["coi"] / 12, P.max(), color="white", alpha=0.55, hatch="xx", edgecolor=GRIS_CLARO, lw=0)
     ax.axhspan(BANDA[0] / 12, BANDA[1] / 12, color="none", ec=TINTA2, ls="--", lw=0.8)
@@ -164,23 +181,24 @@ for i, k in enumerate(ORDEN):
     ax.set_title(f"{d['nom']} · anomalías estandarizadas {T[0]:%Y-%m}–{T[-1]:%Y-%m} · AR(1) α = {d['alfa']:.2f}",
                  fontsize=9.5, loc="left")
     g = fig.add_subplot(gs[i, 1], sharey=ax)
-    g.plot(d["glob"], P, color=d["col"], lw=1.6, label="espectro global")
-    g.plot(d["glob_sig"], P, color=TINTA2, lw=0.9, ls="--", label="95 % AR(1)")
+    fo = d["four_per"] <= 20
+    g.plot(d["four_oct"][fo], d["four_per"][fo], color=GRIS_CLARO, lw=0.8, label="Fourier (periodograma)")
+    g.plot(d["glob_oct"], P, color=d["col"], lw=1.8, label="onditas (global)")
+    g.plot(d["glob_sig_oct"], P, color=TINTA2, lw=0.9, ls="--", label="95 % AR(1)")
     g.axhspan(BANDA[0] / 12, BANDA[1] / 12, color=GRIS_CLARO, alpha=0.3, lw=0)
-    g.set_xscale("log")
-    g.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10, numticks=4))
-    g.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    g.set_xlim(0, 1.15 * max(d["glob_oct"].max(), d["glob_sig_oct"][P <= 20].max()))
     g.tick_params(labelleft=False)
     ax.set_ylim(20, P.min())                                     # periodos cortos arriba (como Torrence y Compo 1998)                                     # el panel global comparte el eje: fijarlo al final
     g.set_title("global", fontsize=9, loc="left")
     if i == 0:
-        g.legend(fontsize=7, frameon=False, loc="upper right")
+        g.legend(fontsize=7, frameon=False, loc="lower right")
     if i == len(ORDEN) - 1:
-        g.set_xlabel("potencia (varianza)")
+        g.set_xlabel("% de la varianza por octava")
 cax = fig.add_axes([0.2, 0.06, 0.45, 0.012])
 cb = fig.colorbar(m, cax=cax, orientation="horizontal", ticks=NIV)
-cb.set_label("potencia de onditas |W|² (en unidades de la varianza de la serie; 1 = varianza media)")
-fig.suptitle("Punto 4 · Onditas de Morlet: en qué años aparece cada periodo\n"
+cb.set_label("potencia corregida por sesgo (Liu et al. 2007): % de la varianza por octava de periodo")
+fig.suptitle("Punto 4 · Onditas de Morlet: en qué años aparece cada periodo (potencia corregida por sesgo; a la derecha, "
+             "espectro global de onditas sobre el periodograma de Fourier, en la misma unidad)\n"
              "Contorno negro: supera el 95 % frente a un ruido rojo AR(1) · rayado: cono de influencia (bordes, no interpretar) · "
              "líneas discontinuas: banda de 2–7 años · punteadas verticales: El Niño 1983, 1998, 2016, 2017, 2023",
              fontsize=10, y=0.94)

@@ -27,7 +27,7 @@ from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
 from periodo_comun import periodo_comun
-from estilo_figuras import VAR, TINTA, GRIS, RELLENO, SOMBRA_EXCLUIDO, SOMBRA_ESTIMADO, aplicar_estilo
+from estilo_figuras import VAR, TINTA, GRIS, SOMBRA_EXCLUIDO, SOMBRA_ESTIMADO, aplicar_estilo
 
 aplicar_estilo()
 
@@ -71,9 +71,6 @@ for ax, (col, titulo, unid, color) in zip(axs, PANELES):
     if col in ("Q_m3_s", "R_mm_mes"):
         # Meses que con lo observado quedaban excluidos (> 10 % faltantes) o sin dato: fondo rojo claro
         sombrear(ax, m.index[m["R_flag_obs"].isin(["excluido", "sin_dato"])], SOMBRA_EXCLUIDO, 0.12)
-        for flag, est in RELLENO.items():
-            f_ = m.index[(m["R_flag"] == flag) & (m["R_flag_obs"] != "completo")]
-            ax.plot(f_, s.loc[f_], ls="none", ms=4.5, mew=0.9, **est)
     if col == "T_C" and len(faltan):
         # Tramo estimado (script 17): ERA5-Land + sesgo mensual medio frente a PISCOt en el periodo
         # común. Se dibuja aparte (discontinuo, fondo propio) y no reemplaza a T_C en los cálculos.
@@ -95,21 +92,16 @@ axs[-1].xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 axs[-1].xaxis.set_minor_locator(mdates.YearLocator(1))
 axs[-1].set_xlim(ini - pd.Timedelta(days=15), fin + pd.offsets.MonthBegin(1) + pd.Timedelta(days=15))
 
-fig.legend(handles=[Patch(fc=SOMBRA_EXCLUIDO, alpha=0.12, label="Q/R: mes que sin relleno quedaba excluido (> 10 % de días faltantes) o sin dato"),
-                    Line2D([], [], ls="none", **RELLENO["interpolado_diario"],
-                           label="Relleno: huecos diarios ≤ 15 d interpolados en ln(q)"),
-                    Line2D([], [], ls="none", **RELLENO["escalado"],
-                           label="Relleno: media de los días disponibles (≥ 50 % del mes) × n$_m$"),
-                    Line2D([], [], ls="none", **RELLENO["modelo_mensual"],
-                           label="Relleno: modelo mensual (flow_sim + R del mes anterior)"),
+fig.legend(handles=[Patch(fc=SOMBRA_EXCLUIDO, alpha=0.12, label="Q/R: mes que sin relleno quedaba excluido (> 10 % de días faltantes) o sin dato; "
+                          "método de relleno de cada mes en la columna R_flag"),
                     Line2D([], [], color=COLOR_EST, ls="--", lw=1.2,
                            label=f"T desde 2021 estimada: ERA5-Land + sesgo mensual vs PISCOt (no es PISCOt; "
                                  f"validación {VAL_T['evaluacion']}: MAE {float(VAL_T['MAE_C']):.2f} °C)")],
-           loc="lower center", ncol=2, fontsize=8.5, frameon=False, bbox_to_anchor=(0.5, 0.0))
+           loc="lower center", ncol=1, fontsize=8.5, frameon=False, bbox_to_anchor=(0.5, 0.0))
 fig.suptitle("Cuenca del río Chicama hasta El Tambo (CAMELS-PE PE_47E0A2A8, 2171.6 km²) – series "
              f"mensuales {ini:%Y-%m} a {fin:%Y-%m}", fontsize=13, y=0.985)
 fig.text(0.5, 0.955, "Agregadas desde registros diarios: P$_L$ = ΣP$_d$; $\\bar{Q}$ = media de Q$_d$; "
-         "R = Σq$_d$ (q en mm/d, sin repetir 86.4/A); T = media de T$_d$. Q y R rellenados (método en la leyenda; script 28).",
+         "R = Σq$_d$ (q en mm/d, sin repetir 86.4/A); T = media de T$_d$. Q y R rellenados (método por mes en R_flag; validación en el script 28).",
          ha="center", fontsize=9)
 fig.subplots_adjust(left=0.06, right=0.985, top=0.93, bottom=0.11)
 fig.savefig(OUT / "fig_series_mensuales_1_1.png", dpi=200)
