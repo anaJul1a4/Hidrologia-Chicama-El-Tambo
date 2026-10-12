@@ -243,7 +243,7 @@ story += [Spacer(1, 2.2 * cm),
           Paragraph("Hidrología · Semestre 2026-2 · Universidad Nacional de Colombia, Sede Medellín<br/>"
                     "Profesor: Carlos David Hoyos", st["subtitulo"]),
           Spacer(1, 0.6 * cm),
-          Paragraph("Integrantes: Juan [apellido por completar] · Marlin Julie Schwebel · [tercer integrante por completar]",
+          Paragraph("Integrantes: Marlin Julie Schwebel · Juan Diego Galvis",
                     st["subtitulo"]),
           Spacer(1, 1.2 * cm),
           Paragraph("Cuenca: río Chicama hasta la estación hidrométrica El Tambo (SENAMHI 211003; CAMELS-PE PE_47E0A2A8), "
@@ -260,7 +260,7 @@ for _txt, _tam, _neg, _antes in (
          "Convergencia Intertropical?", 12, False, 8),
         ("Hidrología · Semestre 2026-2 · Universidad Nacional de Colombia, Sede Medellín<br/>Profesor: Carlos David Hoyos",
          11, False, 40),
-        ("Integrantes: Juan [apellido por completar] · Marlin Julie Schwebel · [tercer integrante por completar]", 11, False, 18),
+        ("Integrantes: Marlin Julie Schwebel · Juan Diego Galvis", 11, False, 18),
         ("Cuenca: río Chicama hasta la estación hidrométrica El Tambo (SENAMHI 211003; CAMELS-PE PE_47E0A2A8), 7.574° S, "
          "78.707° O, 684 m s.n.m., La Libertad, Perú · Área de drenaje 2 170 km² (delimitación propia con GLO-30; "
          "2 171.6 km² en CAMELS-PE) · Periodo común de análisis: enero de 1998 a diciembre de 2024 (324 meses, 27 años "
@@ -618,19 +618,22 @@ P("Nivel A (abierto) de la política del curso. Herramienta: Claude (Anthropic),
   "Claude Opus 5.5 y Fable 5.1, octubre de 2026.")
 B("<b>Tareas en que intervino:</b> programación y depuración de los scripts en Python (descarga, agregación, relleno, "
   "estadísticos, tendencias, espectros, onditas, correlaciones con campos globales), diseño de la paleta común de figuras, "
-  "la página web de resultados, el esquema conceptual y un borrador de este informe a partir de los resultados del grupo. "
-  "[El grupo debe precisar qué scripts y secciones escribió cada integrante.]")
+  "la página web de resultados, el esquema conceptual y un borrador de este informe a partir de los resultados del grupo.")
 B("<b>Verificaciones:</b> revisión manual de la agregación de 2010-03 y 1998-03; Parseval (Σ S·Δf = varianza) y "
   "contraste con scipy.signal.periodogram; pendientes OLS y de Sen invariantes al restar la climatología; validación del "
-  "relleno con huecos sintéticos; comprobación de que cada cifra del texto coincide con los CSV de resultados. [El grupo "
-  "debe añadir sus propias comprobaciones.]")
+  "relleno con huecos sintéticos; comprobación de que cada cifra del texto coincide con los CSV de resultados. Además, el "
+  "grupo validó cada variable descargada (cobertura temporal, faltantes, unidades y coherencia entre fuentes) antes de "
+  "usarla.")
 B("<b>Propuestas corregidas o rechazadas:</b> en un borrador previo del grupo, generado con apoyo de IA, aparecían cifras y "
   "afirmaciones que no coinciden con los datos y se corrigieron: coordenadas de la estación, cuenca extendida hasta el "
   "nivel del mar (empieza en 678 m), caudal mínimo de 1.2 m³/s (es 0.36 m³/s), correlación con Niño 1+2 «> 0.70» (es "
   "0.62–0.68 y no robusta), análisis de doble masa y relleno con estaciones vecinas (no se hicieron), independencia entre "
   "P<sub>L</sub> e IMERG (comparten pluviómetros) y 2007 como año seco (anomalía −27 mm). También se descartó como "
   "explicación del máximo térmico de septiembre la menor surgencia costera, porque la cuenca está sobre la inversión.")
-B("<b>Contribución de los integrantes:</b> [completar por el grupo].")
+B("<b>Contribución de los integrantes:</b> Juan Diego Galvis se encargó de descargar los datos y de validar cada "
+  "variable. Marlin Julie Schwebel investigó la bibliografía sobre el contexto físico de la cuenca para orientar la "
+  "hipótesis. Los puntos de la tarea se desarrollaron en reuniones conjuntas, y entre los dos revisaron y redactaron el "
+  "informe a partir del borrador generado con Claude.")
 P("Las referencias de la sección 6 son las que sustentan la discusión. El grupo debe leer cada una y comprobar su DOI y "
   "páginas antes de la entrega; una referencia propuesta por la IA no sustituye esa lectura.", "aviso")
 

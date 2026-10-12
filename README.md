@@ -3,7 +3,7 @@
 Clasificación hidroclimática mensual de la cuenca del río Chicama hasta la estación El Tambo
 (CAMELS-PE `PE_47E0A2A8`, SENAMHI 211003, 2170 km²), Perú.
 
-**Integrantes:** _(completar)_
+**Integrantes:** Marlin Julie Schwebel · Juan Diego Galvis
 
 ## Ver los resultados
 

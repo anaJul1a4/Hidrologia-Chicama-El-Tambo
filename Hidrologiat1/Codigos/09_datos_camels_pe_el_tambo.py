@@ -52,37 +52,44 @@ def md5(path, chunk=2**20):
     return h.hexdigest()
 
 
-# ------------------------------------------------------------------ 1. descarga y verificación
-rec = json.load(urllib.request.urlopen(f"https://zenodo.org/api/records/{RECORD}", timeout=60))
-finfo = next(f for f in rec["files"] if f["key"] == ZIP_NAME)
-md5_ref = finfo["checksum"].split(":")[1]
-zpath = ZIP_DIR / ZIP_NAME
-if not zpath.exists():
-    print(f"Descargando {ZIP_NAME} ({finfo['size']/2**20:.0f} MB) desde Zenodo …")
-    urllib.request.urlretrieve(finfo["links"]["self"], zpath)
-md5_loc = md5(zpath)
-if md5_loc != md5_ref:
-    raise RuntimeError(f"MD5 no coincide: local {md5_loc} ≠ Zenodo {md5_ref}. Borrar y descargar de nuevo.")
-print(f"{ZIP_NAME}: MD5 verificado ({md5_loc}) · registro {RECORD} · versión {rec['metadata']['version']}")
+# Si el subconjunto de la cuenca ya está en datos/camels_pe (como en el ZIP de entrega) y no está el ZIP nacional,
+# se usa directamente: el MD5 ya quedó registrado en PROCEDENCIA.json al extraerlo. Para rehacer la extracción, borrar
+# datos/camels_pe o colocar CAMELS-PE_v1.0.1.zip en Tarea 1/CAMELS_PE/.
+SUBCONJUNTO = (DEST / f"{GID}.csv").exists() and (DEST / "PROCEDENCIA.json").exists()
+if SUBCONJUNTO and not (ZIP_DIR / ZIP_NAME).exists():
+    print(f"Se usa el subconjunto ya extraído en {DEST} (procedencia y MD5 en PROCEDENCIA.json).")
+else:
+    # ------------------------------------------------------------------ 1. descarga y verificación
+    rec = json.load(urllib.request.urlopen(f"https://zenodo.org/api/records/{RECORD}", timeout=60))
+    finfo = next(f for f in rec["files"] if f["key"] == ZIP_NAME)
+    md5_ref = finfo["checksum"].split(":")[1]
+    zpath = ZIP_DIR / ZIP_NAME
+    if not zpath.exists():
+        print(f"Descargando {ZIP_NAME} ({finfo['size']/2**20:.0f} MB) desde Zenodo …")
+        urllib.request.urlretrieve(finfo["links"]["self"], zpath)
+    md5_loc = md5(zpath)
+    if md5_loc != md5_ref:
+        raise RuntimeError(f"MD5 no coincide: local {md5_loc} ≠ Zenodo {md5_ref}. Borrar y descargar de nuevo.")
+    print(f"{ZIP_NAME}: MD5 verificado ({md5_loc}) · registro {RECORD} · versión {rec['metadata']['version']}")
 
-# ------------------------------------------------------------------ 2. extracción del subconjunto
-with zipfile.ZipFile(zpath) as z:
-    members = [m for m in z.namelist() if GID in m and not m.endswith("/")]
-    members += ["CAMELS-PE/01_metadata/data_dictionary.csv", "CAMELS-PE/README.md"]
-    for m in members:
-        (DEST / Path(m).name).write_bytes(z.read(m))
-    st = pd.read_csv(z.open("CAMELS-PE/01_metadata/stations.csv"))
-    st[st["gauge_id"] == GID].to_csv(DEST / f"{GID}_metadatos_estacion.csv", index=False)
-    attrs = [pd.read_csv(z.open(m)).query("gauge_id == @GID").set_index("gauge_id")
-             for m in z.namelist() if m.startswith("CAMELS-PE/02_attributes/") and m.endswith(".csv")]
-    pd.concat(attrs, axis=1).T.rename(columns={GID: "valor"}).to_csv(DEST / f"{GID}_atributos.csv")
-(DEST / "PROCEDENCIA.json").write_text(json.dumps({
-    "dataset": "CAMELS-PE: Catchment Attributes and Meteorology for Large-sample Studies in Peru",
-    "version": rec["metadata"]["version"], "doi": DOI, "zenodo_record": RECORD,
-    "archivo": ZIP_NAME, "md5": md5_loc, "fecha_verificacion": pd.Timestamp.today().strftime("%Y-%m-%d"),
-    "estacion": GID, "archivos_extraidos": sorted(Path(m).name for m in members),
-}, indent=2, ensure_ascii=False), encoding="utf-8")
-print(f"Extraídos a {DEST}: {sorted(p.name for p in DEST.iterdir())}")
+    # ------------------------------------------------------------------ 2. extracción del subconjunto
+    with zipfile.ZipFile(zpath) as z:
+        members = [m for m in z.namelist() if GID in m and not m.endswith("/")]
+        members += ["CAMELS-PE/01_metadata/data_dictionary.csv", "CAMELS-PE/README.md"]
+        for m in members:
+            (DEST / Path(m).name).write_bytes(z.read(m))
+        st = pd.read_csv(z.open("CAMELS-PE/01_metadata/stations.csv"))
+        st[st["gauge_id"] == GID].to_csv(DEST / f"{GID}_metadatos_estacion.csv", index=False)
+        attrs = [pd.read_csv(z.open(m)).query("gauge_id == @GID").set_index("gauge_id")
+                 for m in z.namelist() if m.startswith("CAMELS-PE/02_attributes/") and m.endswith(".csv")]
+        pd.concat(attrs, axis=1).T.rename(columns={GID: "valor"}).to_csv(DEST / f"{GID}_atributos.csv")
+    (DEST / "PROCEDENCIA.json").write_text(json.dumps({
+        "dataset": "CAMELS-PE: Catchment Attributes and Meteorology for Large-sample Studies in Peru",
+        "version": rec["metadata"]["version"], "doi": DOI, "zenodo_record": RECORD,
+        "archivo": ZIP_NAME, "md5": md5_loc, "fecha_verificacion": pd.Timestamp.today().strftime("%Y-%m-%d"),
+        "estacion": GID, "archivos_extraidos": sorted(Path(m).name for m in members),
+    }, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"Extraídos a {DEST}: {sorted(p.name for p in DEST.iterdir())}")
 
 # ------------------------------------------------------------------ 3. series mensuales
 d = pd.read_csv(DEST / f"{GID}.csv", parse_dates=["date"]).set_index("date")

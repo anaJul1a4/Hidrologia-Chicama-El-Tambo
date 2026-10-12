@@ -80,3 +80,5 @@ urllib3==2.8.0
 wrapt==2.5.0
 xarray==2026.9.0
 yarl==1.25.1
+python-docx==1.2.0
+reportlab==5.0.1
