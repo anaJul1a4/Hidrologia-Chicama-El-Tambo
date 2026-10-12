@@ -295,7 +295,8 @@ PIE = {
     "contexto": "Se reunieron los rasgos que pueden explicar los resultados: orientación de laderas y relieve (GLO-30), "
                 "cobertura (ESA WorldCover 2021), geología de INGEMMET agrupada por comportamiento hidrogeológico, lluvia "
                 "media de CHIRPS, transporte de humedad (IVT y viento de ERA5) por estación y perfiles de temperatura de los "
-                "radiosondeos de Trujillo para la inversión térmica. Scripts 07a, 07b, 24, 25, 34a, 34b y 35.",
+                "radiosondeos de Trujillo para la inversión térmica, y cortes topográficos de la costa a la cordillera "
+                "(DEM GLO-90) con la altura de esa inversión. Scripts 07a, 07b, 07c, 24, 25, 34a, 34b y 35.",
     "p11": "Se agregaron los registros diarios de CAMELS-PE a meses: P_L como suma, Q̄ como media, R como suma de la "
            "lámina diaria y T como media. Los huecos del caudal se rellenaron (interpolación de ln q en huecos de hasta 15 "
            "días, escalado con ≥ 50 % de días y un mes con modelo), marcando cada mes rellenado; los faltantes antes del "
@@ -365,23 +366,11 @@ if (INV / "inversion_por_sondeo.csv").exists():
               fmin=rm.frecuencia_pct.min(), mmin=MESES[int(rm.frecuencia_pct.idxmin()) - 1])
     inversion_html = (
         '<h2 class="sub2">Fuentes de humedad e inversión térmica</h2>'
-        f'<p class="intro">Radiosondeos observados de Trujillo (IGRA2 84516, a ~40 km de la salida de la cuenca): {IV["n"]} '
-        f'sondeos de las 7 a.m. entre {IV["ini"]} y {IV["fin"]}, con inversión en el {IV["f"]:.0f} % de ellos; y transporte '
-        f'de humedad de ERA5 en el periodo común.</p>'
-        + tarjeta("Sondeo típico de la estación seca",
-                  f"La temperatura baja con la altura cerca de la adiabática seca hasta el nivel de condensación (NCA), donde "
-                  f"se forman los estratocúmulos (HR ≈ 100 %). En la base de la inversión el aire se calienta de golpe, unos "
-                  f"{IV['ds']:.0f} °C, y por encima la humedad cae a menos del 50 %. Debajo queda el aire marino frío y "
-                  f"húmedo; encima, aire de la troposfera libre que desciende y se calienta. La capa de nubes queda atrapada a "
-                  f"la altura del cierre de la cuenca y no llega a la cuenca alta.",
-                  "Sondeo observado. Las alturas de los niveles significativos se calcularon con la ecuación hipsométrica "
-                  "desde la superficie y se ajustaron a la altura geopotencial de los niveles estándar. La inversión es el "
-                  "primer aumento continuo de T con la altura (≥ 1 °C); la capa de nubes, el tramo con HR ≥ 95 %. La parcela "
-                  "sube por la adiabática seca hasta el NCA y luego por la adiabática húmeda. Se eligió el sondeo de may–sep "
-                  "más cercano a las medianas de base, tope e intensidad de esa estación.",
-                  "34a_descarga_perfiles.py, 34b_perfiles_inversion.py", png=INV / "fig_sondeo_tipico_inversion.png",
-                  csvs=[INV / "inversion_por_sondeo.csv"])
-        + tarjeta("De dónde llega la humedad y qué la frena: estación seca frente a estación húmeda",
+        f'<p class="intro">Dos pasos: (1) de dónde llega la humedad y qué impide que suba, en la vertical; (2) dónde queda '
+        f'esa tapa respecto al valle y a la cuenca, en el terreno. Datos: radiosondeos observados de Trujillo (IGRA2 84516, '
+        f'a unos 65 km al suroeste de El Tambo), {IV["n"]} sondeos de las 7 a.m. entre {IV["ini"]} y {IV["fin"]}, con '
+        f'inversión en el {IV["f"]:.0f} % de ellos; transporte de humedad de ERA5 en el periodo común, y el DEM GLO-90.</p>'
+        + tarjeta("1 · De dónde llega la humedad y qué la frena: estación seca frente a estación húmeda",
                   f"<b>La diferencia entre temporadas no está en cuánto vapor pasa sobre la cuenca, sino en si puede subir.</b> "
                   f"En ERA5 el transporte sobre la cuenca va hacia el oeste en las dos temporadas y no es menor en la seca "
                   f"(≈ 50 frente a 33 kg m⁻¹ s⁻¹), aunque la columna lleva menos agua precipitable (≈ 22 frente a 28 mm). "
@@ -403,7 +392,27 @@ if (INV / "inversion_por_sondeo.csv").exists():
                   csvs=[INV / "perfiles_compuestos_temporada.csv", INV / "inversion_resumen_mensual.csv"],
                   leer_="El transporte de humedad no equivale a lluvia: llueve donde el flujo converge y asciende. Los "
                         "sondeos cubren dos años y son de las 7 a.m. La explicación física (anticiclón del Pacífico sur, "
-                        "corriente de Humboldt, convección andina) debe sustentarse con bibliografía."))
+                        "corriente de Humboldt, convección andina) debe sustentarse con bibliografía.")
+        + tarjeta("2 · Dónde actúa la tapa: cortes topográficos del valle",
+                  "El Chicama es un valle abierto al Pacífico, encajado en la vertiente occidental: el corte oeste–este "
+                  "(c) pasa de la llanura costera a colinas de 500–1 300 m, baja al fondo del valle en El Tambo (684 m) y "
+                  "sube hasta la divisoria de la cuenca (≈ 3 500 m) y la cordillera (> 4 000 m). En la estación seca la "
+                  "inversión costera tiene su base a ≈ 840 m y su tope a ≈ 1 200 m (mediana de los radiosondeos de "
+                  "Trujillo, presente en 95 % de los sondeos): queda a la altura del fondo del valle y de las colinas "
+                  "costeras, de modo que el valle bajo funciona como un corredor bajo la tapa de la inversión. Pero esa tapa "
+                  "solo alcanza los primeros 24 km del río (de 79 km) y apenas 5 % del área de la cuenca (curva "
+                  "hipsométrica); en la estación húmeda baja a 330–720 m, por debajo de El Tambo. Por eso la inversión explica "
+                  "la aridez de la costa y del valle bajo, mientras que la sequía sobre el resto de la cuenca requiere la "
+                  "subsidencia de gran escala del anticiclón del Pacífico sur (ω500 > 0 en jun–ago; punto 1.5), que "
+                  "mantiene el aire seco y descendente por encima de la inversión (paso 1).",
+                  "Cotas del DEM Copernicus GLO-90 (90 m; seis teselas de 1° entre 7–9° S y 77–80° O) muestreadas cada 200 m "
+                  "a lo largo de (c) un corte oeste–este a la latitud de El Tambo y (d) el río principal delimitado en el "
+                  "script 06. Se usa GLO-90 porque el corte llega a la costa, fuera de las teselas GLO-30 de la cuenca. "
+                  "Franjas: base y tope medianos de la inversión por estación, de los radiosondeos IGRA2 de Trujillo "
+                  "(12 UTC; script 34b), a unos 65 km al suroeste de El Tambo: la altura de la inversión sobre el valle es una "
+                  "extrapolación desde la costa.",
+                  "07c_perfil_topografico.py", png=R / "contexto_fisico" / "fig_perfil_topografico.png",
+                  csvs=[R / "contexto_fisico" / "perfil_topografico.csv", R / "inversion" / "inversion_resumen_mensual.csv"]))
 
 HI = (float(morf["Cota media (m s.n.m.)"]) - float(morf["Cota mínima (m s.n.m.)"])) / (
     float(morf["Cota máxima (m s.n.m.)"]) - float(morf["Cota mínima (m s.n.m.)"]))

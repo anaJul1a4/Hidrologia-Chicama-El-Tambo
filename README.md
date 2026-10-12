@@ -44,7 +44,7 @@ pip install -r requirements.txt
 cd Hidrologiat1/Codigos
 ```
 
-Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 29 → 27 → 30 → 31 → 32 → 33 → 22 → 34a → 34b → 35 → 37a → 37 → 38 → 36`. Todos los scripts de figuras importan `estilo_figuras.py` (paleta y escalas comunes).
+Orden de ejecución: `09 → 06 → 07a → 13 → 14 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 24 → 25 → 29 → 27 → 30 → 31 → 32 → 33 → 22 → 34a → 34b → 07c → 35 → 37a → 37 → 38 → 36`. Todos los scripts de figuras importan `estilo_figuras.py` (paleta y escalas comunes).
 
 El script 09 descarga y verifica CAMELS-PE v1.0.1 desde Zenodo. Después hay que **extraer el ZIP**
 en `Tarea 1/CAMELS_PE/`, porque el script 06 lee de ahí el polígono y las estaciones.

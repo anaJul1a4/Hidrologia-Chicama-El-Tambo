@@ -79,7 +79,7 @@ Cada carpeta de `datos/` trae un `PROCEDENCIA.json` con fuente, DOI o URL, solic
 | `campos_globales/` | ERSST v5 (doi:10.7289/V5T72FNM) y ERA5 | SST (°C), presión al nivel del mar (Pa) y u en 200 hPa (m/s), malla 2°, 1981–2025 (punto 5) |
 | `indices_clima/` | CPC/NOAA | Índices Niño 1+2, 3, 4 y 3.4 de ERSST v5 (°C, base 1991–2020) |
 | `chirps/`, `piscop_senamhi/` | CHIRPS v2.0 (doi:10.15780/G2RP4Q); PISCOp v3.0 (doi:10.6084/m9.figshare.32411886.v1) | Recortes de la cuenca (mm/mes y mm/d) usados como apoyo y sensibilidad |
-| `dem/GLO30_tiles/` | Copernicus GLO-30 | Dos teselas de 1°; el script 06 genera el mosaico y la versión UTM |
+| `dem/GLO30_tiles/`, `dem/GLO90_tiles/` | Copernicus GLO-30 y GLO-90 | Dos teselas GLO-30 de la cuenca (el script 06 genera el mosaico y la versión UTM) y seis GLO-90 de la costa a la cordillera (cortes topográficos, script 07c) |
 | `cobertura/`, `geologia/`, `estaciones/` | ESA WorldCover 2021; INGEMMET 1:100 000; red SENAMHI | Recortes y capas del contexto físico |
 | `radiosondeo/` | IGRA2, estación PEM00084516 (Trujillo) | Sondeos usados para la inversión térmica |
 
@@ -104,9 +104,9 @@ python ejecutar_todo.py           # toda la cadena, sin internet, en el orden co
 ```
 
 Orden que sigue `ejecutar_todo.py`:
-`09 → 06 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 25 → 27 → 30 → 31 → 32 → 33 → 34b → 35 → 37 → 38 → 39 → 36`
+`09 → 06 → 10 → 28 → 26 → 07b → 11 → 12 → 17 → 15 → 16 → 18 → 19 → 20 → 21 → 23 → 25 → 27 → 30 → 31 → 32 → 33 → 34b → 07c → 35 → 37 → 38 → 39 → 36`
 (con `--informe` regenera además el informe con el script 40). Correspondencia con la tarea: 09–12, 15–19 punto
-1.1–1.4; 20–23, 27 punto 1.5; 30–31 punto 2; 32 punto 3; 33 y 38 punto 4; 37 punto 5; 06–07b y 24–35 contexto
+1.1–1.4; 20–23, 27 punto 1.5; 30–31 punto 2; 32 punto 3; 33 y 38 punto 4; 37 punto 5; 06–07c y 24–35 contexto
 físico; 36 página; 39–40 síntesis e informe.
 
 Scripts que **no** se ejecutan en la reproducción porque descargan datos o parten de bases que no se entregan (su

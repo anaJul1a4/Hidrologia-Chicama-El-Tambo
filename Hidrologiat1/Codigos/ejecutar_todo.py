@@ -27,7 +27,7 @@ from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
 ORDEN = ["09", "06", "10", "28", "26", "07b", "11", "12", "17", "15", "16", "18", "19", "20", "21", "23", "25", "27",
-         "30", "31", "32", "33", "34b", "35", "37", "38", "39", "36"]
+         "30", "31", "32", "33", "34b", "07c", "35", "37", "38", "39", "36"]
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--desde", help="número del script desde el que se retoma (p. ej. 30)")
