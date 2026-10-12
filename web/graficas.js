@@ -122,18 +122,32 @@
     const anios = D.disp.anios;
     const nombreCond = { completo: "completo", escalado: "escalado (incompleto)", excluido: "excluido (> 10 % faltante)",
                          sin_dato: "sin dato" };
-    const texto = dsp.f.map((fila, i) => fila.map((f, j) => {
-      if (f == null) return "fuera del periodo común";
-      const c = dsp.c[i][j];
-      return `${anios[i]}-${String(j + 1).padStart(2, "0")}<br>${Math.round(100 * f)} % de días con dato<br>` +
-             `condición: ${nombreCond[c] || c || "—"}`;
-    }));
+    // misma codificación que fig_disponibilidad_1_4.png (estilo_figuras.DISP): condición de cada mes antes del relleno
+    const COND = ["completo", "escalado", "excluido", "sin_dato"];
+    const COL = ["#256abf", "#9ec5f4", "#d03b3b", "#d9d9d9"];
+    const diasMes = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const z = [], etiqueta = [], hover = [];
+    dsp.f.forEach((fila, i) => {
+      z.push([]); etiqueta.push([]); hover.push([]);
+      fila.forEach((f, j) => {
+        const c = dsp.c[i][j];
+        if (f == null || c == null) { z[i].push(null); etiqueta[i].push(""); hover[i].push("fuera del periodo común"); return; }
+        const n = Math.round(f * diasMes(anios[i], j + 1));
+        z[i].push(COND.indexOf(c));
+        etiqueta[i].push(c === "completo" || c === "sin_dato" || v === "P_I" ? "" : String(n));   // días válidos si incompleto
+        hover[i].push(`${anios[i]}-${String(j + 1).padStart(2, "0")}<br>${n} días con dato (${Math.round(100 * f)} %)<br>` +
+                      `condición: ${nombreCond[c] || c}`);
+      });
+    });
+    const escala = [];
+    COL.forEach((col, k) => { escala.push([k / 4, col], [(k + 1) / 4, col]); });
     const data = [{
-      type: "heatmap", x: MESES, y: anios, z: dsp.f, text: texto, hovertemplate: "%{text}<extra></extra>",
-      zmin: 0, zmax: 1, xgap: 1, ygap: 1, xaxis: "x", yaxis: "y",
-      colorscale: [[0, rgba(t.neg, 0.85)], [0.5, rgba(t.neg, 0.35)], [0.9, rgba(t.s1, 0.25)], [1, t.s1]],
-      colorbar: { title: { text: "fracción de días<br>con dato", font: { size: 11, color: t.ink2 } }, len: 0.52, y: 1,
-                  yanchor: "top", thickness: 12, tickvals: [0, 0.5, 0.9, 1], ticktext: ["0", "0.5", "0.9", "1"],
+      type: "heatmap", x: MESES, y: anios, z, customdata: hover, text: etiqueta, texttemplate: "%{text}",
+      textfont: { size: 9, color: t.ink }, hovertemplate: "%{customdata}<extra></extra>",
+      zmin: -0.5, zmax: 3.5, xgap: 1, ygap: 1, xaxis: "x", yaxis: "y", colorscale: escala,
+      colorbar: { title: { text: "condición del mes<br>(antes del relleno)", font: { size: 11, color: t.ink2 } }, len: 0.52,
+                  y: 1, yanchor: "top", thickness: 12, tickvals: [0, 1, 2, 3],
+                  ticktext: ["completo", "escalado (≤ 10 % faltante)", "excluido (> 10 % faltante)", "sin dato"],
                   tickfont: { color: t.muted }, outlinewidth: 0 },
     }];
     const layout = base(t, {
@@ -171,13 +185,41 @@
   // 1.1 · temperatura
   G.temp = function (t) {
     const x = D.fechas;
+    // (b) ciclo anual medio 1998–2020 (meses con PISCOt y ERA5-Land a la vez)
+    const ciclo = (serie) => {
+      const suma = Array(12).fill(0), n = Array(12).fill(0);
+      x.forEach((f, i) => {
+        const [y, m] = f.split("-").map(Number);
+        if (y >= 1998 && y <= 2020 && serie[i] != null && D.T_piscot[i] != null && D.T_era5[i] != null) {
+          suma[m - 1] += serie[i]; n[m - 1] += 1;
+        }
+      });
+      return suma.map((v, j) => (n[j] ? Math.round(100 * v / n[j]) / 100 : null));
+    };
+    const h2 = "%{x}: %{y:.2f} °C";
     return { data: [
-      linea(x, D.T_piscot, "PISCOt v1.2 (CAMELS-PE)", t.vT, { hovertemplate: "%{y:.2f} °C" }),
-      linea(x, D.T_era5, "ERA5-Land sin corregir", t.vTE, { line: { color: t.vTE, width: 1.6 }, hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_piscot, "PISCOt v1.2 (CAMELS-PE)", t.vT, { legendgroup: "p", hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_era5, "ERA5-Land sin corregir", t.vTE, { legendgroup: "e", line: { color: t.vTE, width: 1.6 },
+        hovertemplate: "%{y:.2f} °C" }),
       linea(x, D.T_est, "Estimada: ERA5-Land + sesgo mensual", t.vT, { line: { color: t.vT, width: 2, dash: "dash" },
         hovertemplate: "%{y:.2f} °C" }),
-    ], layout: base(t, { height: 470, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
-      yaxis: eje(t, { title: { text: "Temperatura media mensual (°C)" } }) }) };
+      { type: "scatter", mode: "lines+markers", x: MESES, y: ciclo(D.T_piscot), xaxis: "x2", yaxis: "y2",
+        name: "PISCOt", legendgroup: "p", showlegend: false, line: { color: t.vT, width: 2 },
+        marker: { size: 7, color: t.vT, line: { color: t.card, width: 1.5 } }, hovertemplate: "PISCOt " + h2 + "<extra></extra>" },
+      { type: "scatter", mode: "lines+markers", x: MESES, y: ciclo(D.T_era5), xaxis: "x2", yaxis: "y2",
+        name: "ERA5-Land", legendgroup: "e", showlegend: false, line: { color: t.vTE, width: 2 },
+        marker: { size: 7, color: t.vTE, line: { color: t.card, width: 1.5 } }, hovertemplate: "ERA5-Land " + h2 + "<extra></extra>" },
+    ], layout: base(t, { height: 470, hovermode: "x",
+      xaxis: ejeTiempo(t, { domain: [0, 0.7], rangeslider: slider(t) }),
+      yaxis: eje(t, { title: { text: "Temperatura media mensual (°C)" } }),
+      xaxis2: eje(t, { domain: [0.78, 1], anchor: "y2", type: "category" }),
+      yaxis2: eje(t, { anchor: "x2", title: { text: "°C" } }),
+      annotations: [
+        { text: "(a) Serie mensual", xref: "paper", yref: "paper", x: 0, y: 1.0, xanchor: "left", yanchor: "bottom",
+          showarrow: false, font: { color: t.ink, size: 12.5 }, yshift: 26 },
+        { text: "(b) Ciclo anual medio 1998–2020", xref: "paper", yref: "paper", x: 0.78, y: 1.0, xanchor: "left",
+          yanchor: "bottom", showarrow: false, font: { color: t.ink, size: 12.5 }, yshift: 26 }],
+      margin: { l: 60, r: 18, t: 70, b: 40 } }) };
   };
 
   // 1.2 · fuentes de precipitación

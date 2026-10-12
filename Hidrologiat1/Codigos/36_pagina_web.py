@@ -480,11 +480,13 @@ pestana("p11", "1.1 Series", "Punto 1.1 · Series mensuales de precipitación, c
                   f"PISCOt termina en 2020. En los {TB['n']} meses con ambas fuentes varían igual (r = {TB['r']:.2f}), pero "
                   f"ERA5-Land es {abs(TB['sesgo']):.1f} °C más fría de forma casi constante. La estimación desde 2021 "
                   f"(ERA5-Land + sesgo de cada mes) tuvo un error medio de {float(val['MAE_C']):.2f} °C al validarla en "
-                  f"{val['evaluacion']}. Las dos fuentes no se unen en una sola serie.",
+                  f"{val['evaluacion']}. Las dos fuentes no se unen en una sola serie. El ciclo anual (b) tiene la misma forma en "
+                  f"las dos: casi plano, con el máximo en agosto–septiembre, al final de la estación seca.",
                   "ERA5-Land T2m mensual (0.1°) descargado del CDS y promediado sobre la cuenca ponderando por área (30 celdas). "
                   "El sesgo de cada mes calendario frente a PISCOt se calculó en 1998–2010 y se evaluó fuera de muestra en "
                   "2011–2020; con él se estima T desde 2021: T<sub>est</sub> = ERA5-Land + sesgo del mes. Solo unos 0.5 °C del "
-                  "desfase se explican por la altitud del relieve del modelo.",
+                  "desfase se explican por la altitud del relieve del modelo. (b) Media de cada mes calendario en 1998–2020, "
+                  "solo con los meses en que existen las dos fuentes.",
                   "17_era5land_temperatura.py", grafica="temp",
                   csvs=[SM / "era5land_t2m_cuenca_mensual.csv", SM / "temperatura_piscot_extendida_era5land.csv",
                         SM / "validacion_extension_T.csv"]))
@@ -591,8 +593,9 @@ qc_html = f"""
     <aside class="qc-lado">{"".join(panel_qc(v, i == 0) for i, v in enumerate(_VQC))}</aside>
   </div>
   <div class="fig-texto">
-    <div><h4>Qué muestra</h4><p>Arriba, la fracción de días con dato de cada mes (año × mes), antes de cualquier relleno: los
-    meses claros tienen faltantes. Abajo, la serie diaria del mismo periodo con los vacíos sin rellenar; en el caudal, los días
+    <div><h4>Qué muestra</h4><p>Arriba, la condición de cada mes (año × mes) antes de cualquier relleno, con los mismos
+    colores que la figura del informe: azul completo, celeste escalado (≤ 10 % de días faltantes), rojo excluido (> 10 %) y gris
+    sin dato; el número es la cantidad de días con dato en los meses incompletos. Abajo, la serie diaria del mismo periodo con los vacíos sin rellenar; en el caudal, los días
     interpolados se marcan con puntos negros. A la derecha, lo que se comprobó y se decidió con esa variable, para leerlo junto a la
     gráfica.</p></div>
     <div><h4>Cómo se construyó</h4><p>Días válidos contados en el registro diario de CAMELS-PE (P<sub>L</sub>, caudal y T) y
@@ -607,7 +610,15 @@ qc_html = f"""
 
 pestana("p14", "1.4 Calidad", "Punto 1.4 · Control de calidad",
         "Elija una variable: su disponibilidad, su serie diaria y todo lo que se hizo con ella quedan en el mismo lugar.",
-        qc_html
+        tarjeta("Disponibilidad año × mes de las cuatro variables",
+                "Lluvia de referencia y temperatura completas en todo el periodo (la temperatura de PISCOt termina en "
+                "2020-12); IMERG completo; el caudal tiene meses incompletos concentrados en el estiaje (ago–oct) y en "
+                "2019–2021. Es la misma figura del informe.",
+                "Condición de cada mes antes del relleno: completo, escalado (≤ 10 % de días faltantes), excluido "
+                "(> 10 %) o sin dato. El número indica los días con dato en los meses incompletos.",
+                "19_control_calidad_1_4.py", png=CC / "fig_disponibilidad_1_4.png",
+                csvs=[CC / "disponibilidad_condicion_mes.csv", CC / "resumen_disponibilidad_1_4.csv"])
+        + qc_html
         + tarjeta("Relleno de los faltantes de caudal y su validación",
                   "(a) Al borrar días de meses completos, la interpolación da errores 3–8 veces menores que el escalado "
                   "(≤ 1.5 % de mediana hasta 7 días). (b) El modelo mensual, evaluado dejando un año fuera, tiene un error "

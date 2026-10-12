@@ -277,8 +277,8 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
   <header class="fig-h"><h3>Temperatura: PISCOt frente a ERA5-Land</h3><span class="tipo int">interactiva</span></header>
   <div class="fig-cuerpo"><div class="plot" data-plot="temp" role="img" aria-label="Temperatura: PISCOt frente a ERA5-Land"></div></div>
   <div class="fig-texto">
-    <div><h4>Qué muestra</h4><p>PISCOt termina en 2020. En los 276 meses con ambas fuentes varían igual (r = 0.89), pero ERA5-Land es 2.8 °C más fría de forma casi constante. La estimación desde 2021 (ERA5-Land + sesgo de cada mes) tuvo un error medio de 0.19 °C al validarla en 2011-01 a 2020-12. Las dos fuentes no se unen en una sola serie.</p></div>
-    <div><h4>Cómo se construyó</h4><p>ERA5-Land T2m mensual (0.1°) descargado del CDS y promediado sobre la cuenca ponderando por área (30 celdas). El sesgo de cada mes calendario frente a PISCOt se calculó en 1998–2010 y se evaluó fuera de muestra en 2011–2020; con él se estima T desde 2021: T<sub>est</sub> = ERA5-Land + sesgo del mes. Solo unos 0.5 °C del desfase se explican por la altitud del relieve del modelo.</p></div>
+    <div><h4>Qué muestra</h4><p>PISCOt termina en 2020. En los 276 meses con ambas fuentes varían igual (r = 0.89), pero ERA5-Land es 2.8 °C más fría de forma casi constante. La estimación desde 2021 (ERA5-Land + sesgo de cada mes) tuvo un error medio de 0.19 °C al validarla en 2011-01 a 2020-12. Las dos fuentes no se unen en una sola serie. El ciclo anual (b) tiene la misma forma en las dos: casi plano, con el máximo en agosto–septiembre, al final de la estación seca.</p></div>
+    <div><h4>Cómo se construyó</h4><p>ERA5-Land T2m mensual (0.1°) descargado del CDS y promediado sobre la cuenca ponderando por área (30 celdas). El sesgo de cada mes calendario frente a PISCOt se calculó en 1998–2010 y se evaluó fuera de muestra en 2011–2020; con él se estima T desde 2021: T<sub>est</sub> = ERA5-Land + sesgo del mes. Solo unos 0.5 °C del desfase se explican por la altitud del relieve del modelo. (b) Media de cada mes calendario en 1998–2020, solo con los meses en que existen las dos fuentes.</p></div>
   </div>
   <p class="meta"><span class="script">17_era5land_temperatura.py</span> · Datos: <a href="Tarea%201/El_Tambo/resultados/series_mensuales/era5land_t2m_cuenca_mensual.csv" download>era5land_t2m_cuenca_mensual.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/temperatura_piscot_extendida_era5land.csv" download>temperatura_piscot_extendida_era5land.csv</a> · <a href="Tarea%201/El_Tambo/resultados/series_mensuales/validacion_extension_T.csv" download>validacion_extension_T.csv</a></p>
 </article><aside class="pie-metodo"><h3>Qué se hizo en este punto</h3><p>Se agregaron los registros diarios de CAMELS-PE a meses: P_L como suma, Q̄ como media, R como suma de la lámina diaria y T como media. Los huecos del caudal se rellenaron (interpolación de ln q en huecos de hasta 15 días, escalado con ≥ 50 % de días y un mes con modelo), marcando cada mes rellenado; los faltantes antes del relleno son 3.2 % de los días (límite de la guía: 10 %). La temperatura desde 2021 es una estimación con ERA5-Land, dibujada aparte. Scripts 09, 15 y 17; validación del relleno en el 28.</p></aside></section><section class="panel" id="tab-p12" data-tab="p12" hidden><h2>Punto 1.2 · Precipitación satelital IMERG</h2><p class="intro">IMERG V07 Final (0.1°) promediado sobre la cuenca. Frente a P<sub>L</sub>: media 44.9 frente a 69.4 mm/mes, sesgo -24.5 mm/mes, MAE 28.7, RMSE 48.0, r = 0.90. IMERG acumula el 65 % de la lluvia de P<sub>L</sub>. Ninguna de las dos es una observación directa: P<sub>L</sub> interpola pluviómetros con información satelital, e IMERG Final también se ajusta con pluviómetros.</p>
@@ -422,6 +422,15 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
     </tr>
   </tbody>
 </table></div><p class="nota">Percentiles con interpolación lineal (tipo 7). T solo PISCOt, sin la estimación desde 2021. La tabla del registro completo está en estadisticos_1_3_registro_completo.csv.</p></div><aside class="pie-metodo"><h3>Qué se hizo en este punto</h3><p>Se calcularon estadísticos (media, mediana, cuartiles, percentiles 5–95, asimetría) sobre el periodo común y el registro completo, histogramas con ancho de Freedman–Diaconis y los mismos límites para las dos lluvias, y diagramas de caja de Tukey. Se buscaron los meses extremos en las series. Script 18.</p></aside></section><section class="panel" id="tab-p14" data-tab="p14" hidden><h2>Punto 1.4 · Control de calidad</h2><p class="intro">Elija una variable: su disponibilidad, su serie diaria y todo lo que se hizo con ella quedan en el mismo lugar.</p>
+<article class="fig">
+  <header class="fig-h"><h3>Disponibilidad año × mes de las cuatro variables</h3><span class="tipo">imagen</span></header>
+  <div class="fig-cuerpo"><button class="zoom" data-full="Tarea%201/El_Tambo/resultados/control_calidad/fig_disponibilidad_1_4.png" aria-label="Ampliar: Disponibilidad año × mes de las cuatro variables"><img loading="lazy" src="web/img/fig_disponibilidad_1_4.png" alt="Disponibilidad año × mes de las cuatro variables"></button></div>
+  <div class="fig-texto">
+    <div><h4>Qué muestra</h4><p>Lluvia de referencia y temperatura completas en todo el periodo (la temperatura de PISCOt termina en 2020-12); IMERG completo; el caudal tiene meses incompletos concentrados en el estiaje (ago–oct) y en 2019–2021. Es la misma figura del informe.</p></div>
+    <div><h4>Cómo se construyó</h4><p>Condición de cada mes antes del relleno: completo, escalado (≤ 10 % de días faltantes), excluido (> 10 %) o sin dato. El número indica los días con dato en los meses incompletos.</p></div>
+  </div>
+  <p class="meta"><span class="script">19_control_calidad_1_4.py</span> · <a href="Tarea%201/El_Tambo/resultados/control_calidad/fig_disponibilidad_1_4.png" target="_blank" rel="noopener">PNG en resolución completa</a> · Datos: <a href="Tarea%201/El_Tambo/resultados/control_calidad/disponibilidad_condicion_mes.csv" download>disponibilidad_condicion_mes.csv</a> · <a href="Tarea%201/El_Tambo/resultados/control_calidad/resumen_disponibilidad_1_4.csv" download>resumen_disponibilidad_1_4.csv</a></p>
+</article>
 <article class="fig qc">
   <header class="fig-h"><h3>Disponibilidad y control de calidad por variable</h3><span class="tipo int">interactiva</span></header>
   <div class="selector" data-para="qc" role="group" aria-label="Variable"><button type="button" data-v="P_L" aria-pressed="true">P<sub>L</sub></button><button type="button" data-v="Q" aria-pressed="false">Q̄ caudal</button><button type="button" data-v="T" aria-pressed="false">T</button><button type="button" data-v="P_I" aria-pressed="false">P<sub>I</sub> IMERG</button></div>
@@ -430,8 +439,9 @@ footer .wrap{padding-top:18px;padding-bottom:26px}
     <aside class="qc-lado"><div class="qc-var" data-var="P_L"><h4>P<sub>L</sub> · precipitación</h4><p class="nota">Periodo común 1998-01 a 2024-12, antes del relleno.</p><div class="datos-clave"><div class="dato">Días faltantes<b>0.0 %</b></div><div class="dato">Meses completos<b>324</b></div><div class="dato">Escalados<b>0</b></div><div class="dato">Excluidos<b>0</b></div><div class="dato">Sin dato<b>0</b></div></div><h4>Qué se hizo</h4><p>Sin días faltantes en 1981–2025. P<sub>L</sub> mensual = suma de los días del mes, solo con meses completos. No es una observación directa: es PISCOp v2.1 (pluviómetros de SENAMHI + CHIRPS) promediado sobre la cuenca por CAMELS-PE, y no se pudo reproducir con PISCOp v3.0 (−14.5 %). Los meses con menos de 1 mm son meses secos reales, no faltantes.</p><h4>Comprobaciones y decisiones</h4><ul class="qc-lista"><li><span class="estado e-sin-problema">sin problema</span> <b>CC-01</b> · 1981–2025: Posibles fechas faltantes, duplicadas o códigos de faltante <i>→ Ninguna</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-02</b> · 1981–2025: Valores negativos <i>→ Ninguna</i></li><li><span class="estado e-retenido">retenido</span> <b>CC-08</b> · 94 de 297 meses del periodo común 1998-01 a 2024-12, sobre todo may–ago: R_m &gt; P_m <i>→ Se conservan (la guía advierte que no es error por sí solo)</i></li><li><span class="estado e-incierto">incierto</span> <b>CC-12</b> · 1981–2025: P_L es un producto interpolado (PISCOp v2.1), no observación; no reproducible con PISCOp público (15–25 % menor) <i>→ Se mantiene como P_L principal; PISCOp v3.0 como apoyo</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-13</b> · 14 meses del periodo común 1998-01 a 2024-12 (estación seca): P_L &lt; 1 mm (ningún cero exacto) <i>→ Se conservan: son meses secos reales, no faltantes</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-17</b> · 1998-03, 2010-03: Revisión manual de agregación y conversión de unidades <i>→ Ninguna</i></li></ul></div><div class="qc-var" data-var="Q" hidden><h4>Q̄ · caudal</h4><p class="nota">Periodo común 1998-01 a 2024-12, antes del relleno.</p><div class="datos-clave"><div class="dato">Días faltantes<b>3.2 %</b></div><div class="dato">Meses completos<b>244</b></div><div class="dato">Escalados<b>53</b></div><div class="dato">Excluidos<b>26</b></div><div class="dato">Sin dato<b>1</b></div></div><h4>Qué se hizo</h4><p>3.2 % de días faltantes en el periodo común, concentrados en ago–oct y en 2019–2021. Con el criterio de completitud (≤ 10 % de días faltantes) quedaban 27 meses excluidos; el grupo decidió rellenarlos: (1) huecos ≤ 15 días, interpolación de ln q; (2) meses con ≥ 50 % de días, media × días del mes; (3) el resto, modelo mensual con el caudal simulado de CAMELS-PE. Resultado: 244 meses observados completos, 76 con días interpolados, 3 escalados y 1 reconstruido (1998-08). Lo observado se conserva aparte (R_obs, R_flag_obs) y la bandera R_flag indica el origen de cada mes. Validación en la figura de abajo.</p><h4>Comprobaciones y decisiones</h4><ul class="qc-lista"><li><span class="estado e-sin-problema">sin problema</span> <b>CC-01</b> · 1981–2025: Posibles fechas faltantes, duplicadas o códigos de faltante <i>→ Ninguna</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-02</b> · 1981–2025: Valores negativos <i>→ Ninguna</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-03</b> · 1981–2025: La base incluye caudal simulado (PISCO_ARNOVIC) junto al observado <i>→ flow_sim solo se usa como predictor del modelo de relleno en 1 mes(es) sin datos suficientes (1998-08)</i></li><li><span class="estado e-corregido">corregido</span> <b>CC-04</b> · 1998–2025, sobre todo septiembre: Días faltantes concentrados en ago–oct casi todos los años (meses no completos por mes calendario: {1: 3, 2: 2, 3: 3, 5: 1, 6: 2, 7: 8, 8: 11, 9: 26, 10: 10, 11: 8, 12: 5}) <i>→ Relleno (decisión del grupo, 2026-10-10; relleno_caudal.py, validación en el script 28): huecos ≤ 15 días interpolados en ln(q); meses con ≥ 50 % de días tras interpolar → escalados; resto → modelo log-lineal con flow_sim y R del mes anterior</i></li><li><span class="estado e-corregido">corregido</span> <b>CC-05</b> · 2019–2021: Cambio de cobertura: 61, 56 y 24 días faltantes por año; concentra la mayoría de los 26 meses excluidos del periodo común 1998-01 a 2024-12 <i>→ Meses rellenados con el método de CC-04 (bandera R_flag)</i></li><li><span class="estado e-incierto">incierto</span> <b>CC-06</b> · 1998-02: Segundo mes más lluvioso de P_L (381 mm) sin caudal: 23/28 días válidos (faltan 10, 11, 23, 26 y 27) durante El Niño 1997–98 <i>→ Huecos de 1–2 días interpolados en ln(q) → R = 385 mm (antes excluido por 17.9 % de días faltantes)</i></li><li><span class="estado e-incierto">incierto</span> <b>CC-07</b> · 1998-03: Máximo del registro (Q̄ 678 m³/s, R 837 mm) con 2 días faltantes (24 y 25) y R ≈ 2 × P_L (414 mm) <i>→ Días 24 y 25 interpolados en ln(q) → R = 852 mm</i></li><li><span class="estado e-retenido">retenido</span> <b>CC-08</b> · 94 de 297 meses del periodo común 1998-01 a 2024-12, sobre todo may–ago: R_m &gt; P_m <i>→ Se conservan (la guía advierte que no es error por sí solo)</i></li><li><span class="estado e-incierto">incierto</span> <b>CC-09</b> · 2005-12 y 2016-12: Mínimos del registro en diciembre (0.54 y 0.45 m³/s) con P_L 68–79 mm; Q̄ baja frente a oct–nov (~0.8 m³/s) <i>→ Se conservan</i></li><li><span class="estado e-retenido">retenido</span> <b>CC-10</b> · 2007-09-11 a 2007-09-15: Secuencia de 5 días con el mismo caudal (&gt; 0) <i>→ Se conserva (estiaje, caudal casi constante)</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-11</b> · 2003–2005: Medianas de estiaje (jun–sep) muy bajas: 0.047–0.133 mm/d frente a ~0.2–0.5 en otros años <i>→ Se conservan</i></li></ul></div><div class="qc-var" data-var="T" hidden><h4>T · temperatura</h4><p class="nota">Periodo común 1998-01 a 2024-12, antes del relleno.</p><div class="datos-clave"><div class="dato">Días faltantes<b>14.8 %</b></div><div class="dato">Meses completos<b>276</b></div><div class="dato">Escalados<b>0</b></div><div class="dato">Excluidos<b>0</b></div><div class="dato">Sin dato<b>48</b></div></div><h4>Qué se hizo</h4><p>PISCOt (CAMELS-PE) termina en 2020-12: los 48 meses desde 2021 no tienen dato observado. Se estimaron con ERA5-Land + sesgo de cada mes calendario (MAE 0.19 °C en la validación 2011-01 a 2020-12) y se guardan en una columna aparte, sin unir las fuentes. En las estadísticas del punto 1.3 solo entra PISCOt.</p><h4>Comprobaciones y decisiones</h4><ul class="qc-lista"><li><span class="estado e-sin-problema">sin problema</span> <b>CC-01</b> · 1981–2025: Posibles fechas faltantes, duplicadas o códigos de faltante <i>→ Ninguna</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-15</b> · 1981–2020: tmean de PISCOt = (tmin + tmax)/2 exactamente (diferencia máx 0.0005 °C); tmin ≤ tmean ≤ tmax en 100 % de los días <i>→ Se documenta la definición</i></li><li><span class="estado e-corregido">corregido</span> <b>CC-16</b> · 2021–2025: Sin dato en PISCOt (termina en 2020) <i>→ Valores reconstruidos en columna aparte con bandera de fuente; no entran en las estadísticas de 1.3</i></li></ul></div><div class="qc-var" data-var="P_I" hidden><h4>P<sub>I</sub> · IMERG</h4><p class="nota">Periodo común 1998-01 a 2024-12, antes del relleno.</p><div class="datos-clave"><div class="dato">Días faltantes<b>—</b></div><div class="dato">Meses completos<b>324</b></div><div class="dato">Escalados<b>0</b></div><div class="dato">Excluidos<b>0</b></div><div class="dato">Sin dato<b>0</b></div></div><h4>Qué se hizo</h4><p>Producto mensual (IMERG V07 Final): los 324 meses del periodo común están completos. La tasa media (mm/h) se convirtió a mm/mes con los días de cada mes y se promedió sobre la cuenca ponderando por área. Nunca baja de ≈ 2 mm/mes y sus picos son mucho menores que los de P<sub>L</sub> (limitación del producto, no error de datos).</p><h4>Comprobaciones y decisiones</h4><ul class="qc-lista"><li><span class="estado e-sin-problema">sin problema</span> <b>CC-14</b> · 1998-01 a 2025-08: Registro hasta 2025-08; P_I nunca &lt; 1.97 mm y P95 de 141 mm frente a 229 mm de P_L <i>→ Ninguna (limitación del producto, no error de datos)</i></li><li><span class="estado e-sin-problema">sin problema</span> <b>CC-17</b> · 1998-03, 2010-03: Revisión manual de agregación y conversión de unidades <i>→ Ninguna</i></li></ul></div></aside>
   </div>
   <div class="fig-texto">
-    <div><h4>Qué muestra</h4><p>Arriba, la fracción de días con dato de cada mes (año × mes), antes de cualquier relleno: los
-    meses claros tienen faltantes. Abajo, la serie diaria del mismo periodo con los vacíos sin rellenar; en el caudal, los días
+    <div><h4>Qué muestra</h4><p>Arriba, la condición de cada mes (año × mes) antes de cualquier relleno, con los mismos
+    colores que la figura del informe: azul completo, celeste escalado (≤ 10 % de días faltantes), rojo excluido (> 10 %) y gris
+    sin dato; el número es la cantidad de días con dato en los meses incompletos. Abajo, la serie diaria del mismo periodo con los vacíos sin rellenar; en el caudal, los días
     interpolados se marcan con puntos negros. A la derecha, lo que se comprobó y se decidió con esa variable, para leerlo junto a la
     gráfica.</p></div>
     <div><h4>Cómo se construyó</h4><p>Días válidos contados en el registro diario de CAMELS-PE (P<sub>L</sub>, caudal y T) y
@@ -1714,18 +1724,32 @@ debe sustentar con bibliografía.
     const anios = D.disp.anios;
     const nombreCond = { completo: "completo", escalado: "escalado (incompleto)", excluido: "excluido (> 10 % faltante)",
                          sin_dato: "sin dato" };
-    const texto = dsp.f.map((fila, i) => fila.map((f, j) => {
-      if (f == null) return "fuera del periodo común";
-      const c = dsp.c[i][j];
-      return `${anios[i]}-${String(j + 1).padStart(2, "0")}<br>${Math.round(100 * f)} % de días con dato<br>` +
-             `condición: ${nombreCond[c] || c || "—"}`;
-    }));
+    // misma codificación que fig_disponibilidad_1_4.png (estilo_figuras.DISP): condición de cada mes antes del relleno
+    const COND = ["completo", "escalado", "excluido", "sin_dato"];
+    const COL = ["#256abf", "#9ec5f4", "#d03b3b", "#d9d9d9"];
+    const diasMes = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const z = [], etiqueta = [], hover = [];
+    dsp.f.forEach((fila, i) => {
+      z.push([]); etiqueta.push([]); hover.push([]);
+      fila.forEach((f, j) => {
+        const c = dsp.c[i][j];
+        if (f == null || c == null) { z[i].push(null); etiqueta[i].push(""); hover[i].push("fuera del periodo común"); return; }
+        const n = Math.round(f * diasMes(anios[i], j + 1));
+        z[i].push(COND.indexOf(c));
+        etiqueta[i].push(c === "completo" || c === "sin_dato" || v === "P_I" ? "" : String(n));   // días válidos si incompleto
+        hover[i].push(`${anios[i]}-${String(j + 1).padStart(2, "0")}<br>${n} días con dato (${Math.round(100 * f)} %)<br>` +
+                      `condición: ${nombreCond[c] || c}`);
+      });
+    });
+    const escala = [];
+    COL.forEach((col, k) => { escala.push([k / 4, col], [(k + 1) / 4, col]); });
     const data = [{
-      type: "heatmap", x: MESES, y: anios, z: dsp.f, text: texto, hovertemplate: "%{text}<extra></extra>",
-      zmin: 0, zmax: 1, xgap: 1, ygap: 1, xaxis: "x", yaxis: "y",
-      colorscale: [[0, rgba(t.neg, 0.85)], [0.5, rgba(t.neg, 0.35)], [0.9, rgba(t.s1, 0.25)], [1, t.s1]],
-      colorbar: { title: { text: "fracción de días<br>con dato", font: { size: 11, color: t.ink2 } }, len: 0.52, y: 1,
-                  yanchor: "top", thickness: 12, tickvals: [0, 0.5, 0.9, 1], ticktext: ["0", "0.5", "0.9", "1"],
+      type: "heatmap", x: MESES, y: anios, z, customdata: hover, text: etiqueta, texttemplate: "%{text}",
+      textfont: { size: 9, color: t.ink }, hovertemplate: "%{customdata}<extra></extra>",
+      zmin: -0.5, zmax: 3.5, xgap: 1, ygap: 1, xaxis: "x", yaxis: "y", colorscale: escala,
+      colorbar: { title: { text: "condición del mes<br>(antes del relleno)", font: { size: 11, color: t.ink2 } }, len: 0.52,
+                  y: 1, yanchor: "top", thickness: 12, tickvals: [0, 1, 2, 3],
+                  ticktext: ["completo", "escalado (≤ 10 % faltante)", "excluido (> 10 % faltante)", "sin dato"],
                   tickfont: { color: t.muted }, outlinewidth: 0 },
     }];
     const layout = base(t, {
@@ -1763,13 +1787,41 @@ debe sustentar con bibliografía.
   // 1.1 · temperatura
   G.temp = function (t) {
     const x = D.fechas;
+    // (b) ciclo anual medio 1998–2020 (meses con PISCOt y ERA5-Land a la vez)
+    const ciclo = (serie) => {
+      const suma = Array(12).fill(0), n = Array(12).fill(0);
+      x.forEach((f, i) => {
+        const [y, m] = f.split("-").map(Number);
+        if (y >= 1998 && y <= 2020 && serie[i] != null && D.T_piscot[i] != null && D.T_era5[i] != null) {
+          suma[m - 1] += serie[i]; n[m - 1] += 1;
+        }
+      });
+      return suma.map((v, j) => (n[j] ? Math.round(100 * v / n[j]) / 100 : null));
+    };
+    const h2 = "%{x}: %{y:.2f} °C";
     return { data: [
-      linea(x, D.T_piscot, "PISCOt v1.2 (CAMELS-PE)", t.vT, { hovertemplate: "%{y:.2f} °C" }),
-      linea(x, D.T_era5, "ERA5-Land sin corregir", t.vTE, { line: { color: t.vTE, width: 1.6 }, hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_piscot, "PISCOt v1.2 (CAMELS-PE)", t.vT, { legendgroup: "p", hovertemplate: "%{y:.2f} °C" }),
+      linea(x, D.T_era5, "ERA5-Land sin corregir", t.vTE, { legendgroup: "e", line: { color: t.vTE, width: 1.6 },
+        hovertemplate: "%{y:.2f} °C" }),
       linea(x, D.T_est, "Estimada: ERA5-Land + sesgo mensual", t.vT, { line: { color: t.vT, width: 2, dash: "dash" },
         hovertemplate: "%{y:.2f} °C" }),
-    ], layout: base(t, { height: 470, xaxis: ejeTiempo(t, { rangeslider: slider(t) }),
-      yaxis: eje(t, { title: { text: "Temperatura media mensual (°C)" } }) }) };
+      { type: "scatter", mode: "lines+markers", x: MESES, y: ciclo(D.T_piscot), xaxis: "x2", yaxis: "y2",
+        name: "PISCOt", legendgroup: "p", showlegend: false, line: { color: t.vT, width: 2 },
+        marker: { size: 7, color: t.vT, line: { color: t.card, width: 1.5 } }, hovertemplate: "PISCOt " + h2 + "<extra></extra>" },
+      { type: "scatter", mode: "lines+markers", x: MESES, y: ciclo(D.T_era5), xaxis: "x2", yaxis: "y2",
+        name: "ERA5-Land", legendgroup: "e", showlegend: false, line: { color: t.vTE, width: 2 },
+        marker: { size: 7, color: t.vTE, line: { color: t.card, width: 1.5 } }, hovertemplate: "ERA5-Land " + h2 + "<extra></extra>" },
+    ], layout: base(t, { height: 470, hovermode: "x",
+      xaxis: ejeTiempo(t, { domain: [0, 0.7], rangeslider: slider(t) }),
+      yaxis: eje(t, { title: { text: "Temperatura media mensual (°C)" } }),
+      xaxis2: eje(t, { domain: [0.78, 1], anchor: "y2", type: "category" }),
+      yaxis2: eje(t, { anchor: "x2", title: { text: "°C" } }),
+      annotations: [
+        { text: "(a) Serie mensual", xref: "paper", yref: "paper", x: 0, y: 1.0, xanchor: "left", yanchor: "bottom",
+          showarrow: false, font: { color: t.ink, size: 12.5 }, yshift: 26 },
+        { text: "(b) Ciclo anual medio 1998–2020", xref: "paper", yref: "paper", x: 0.78, y: 1.0, xanchor: "left",
+          yanchor: "bottom", showarrow: false, font: { color: t.ink, size: 12.5 }, yshift: 26 }],
+      margin: { l: 60, r: 18, t: 70, b: 40 } }) };
   };
 
   // 1.2 · fuentes de precipitación
