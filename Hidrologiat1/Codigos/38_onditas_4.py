@@ -158,7 +158,7 @@ for i, k in enumerate(ORDEN):
         ax.axvline(pd.Timestamp(y, 3, 1), color=TINTA2, lw=0.6, ls=":")
     ax.set_yscale("log", base=2)
     ax.set_yticks([0.25, 0.5, 1, 2, 4, 8, 16], ["0.25", "0.5", "1", "2", "4", "8", "16"])
-    ax.set_ylim(P.min(), 20)
+    ax.set_ylim(20, P.min())                                     # periodos cortos arriba (como Torrence y Compo 1998)
     ax.set_xlim(*xlim)
     ax.set_ylabel("periodo (años)")
     ax.set_title(f"{d['nom']} · anomalías estandarizadas {T[0]:%Y-%m}–{T[-1]:%Y-%m} · AR(1) α = {d['alfa']:.2f}",
@@ -171,10 +171,10 @@ for i, k in enumerate(ORDEN):
     g.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10, numticks=4))
     g.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     g.tick_params(labelleft=False)
-    ax.set_ylim(P.min(), 20)                                     # el panel global comparte el eje: fijarlo al final
+    ax.set_ylim(20, P.min())                                     # periodos cortos arriba (como Torrence y Compo 1998)                                     # el panel global comparte el eje: fijarlo al final
     g.set_title("global", fontsize=9, loc="left")
     if i == 0:
-        g.legend(fontsize=7, frameon=False, loc="lower right")
+        g.legend(fontsize=7, frameon=False, loc="upper right")
     if i == len(ORDEN) - 1:
         g.set_xlabel("potencia (varianza)")
 cax = fig.add_axes([0.2, 0.06, 0.45, 0.012])
